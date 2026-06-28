@@ -1,0 +1,256 @@
+export const CATEGORIES = [
+  {
+    id: 'cat-creatine',
+    name: { en: 'Creatine', de: 'Kreatin', fr: 'Créatine' },
+    slug: 'creatine',
+  },
+  {
+    id: 'cat-pre-workout',
+    name: { en: 'Pre Workout', de: 'Pre-Workout', fr: 'Pre-Workout' },
+    slug: 'pre-workout',
+  },
+  {
+    id: 'cat-amino-acids',
+    name: { en: 'Amino Acids', de: 'Aminosäuren', fr: 'Acides Aminés' },
+    slug: 'amino-acids',
+  },
+  {
+    id: 'cat-special-edition',
+    name: { en: 'Special Edition', de: 'Sonderedition', fr: 'Édition Spéciale' },
+    slug: 'special-edition',
+  },
+]
+
+export const PRODUCTS = [
+  {
+    id: 'prod-creatine',
+    name: { en: 'Astro Creatine', de: 'Astro Kreatin', fr: 'Créatine Astro' },
+    slug: 'astro-creatine',
+    tagline: {
+      en: '100% Pure Micronized Creatine Monohydrate',
+      de: '100% reines mikronisiertes Kreatin-Monohydrat',
+      fr: 'Créatine Monohydrate 100% Pure et Micronisée',
+    },
+    short_description: {
+      en: 'Alien-grade purity. High-solubility micronized powder for rapid ATP replenishment, muscle volume, and raw strength.',
+      de: 'Reinheit auf Alien-Niveau. Mikronisiertes Pulver mit hoher Löslichkeit für schnelle ATP-Auffüllung, Muskelvolumen und rohe Kraft.',
+      fr: 'Pureté de niveau extraterrestre. Poudre micronisée à haute solubilité pour une reconstitution rapide de l\'ATP, du volume musculaire et de la force brute.',
+    },
+    description: {
+      en: 'Astro Creatine delivers 100% pure micronized creatine monohydrate of pharmaceutical grade. Zero fillers, zero proprietary blends. Micronized to 200 mesh for instant mixing and maximum absorption. Creatine increases physical performance in successive bursts of short-term, high-intensity exercise. Engineered in Switzerland for athletes who refuse earth-bound limits.',
+      de: 'Astro Kreatin liefert 100% reines mikronisiertes Kreatin-Monohydrat in pharmazeutischer Qualität. Keine Füllstoffe, keine proprietären Mischungen. Auf 200 Mesh mikronisiert für sofortige Löslichkeit und maximale Absorption. Kreatin steigert die körperliche Leistung bei aufeinanderfolgenden, kurzen, hochintensiven Trainingseinheiten. Entwickelt in der Schweiz für Athleten, die keine irdischen Grenzen akzeptieren.',
+      fr: 'La créatine Astro fournit 100% de créatine monohydrate micronisée pure de qualité pharmaceutique. Sans agents de charge, sans mélanges propriétaires. Micronisée à 200 mesh pour un mélange instantané et une absorption maximale. La créatine augmente les performances physiques lors de séances successives d\'exercices courts et de haute intensité. Conçue en Suisse pour les athlètes qui refusent les limites terrestres.',
+    },
+    product_color: '#00FF88',
+    color_name: 'alien-green',
+    base_price: 39.00,
+    compare_at_price: 49.00,
+    avg_rating: 4.9,
+    total_reviews: 48,
+    is_new: true,
+    is_best_seller: true,
+    status: 'active',
+    featured: true,
+    category: CATEGORIES[0],
+    images: [
+      { id: 'img-c1', url: '/products/Product1.jpeg', alt: { en: 'Astro Creatine Bottle' }, is_primary: true, sort_order: 1 },
+    ],
+    variants: [
+      { id: 'var-c1', name: '300g (60 Servings)', price: 39.00, compare_at_price: 49.00, stock: 150, is_default: true, sort_order: 1 },
+      { id: 'var-c2', name: '500g (100 Servings)', price: 59.00, compare_at_price: 69.00, stock: 85, is_default: false, sort_order: 2 },
+    ],
+    pricing_rules: [
+      { id: 'pr-c1', min_qty: 2, max_qty: 4, discount_type: 'percentage', discount_value: 10, is_active: true },
+      { id: 'pr-c2', min_qty: 5, max_qty: null, discount_type: 'percentage', discount_value: 15, is_active: true },
+    ],
+    faqs: [
+      {
+        id: 'faq-c1',
+        question: { en: 'How should I consume Astro Creatine?', de: 'Wie soll ich Astro Kreatin konsumieren?' },
+        answer: { en: 'Mix 1 scoop (5g) with 200ml of water or your favorite beverage daily. No loading phase required, but consistency is key.', de: 'Täglich 1 Messlöffel (5g) mit 200ml Wasser oder deinem Lieblingsgetränk mischen. Keine Ladephase erforderlich, aber Kontinuität ist entscheidend.' },
+      },
+      {
+        id: 'faq-c2',
+        question: { en: 'Is Astro Creatine third-party tested?', de: 'Wird Astro Kreatin von Dritten getestet?' },
+        answer: { en: 'Yes, every single batch is certified by independent Swiss laboratories to be free from heavy metals, contaminants, and banned substances.', de: 'Ja, jede einzelne Charge wird von unabhängigen Schweizer Labors zertifiziert, um frei von Schwermetallen, Verunreinigungen und verbotenen Substanzen zu sein.' },
+      },
+    ],
+  },
+  {
+    id: 'prod-preworkout',
+    name: { en: 'Blast Pre Workout', de: 'Blast Pre-Workout', fr: 'Blast Pre-Workout' },
+    slug: 'blast-pre-workout',
+    tagline: {
+      en: 'Explosive Energy & Laser Focus Formula',
+      de: 'Explosive Energie & Laser-Fokus-Formel',
+      fr: 'Énergie Explosive & Formule de Concentration Laser',
+    },
+    short_description: {
+      en: 'Launch your training into orbit. Extreme pump, infinite endurance, and clean, crash-free energy.',
+      de: 'Bringen Sie Ihr Training in die Umlaufbahn. Extremer Pump, unendliche Ausdauer und saubere Energie ohne Absturz.',
+      fr: 'Lancez votre entraînement en orbite. Congestion extrême, endurance infinie et énergie propre sans coup de fatigue.',
+    },
+    description: {
+      en: 'Blast Pre Workout is formulated for high-intensity training sessions. Packed with Citrulline Malate, Beta-Alanine, L-Tyrosine, and Natural Caffeine, it offers clean energy, explosive pumps, and unmatched laser focus. Manufactured in GMP-certified Swiss facilities with clinical dosages.',
+      de: 'Blast Pre-Workout ist für hochintensives Training formuliert. Vollgepackt mit Citrullin-Malat, Beta-Alanin, L-Tyrosin und natürlichem Koffein bietet es saubere Energie, explosiven Pump und unübertroffenen Laser-Fokus. Hergestellt in GMP-zertifizierten Schweizer Betrieben mit klinischen Dosierungen.',
+      fr: 'Blast Pre-Workout est formulé pour les séances d\'entraînement de haute intensité. Gorgé de malate de citrulline, de bêta-alanine, de l-tyrosine et de caféine naturelle, il offre une énergie propre, des congestions explosives et une concentration laser inégalée. Fabriqué dans des installations suisses certifiées GMP avec des dosages cliniques.',
+    },
+    product_color: '#FF2244',
+    color_name: 'electric-red',
+    base_price: 49.00,
+    compare_at_price: 59.00,
+    avg_rating: 4.8,
+    total_reviews: 32,
+    is_new: false,
+    is_best_seller: true,
+    status: 'active',
+    featured: true,
+    category: CATEGORIES[1],
+    images: [
+      { id: 'img-p1', url: '/products/Product2.jpeg', alt: { en: 'Blast Pre Workout Bottle' }, is_primary: true, sort_order: 1 },
+    ],
+    variants: [
+      { id: 'var-p1', name: '400g (30 Servings) - Sour Cherry', price: 49.00, compare_at_price: 59.00, stock: 120, is_default: true, sort_order: 1 },
+      { id: 'var-p2', name: '400g (30 Servings) - Acid Apple', price: 49.00, compare_at_price: 59.00, stock: 95, is_default: false, sort_order: 2 },
+    ],
+    pricing_rules: [
+      { id: 'pr-p1', min_qty: 2, max_qty: null, discount_type: 'percentage', discount_value: 10, is_active: true },
+    ],
+    faqs: [
+      {
+        id: 'faq-p1',
+        question: { en: 'When should I take Blast Pre Workout?', de: 'Wann sollte ich Blast Pre-Workout einnehmen?' },
+        answer: { en: 'Mix 1 scoop with 250ml of cold water 20-30 minutes before training. Avoid taking within 5 hours of sleep due to high caffeine content.', de: 'Mischen Sie 1 Messlöffel mit 250ml kaltem Wasser 20-30 Minuten vor dem Training. Vermeiden Sie die Einnahme innerhalb von 5 Stunden vor dem Schlafen aufgrund des hohen Koffeingehalts.' },
+      },
+    ],
+  },
+  {
+    id: 'prod-amino-mango',
+    name: { en: 'Amino Fuel Mango', de: 'Amino Fuel Mango', fr: 'Amino Fuel Mango' },
+    slug: 'amino-fuel-mango',
+    tagline: {
+      en: 'Intra-Workout EAA & BCAA Recovery Catalyst',
+      de: 'Intra-Workout EAA & BCAA Erholungskatalysator',
+      fr: 'Catalyseur de Récupération EAA & BCAA Intra-Entraînement',
+    },
+    short_description: {
+      en: 'Complete essential amino acid profile. Optimizes recovery, hydration, and muscle protein synthesis during intense workouts.',
+      de: 'Vollständiges Profil an essenziellen Aminosäuren. Optimiert die Erholung, Hydratation und Muskelproteinsynthese während des intensiven Trainings.',
+      fr: 'Profil complet d\'acides aminés essentiels. Optimise la récupération, l\'hydratation et la synthèse des protéines musculaires pendant les séances intenses.',
+    },
+    description: {
+      en: 'Amino Fuel Mango contains all 9 Essential Amino Acids (EAAs) including the 3 Branched-Chain Amino Acids (BCAAs) in a proven 2:1:1 ratio. Together with organic coconut water powder for premium electrolyte replenishment, it keeps you hydrated and anabolic throughout the longest training sessions. Made in Switzerland, featuring a delicious natural mango flavor.',
+      de: 'Amino Fuel Mango enthält alle 9 essenziellen Aminosäuren (EAAs) einschließlich der 3 verzweigtkettigen Aminosäuren (BCAAs) im bewährten Verhältnis von 2:1:1. Zusammen mit organischem Kokosnusswasser-Pulver für eine erstklassige Elektrolytauffüllung hält es Sie während der längsten Trainingseinheiten hydratisiert und anabol. Hergestellt in der Schweiz, mit einem köstlichen natürlichen Mango-Geschmack.',
+      fr: 'Amino Fuel Mango contient les 9 acides aminés essentiels (EAA), y compris les 3 acides aminés à chaîne ramifiée (BCAA) dans un ratio éprouvé de 2:1:1. Associé à de la poudre d\'eau de coco biologique pour un apport en électrolytes de qualité supérieure, il vous maintient hydraté et anabolique tout au long des séances les plus longues. Fabriqué en Suisse, avec une délicieuse saveur de mangue naturelle.',
+    },
+    product_color: '#FF8C00',
+    color_name: 'mango-orange',
+    base_price: 45.00,
+    compare_at_price: null,
+    avg_rating: 4.7,
+    total_reviews: 19,
+    is_new: false,
+    is_best_seller: false,
+    status: 'active',
+    featured: true,
+    category: CATEGORIES[2],
+    images: [
+      { id: 'img-am1', url: '/products/Product3.jpeg', alt: { en: 'Amino Fuel Mango Bottle' }, is_primary: true, sort_order: 1 },
+    ],
+    variants: [
+      { id: 'var-am1', name: '390g (30 Servings)', price: 45.00, compare_at_price: null, stock: 110, is_default: true, sort_order: 1 },
+    ],
+    pricing_rules: [],
+    faqs: [
+      {
+        id: 'faq-am1',
+        question: { en: 'Can I drink this throughout the day?', de: 'Kann ich das über den Tag verteilt trinken?' },
+        answer: { en: 'Yes! Amino Fuel can be sipped during training for performance, or throughout the day to support muscle protein synthesis and hydration.', de: 'Ja! Amino Fuel kann während des Trainings zur Leistungssteigerung oder über den Tag verteilt getrunken werden, um die Muskelproteinsynthese und Hydratation zu unterstützen.' },
+      },
+    ],
+  },
+  {
+    id: 'prod-amino-blue',
+    name: { en: 'Amino Fuel Blue', de: 'Amino Fuel Blue', fr: 'Amino Fuel Blue' },
+    slug: 'amino-fuel-blue',
+    tagline: {
+      en: 'Blue Raspberry EAA & BCAA Hydration Formula',
+      de: 'Blaue Himbeere EAA & BCAA Hydrationsformel',
+      fr: 'Formule d\'Hydratation EAA & BCAA Framboise Bleue',
+    },
+    short_description: {
+      en: 'Premium recovery matrix. Fast-absorbing EAAs with a refreshing cosmic blue raspberry flavor.',
+      de: 'Erstklassige Erholungsmatrix. Schnell einziehende EAAs mit einem erfrischenden kosmischen Blaue-Himbeere-Geschmack.',
+      fr: 'Matrice de récupération premium. EAA à absorption rapide avec un goût rafraîchissant de framboise bleue cosmique.',
+    },
+    description: {
+      en: 'Formulated identically to our Mango blend, Amino Fuel Blue provides the ultimate intra-workout recovery experience with a punchy, interstellar Blue Raspberry taste. Provides critical hydration and prevents muscle breakdown. Formulated under clean lab standards in Switzerland.',
+      de: 'Identisch formuliert wie unsere Mango-Mischung, bietet Amino Fuel Blue das ultimative Intra-Workout-Erholungserlebnis mit einem spritzigen, interstellaren Blaue-Himbeere-Geschmack. Bietet wichtige Hydratation und verhindert Muskelabbau. Formuliert unter sauberen Laborstandards in der Schweiz.',
+      fr: 'Formulé de manière identique à notre mélange Mango, Amino Fuel Blue offre l\'expérience ultime de récupération intra-entraînement avec un goût de framboise bleue interstellaire percutant. Fournit une hydratation critique et prévient la dégradation musculaire. Formulé selon les normes de laboratoire en Suisse.',
+    },
+    product_color: '#00CFFF',
+    color_name: 'neon-blue',
+    base_price: 45.00,
+    compare_at_price: null,
+    avg_rating: 4.9,
+    total_reviews: 26,
+    is_new: true,
+    is_best_seller: false,
+    status: 'active',
+    featured: true,
+    category: CATEGORIES[2],
+    images: [
+      { id: 'img-ab1', url: '/products/Product4.jpeg', alt: { en: 'Amino Fuel Blue Bottle' }, is_primary: true, sort_order: 1 },
+    ],
+    variants: [
+      { id: 'var-ab1', name: '390g (30 Servings)', price: 45.00, compare_at_price: null, stock: 75, is_default: true, sort_order: 1 },
+    ],
+    pricing_rules: [],
+    faqs: [],
+  },
+  {
+    id: 'prod-special',
+    name: { en: 'Special Edition', de: 'Sonderedition', fr: 'Édition Spéciale' },
+    slug: 'special-edition',
+    tagline: {
+      en: 'Cosmic Brain & Muscle Catalyst',
+      de: 'Kosmischer Gehirn- & Muskelkatalysator',
+      fr: 'Catalyseur Cosmique Cerveau & Muscle',
+    },
+    short_description: {
+      en: 'Limitless potential. Hybrid physical and cognitive performance booster with adaptogens and nootropics.',
+      de: 'Grenzenloses Potenzial. Hybrider physischer und kognitiver Leistungsbooster mit Adaptogenen und Nootropika.',
+      fr: 'Potentiel illimité. Booster de performance physique et cognitive hybride avec adaptogènes et nootropiques.',
+    },
+    description: {
+      en: 'The crown jewel of UFO LABZ. Special Edition is a limited-run hybrid formulation combining premium physical performance enhancers with advanced cognitive nootropics. Featuring Alpha-GPC, Lion\'s Mane Extract, and Rhodiola Rosea alongside premium Pump agents, it creates a ultimate mind-muscle connection. Swiss engineered for elite minds and bodies.',
+      de: 'Das Kronjuwel von UFO LABZ. Die Sonderedition ist eine limitierte Hybrid-Formulierung, die erstklassige körperliche Leistungssteigerer mit fortschrittlichen kognitiven Nootropika kombiniert. Mit Alpha-GPC, Igelstachelbart-Extrakt (Lion\'s Mane) und Rhodiola Rosea neben erstklassigen Pump-Wirkstoffen schafft es eine ultimative Geist-Muskel-Verbindung. In der Schweiz entwickelt für Elite-Köpfe und -Körper.',
+      fr: 'Le joyau de la couronne d\'UFO LABZ. Special Edition est une formule hybride en édition limitée combinant des boosters de performance physique de qualité supérieure avec des nootropiques cognitifs avancés. Comprenant de l\'Alpha-GPC, de l\'extrait de crinière de lion et de la Rhodiola Rosea, ainsi que des agents de congestion haut de gamme, il crée une connexion esprit-muscle ultime. Conçu en Suisse pour les esprits et les corps d\'élite.',
+    },
+    product_color: '#9B30FF',
+    color_name: 'cosmic-purple',
+    base_price: 69.00,
+    compare_at_price: 79.00,
+    avg_rating: 5.0,
+    total_reviews: 14,
+    is_new: true,
+    is_best_seller: false,
+    status: 'active',
+    featured: true,
+    category: CATEGORIES[3],
+    images: [
+      { id: 'img-s1', url: '/products/Product5.jpeg', alt: { en: 'Special Edition Bottle' }, is_primary: true, sort_order: 1 },
+    ],
+    variants: [
+      { id: 'var-s1', name: '360g (30 Servings) - Cosmic Grape', price: 69.00, compare_at_price: 79.00, stock: 40, is_default: true, sort_order: 1 },
+    ],
+    pricing_rules: [],
+    faqs: [
+      {
+        id: 'faq-s1',
+        question: { en: 'What makes this Special Edition different?', de: 'Was macht diese Sonderedition so besonders?' },
+        answer: { en: 'It is a dual-effect formula. Traditional pre-workouts only stimulate muscles, but Special Edition enhances cognitive flow state, reaction time, and focus through safe nootropics, allowing extreme mental endurance alongside physical strength.', de: 'Es ist eine Formel mit zweifacher Wirkung. Traditionelle Pre-Workouts stimulieren nur die Muskeln, aber die Sonderedition verbessert den kognitiven Flow-Zustand, die Reaktionszeit und den Fokus durch sichere Nootropika, was eine extreme mentale Ausdauer neben der körperlichen Kraft ermöglicht.' },
+      },
+    ],
+  },
+]
