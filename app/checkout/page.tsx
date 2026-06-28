@@ -168,15 +168,71 @@ export default function CheckoutPage() {
 
   const handleCompletePurchase = async () => {
     setIsSubmitting(true)
-    // Simulate payment transaction network lag
-    await new Promise((resolve) => setTimeout(resolve, 2000))
+    
+    // 1. Generate unique order ID
+    const orderId = `UFO-CH-${Math.floor(100000 + Math.random() * 900000)}`
+
+    // 2. Prepare order data for database and Resend
+    const mappedItems = items.map((item) => ({
+      productId: item.variant?.product_id || (item.variant as any).product?.id,
+      variantId: item.variant?.id,
+      name: getLocalizedField((item.variant as any).product?.name) || 'UFO Supplement',
+      variantName: item.variant.name,
+      sku: item.variant.sku,
+      price: item.variant.price,
+      quantity: item.quantity
+    }))
+
+    const orderPayload = {
+      orderNumber: orderId,
+      email,
+      fullName,
+      phone,
+      shippingAddress: {
+        addressLine1: address,
+        addressLine2: address2 || '',
+        city,
+        zipCode: zip,
+        canton,
+      },
+      billingAddress: sameAsShipping ? null : {
+        fullName: billFullName,
+        addressLine1: billAddress,
+        city: billCity,
+        zipCode: billZip,
+        canton: billCanton,
+      },
+      shippingMethod,
+      paymentMethod,
+      items: mappedItems,
+      subtotal: breakdown.subtotal,
+      discountAmount: couponDiscount,
+      shippingAmount: shippingCost,
+      total: finalTotal,
+      couponCode: appliedCoupon ? appliedCoupon.split(' ')[0] : null
+    }
+
+    try {
+      const response = await fetch('/api/checkout/complete', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(orderPayload),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        console.error('[CHECKOUT API ERROR] Failed to save order on server:', errorData)
+      }
+    } catch (err) {
+      console.error('[CHECKOUT NETWORK ERROR] Failed to contact checkout complete route:', err)
+    }
+
     setIsSubmitting(false)
     setShowTwintModal(false)
-    
-    // Order successfully placed
-    const orderId = `UFO-CH-${Math.floor(100000 + Math.random() * 900000)}`
-    
-    // If affiliate coupon was applied, register affiliate commission!
+
+    // If affiliate coupon was applied, register affiliate commission locally (for frontend dashboard simulation)
     if (appliedCoupon) {
       const couponCodeUsed = appliedCoupon.split(' ')[0]
       const storedCouponsStr = localStorage.getItem('ufo_admin_coupons')
