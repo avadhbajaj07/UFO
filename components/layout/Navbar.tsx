@@ -12,7 +12,7 @@ const navLinks = [
   { href: '/products', label: 'Shop' },
   { href: '/pages/about', label: 'About' },
   { href: '/pages/faq',   label: 'FAQ' },
-  { href: 'mailto:support@ufolabz.com', label: 'Contact' },
+  { href: '/pages/contact', label: 'Contact' },
 ]
 
 export default function Navbar() {

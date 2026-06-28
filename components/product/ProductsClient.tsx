@@ -137,7 +137,7 @@ export default function ProductsClient({ products, categories, activeCategory, a
       </div>
 
       {/* Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
         {displayProducts.map((product: any) => {
           const color   = product.product_color ?? '#00FF88'
           const name    = getLocalizedField(product.name)
@@ -161,7 +161,7 @@ export default function ProductsClient({ products, categories, activeCategory, a
               <div className="relative">
                 <Link href={`/products/${product.slug}`} className="block aspect-square relative overflow-hidden bg-space-900">
                   {image?.url ? (
-                    <Image src={image.url} alt={name} fill className="object-contain p-6 group-hover:scale-105 transition-transform duration-500" sizes="(max-width: 640px) 50vw, 33vw" />
+                    <Image src={image.url} alt={name} fill className="object-contain p-4 sm:p-6 group-hover:scale-105 transition-transform duration-500" sizes="(max-width: 640px) 50vw, 33vw" />
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center">
                       <div className="w-16 h-16 rounded-full opacity-20 animate-pulse" style={{ backgroundColor: color }} />
@@ -177,30 +177,30 @@ export default function ProductsClient({ products, categories, activeCategory, a
               </div>
 
               {/* Content */}
-              <div className="p-4">
+              <div className="p-3 sm:p-4">
                 {product.total_reviews > 0 && (
-                  <div className="flex items-center gap-1 mb-1.5">
-                    <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                    <span className="text-[11px] text-muted">{product.avg_rating.toFixed(1)} ({product.total_reviews})</span>
+                  <div className="flex items-center gap-1 mb-1 sm:mb-1.5">
+                    <Star className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-yellow-400 text-yellow-400" />
+                    <span className="text-[10px] sm:text-[11px] text-muted">{product.avg_rating.toFixed(1)} ({product.total_reviews})</span>
                   </div>
                 )}
                 <Link href={`/products/${product.slug}`}>
-                  <h3 className="font-display text-lg tracking-wider text-white mb-1">{name}</h3>
-                  <p className="text-xs text-muted line-clamp-1 mb-3">{tagline}</p>
+                  <h3 className="font-display text-base sm:text-lg tracking-wider text-white mb-0.5 sm:mb-1 line-clamp-2">{name}</h3>
+                  <p className="text-[11px] sm:text-xs text-muted line-clamp-1 mb-2 sm:mb-3">{tagline}</p>
                 </Link>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <span className="font-bold text-white">{formatPrice(price)}</span>
-                    {compare && <span className="ml-1.5 text-xs text-muted/60 line-through">{formatPrice(compare)}</span>}
+                <div className="flex items-end justify-between gap-1">
+                  <div className="min-w-0">
+                    <span className="text-sm sm:text-base font-bold text-white">{formatPrice(price)}</span>
+                    {compare && <span className="hidden xs:inline ml-1 sm:ml-1.5 text-[10px] sm:text-xs text-muted/60 line-through">{formatPrice(compare)}</span>}
                   </div>
                   <button
                     onClick={() => variant && addItem(variant.id)}
                     disabled={!inStock || isLoading || !variant}
-                    className="w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:scale-110 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center transition-all hover:scale-110 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
                     style={inStock ? { backgroundColor: color } : { backgroundColor: 'rgba(119,119,170,0.2)' }}
                     aria-label={`Add ${name} to cart`}
                   >
-                    <ShoppingBag className="w-3.5 h-3.5 text-space-900" />
+                    <ShoppingBag className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-space-900" />
                   </button>
                 </div>
               </div>

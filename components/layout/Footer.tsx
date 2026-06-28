@@ -13,8 +13,8 @@ const companyLinks = [
   { href: '/pages/about', label: 'About UFO LABZ' },
   { href: '/pages/shipping', label: 'Shipping & Returns' },
   { href: '/pages/faq', label: 'FAQ' },
-  { href: '/blog', label: 'Blog' },
-  { href: '/account/affiliate', label: 'Affiliate Program' },
+  { href: '/pages/contact', label: 'Contact' },
+  { href: '/pages/affiliate', label: 'Affiliate Program' },
 ]
 
 const contactInfo = [

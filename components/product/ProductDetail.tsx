@@ -1147,6 +1147,7 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
       )}
 
       {/* ─── 9. RELATED PRODUCTS ─── */}
+      {stacks.length > 0 && (
       <section className="py-16 bg-space-950 border-t border-white/5">
         <div className="max-w-7xl mx-auto container-px">
           <h3 className="font-display text-3xl tracking-wide uppercase mb-10 text-center text-white">RECOMMENDED STACKS</h3>
@@ -1188,6 +1189,7 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
           </div>
         </div>
       </section>
+      )}
 
       {/* ─── 4. AI CHATBOT OVERLAY MODAL ─── */}
       {isAiModalOpen && (

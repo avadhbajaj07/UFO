@@ -73,6 +73,272 @@ export default function PosDashboard() {
   const [cashAmount, setCashAmount] = useState(0) // for splits
   const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false)
   const [lastReceipt, setLastReceipt] = useState<any | null>(null)
+  const [autoDownloadInvoice, setAutoDownloadInvoice] = useState(true)
+
+  // Invoice generator for downloads & printing
+  const getInvoiceHtml = (receipt: any) => {
+    return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>UFO LABZ Invoice - ${receipt.invoiceId}</title>
+  <style>
+    body {
+      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #06060F;
+      color: #FFFFFF;
+      padding: 40px;
+      margin: 0;
+    }
+    .invoice-card {
+      max-width: 600px;
+      margin: 0 auto;
+      background: #0E0E24;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 24px;
+      padding: 40px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding-bottom: 24px;
+      margin-bottom: 24px;
+    }
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .logo {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #7B2FBE 0%, #00FF88 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      color: #FFFFFF;
+    }
+    .brand-name {
+      font-family: 'Orbitron', monospace;
+      font-size: 20px;
+      letter-spacing: 2px;
+      font-weight: bold;
+    }
+    .invoice-title {
+      font-size: 14px;
+      color: #8888BB;
+      text-align: right;
+    }
+    .invoice-id {
+      font-size: 24px;
+      font-weight: bold;
+      color: #00FF88;
+      margin-top: 4px;
+    }
+    .meta-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 32px;
+      font-size: 13px;
+      color: #8888BB;
+    }
+    .meta-value {
+      color: #FFFFFF;
+      font-weight: 500;
+      margin-top: 4px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 32px;
+    }
+    th {
+      text-align: left;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #8888BB;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding-bottom: 12px;
+    }
+    td {
+      padding: 16px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      font-size: 14px;
+    }
+    .text-right {
+      text-align: right;
+    }
+    .summary-box {
+      margin-left: auto;
+      width: 250px;
+      font-size: 13px;
+      color: #8888BB;
+    }
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 0;
+    }
+    .total-row {
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding-top: 12px;
+      margin-top: 12px;
+      color: #FFFFFF;
+      font-size: 18px;
+      font-weight: bold;
+    }
+    .footer {
+      text-align: center;
+      margin-top: 40px;
+      font-size: 11px;
+      color: #8888BB;
+      border-top: 1px solid rgba(255, 255, 255, 0.04);
+      padding-top: 24px;
+    }
+    .green-glow {
+      color: #00FF88;
+    }
+    @media print {
+      body {
+        background: #FFFFFF;
+        color: #000000;
+        padding: 0;
+      }
+      .invoice-card {
+        border: none;
+        box-shadow: none;
+        background: #FFFFFF;
+        color: #000000;
+        max-width: 100%;
+        padding: 0;
+      }
+      .meta-value, .brand-name, .invoice-id {
+        color: #000000 !important;
+      }
+      td, th {
+        border-bottom-color: #DDDDDD !important;
+      }
+      .total-row {
+        border-top-color: #000000 !important;
+        color: #000000 !important;
+      }
+      .green-glow {
+        color: #000000 !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="invoice-card">
+    <div class="header">
+      <div class="logo-container">
+        <div class="logo">U</div>
+        <div class="brand-name">UFO LABZ</div>
+      </div>
+      <div class="invoice-title">
+        <div>OFFICIAL INVOICE</div>
+        <div class="invoice-id">${receipt.invoiceId}</div>
+      </div>
+    </div>
+    
+    <div class="meta-grid">
+      <div>
+        <div>DATE & TIME</div>
+        <div class="meta-value">${receipt.date}</div>
+      </div>
+      <div>
+        <div>ISSUED BY</div>
+        <div class="meta-value">${receipt.store}</div>
+      </div>
+      <div>
+        <div>CLIENT / GUEST</div>
+        <div class="meta-value">${receipt.customer}</div>
+      </div>
+      <div>
+        <div>CASHIER AGENT</div>
+        <div class="meta-value">${receipt.cashier}</div>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Product details</th>
+          <th class="text-right">Qty</th>
+          <th class="text-right">Total Price</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${receipt.cart.map((item: any) => `
+          <tr>
+            <td>
+              <div style="font-weight: bold;">${item.product.title}</div>
+              <div style="font-size: 11px; color: #8888BB; margin-top: 2px;">SKU: ${item.product.sku}</div>
+            </td>
+            <td class="text-right">${item.quantity}</td>
+            <td class="text-right">CHF ${(item.product.price * item.quantity).toFixed(2)}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+
+    <div class="summary-box">
+      <div class="summary-row">
+        <span>Subtotal</span>
+        <span>CHF ${receipt.subtotal.toFixed(2)}</span>
+      </div>
+      ${receipt.discount > 0 ? `
+        <div class="summary-row" style="color: #00FF88; font-weight: bold;">
+          <span>Discount Applied</span>
+          <span>-CHF ${receipt.discount.toFixed(2)}</span>
+        </div>
+      ` : ''}
+      <div class="summary-row">
+        <span>Swiss VAT (8.1%)</span>
+        <span>CHF ${receipt.tax.toFixed(2)}</span>
+      </div>
+      <div class="summary-row total-row">
+        <span>Total Paid</span>
+        <span class="green-glow">CHF ${receipt.total.toFixed(2)}</span>
+      </div>
+    </div>
+
+    <div style="margin-top: 32px; font-size: 11px; color: #8888BB; border-top: 1px dashed rgba(255, 255, 255, 0.08); padding-top: 16px;">
+      <div>Payment Method: <strong>${receipt.paymentMethod}</strong></div>
+      <div>Amount Tendered: CHF ${receipt.received.toFixed(2)}</div>
+      ${receipt.change > 0 ? `<div>Change Due: CHF ${receipt.change.toFixed(2)}</div>` : ''}
+    </div>
+
+    <div class="footer">
+      <div>THANK YOU FOR SHOPPING WITH UFO LABZ GMBH</div>
+      <div style="margin-top: 4px; font-size: 9px; color: #8888BB; letter-spacing: 1px;">SWISS LABS INTELLECTUAL PROPERTY</div>
+    </div>
+  </div>
+</body>
+</html>
+    `
+  }
+
+  const downloadReceiptPdf = (receipt: any) => {
+    const html = getInvoiceHtml(receipt)
+    const blob = new Blob([html], { type: 'text/html' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `UFO-LABZ-INVOICE-${receipt.invoiceId}.html`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
 
   // UI notifications
   const [alerts, setAlerts] = useState<string[]>([])
@@ -332,6 +598,11 @@ export default function PosDashboard() {
 
     setLastReceipt(receipt)
     setIsReceiptModalOpen(true)
+
+    // Auto download if checked
+    if (autoDownloadInvoice) {
+      downloadReceiptPdf(receipt)
+    }
     
     // Clear cart and customer
     setCart([])
@@ -865,6 +1136,20 @@ export default function PosDashboard() {
               </div>
             )}
 
+            {/* Auto-download Toggle */}
+            <div className="flex items-center gap-2 mb-2 mt-4 px-1">
+              <input
+                id="autoDownloadCheck"
+                type="checkbox"
+                checked={autoDownloadInvoice}
+                onChange={(e) => setAutoDownloadInvoice(e.target.checked)}
+                className="w-4 h-4 rounded border-white/10 bg-space-950 text-alien-green focus:ring-0 cursor-pointer"
+              />
+              <label htmlFor="autoDownloadCheck" className="text-[10px] font-mono text-gray-400 select-none cursor-pointer">
+                Auto-download invoice on checkout completion
+              </label>
+            </div>
+
             {/* Dispatch Checkout Complete button */}
             <button
               onClick={handleCompleteSale}
@@ -1075,7 +1360,16 @@ export default function PosDashboard() {
             <div className="grid grid-cols-2 gap-2 text-xs font-mono font-bold">
               <button 
                 onClick={() => {
-                  alert('Sending print commands to Thermal Printer (80mm ESC/POS compatible)...')
+                  const printWindow = window.open('', '_blank')
+                  if (printWindow) {
+                    printWindow.document.write(getInvoiceHtml(lastReceipt))
+                    printWindow.document.close()
+                    printWindow.focus()
+                    setTimeout(() => {
+                      printWindow.print()
+                      printWindow.close()
+                    }, 250)
+                  }
                   setIsReceiptModalOpen(false)
                 }}
                 className="bg-alien-green text-space-950 py-2.5 rounded-xl flex items-center justify-center gap-1.5 hover:shadow-glow-green"
@@ -1086,7 +1380,7 @@ export default function PosDashboard() {
               
               <button 
                 onClick={() => {
-                  alert('PDF Invoice generated and downloaded to device!')
+                  downloadReceiptPdf(lastReceipt)
                   setIsReceiptModalOpen(false)
                 }}
                 className="bg-white/5 border border-white/10 text-white py-2.5 rounded-xl flex items-center justify-center gap-1.5 hover:bg-white/10"

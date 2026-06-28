@@ -88,13 +88,13 @@ function ProductCard({ product }: { product: Product }) {
             src={primary.url}
             alt={name}
             fill
-            className="object-contain p-8 group-hover:scale-105 transition-transform duration-700"
+            className="object-contain p-4 sm:p-8 group-hover:scale-105 transition-transform duration-700"
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
             <div
-              className="w-24 h-24 rounded-full opacity-30 animate-pulse"
+              className="w-16 h-16 sm:w-24 sm:h-24 rounded-full opacity-30 animate-pulse"
               style={{ backgroundColor: color }}
             />
           </div>
@@ -107,42 +107,42 @@ function ProductCard({ product }: { product: Product }) {
       </Link>
 
       {/* Content */}
-      <div className="p-5">
+      <div className="p-3 sm:p-5">
         {/* Rating */}
         {product.total_reviews > 0 && (
-          <div className="flex items-center gap-1 mb-2">
+          <div className="flex items-center gap-1 mb-1.5 sm:mb-2">
             {Array.from({ length: 5 }).map((_, i) => (
               <Star
                 key={i}
                 className={cn(
-                  'w-3 h-3',
+                  'w-2.5 h-2.5 sm:w-3 sm:h-3',
                   i < Math.round(product.avg_rating)
                     ? 'fill-yellow-400 text-yellow-400'
                     : 'fill-transparent text-muted/30'
                 )}
               />
             ))}
-            <span className="text-xs text-muted ml-1">
+            <span className="text-[10px] sm:text-xs text-muted ml-1">
               ({product.total_reviews})
             </span>
           </div>
         )}
 
         <Link href={`/products/${product.slug}`}>
-          <h3 className="font-display text-xl tracking-wider text-white group-hover:text-opacity-90 mb-1 transition-colors">
+          <h3 className="font-display text-base sm:text-xl tracking-wider text-white group-hover:text-opacity-90 mb-0.5 sm:mb-1 transition-colors line-clamp-2">
             {name}
           </h3>
-          <p className="text-xs text-muted leading-relaxed line-clamp-2 mb-4">
+          <p className="text-[11px] sm:text-xs text-muted leading-relaxed line-clamp-1 sm:line-clamp-2 mb-2.5 sm:mb-4">
             {tagline}
           </p>
         </Link>
 
         {/* Price + CTA */}
-        <div className="flex items-center justify-between">
-          <div>
-            <span className="text-lg font-bold text-white">{formatPrice(price)}</span>
+        <div className="flex items-end justify-between gap-1">
+          <div className="min-w-0">
+            <span className="text-sm sm:text-lg font-bold text-white">{formatPrice(price)}</span>
             {compare && (
-              <span className="ml-2 text-sm text-muted/60 line-through">
+              <span className="hidden xs:inline ml-1.5 sm:ml-2 text-xs sm:text-sm text-muted/60 line-through">
                 {formatPrice(compare)}
               </span>
             )}
@@ -152,7 +152,7 @@ function ProductCard({ product }: { product: Product }) {
             onClick={() => variant && addItem(variant.id)}
             disabled={!inStock || isLoading || !variant}
             className={cn(
-              'p-2.5 rounded-xl transition-all duration-200 flex items-center justify-center',
+              'p-2 sm:p-2.5 rounded-lg sm:rounded-xl transition-all duration-200 flex items-center justify-center shrink-0',
               inStock
                 ? 'text-space-900 hover:shadow-lg active:scale-95'
                 : 'bg-muted/20 text-muted cursor-not-allowed'
@@ -161,9 +161,9 @@ function ProductCard({ product }: { product: Product }) {
             aria-label={inStock ? `Add ${name} to cart` : 'Out of stock'}
           >
             {inStock ? (
-              <ShoppingBag className="w-4 h-4" />
+              <ShoppingBag className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             ) : (
-              <span className="text-xs px-1">Out</span>
+              <span className="text-[10px] sm:text-xs px-1">Out</span>
             )}
           </button>
         </div>
@@ -195,7 +195,7 @@ export default function ProductGrid({ products }: ProductGridProps) {
       </div>
 
       {/* Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 lg:gap-5">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 lg:gap-5">
         {products.map((product) => (
           <ProductCard key={product.id} product={product} />
         ))}
