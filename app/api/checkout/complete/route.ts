@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import crypto from 'crypto';
 import { createClient } from '@/lib/supabase/server';
 import { emailService } from '@/lib/email/email';
 
@@ -63,60 +64,64 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 3. Insert order record
+    // 3. Generate UUID for the order on the server side to bypass RLS select-returning constraint
+    const newOrderId = crypto.randomUUID();
+
     const estimatedDeliveryDate = new Date();
     // Default priority to 1 day delivery, standard to 3 days delivery
     estimatedDeliveryDate.setDate(
       estimatedDeliveryDate.getDate() + (shippingMethod === 'priority' ? 1 : 3)
     );
 
-    const { data: order, error: orderError } = await supabase
+    const orderInsertData = {
+      id: newOrderId,
+      order_number: orderNumber,
+      guest_email: email,
+      status: 'confirmed',
+      shipping_address: {
+        fullName,
+        phone,
+        addressLine1: shippingAddress.addressLine1 || '',
+        addressLine2: shippingAddress.addressLine2 || '',
+        city: shippingAddress.city || '',
+        zipCode: shippingAddress.zipCode || '',
+        canton: shippingAddress.canton || '',
+      },
+      billing_address: billingAddress
+        ? {
+            fullName: billingAddress.fullName || fullName,
+            addressLine1: billingAddress.addressLine1 || '',
+            addressLine2: billingAddress.addressLine2 || '',
+            city: billingAddress.city || '',
+            zipCode: billingAddress.zipCode || '',
+            canton: billingAddress.canton || '',
+          }
+        : {
+            fullName,
+            addressLine1: shippingAddress.addressLine1 || '',
+            addressLine2: shippingAddress.addressLine2 || '',
+            city: shippingAddress.city || '',
+            zipCode: shippingAddress.zipCode || '',
+            canton: shippingAddress.canton || '',
+          },
+      subtotal: Number(subtotal),
+      discount_amount: Number(discountAmount),
+      shipping_amount: Number(shippingAmount),
+      total: Number(total),
+      payment_method: paymentMethod || 'twint',
+      paid_at: new Date().toISOString(),
+      coupon_id: couponId,
+      coupon_code: couponCode || null,
+      shipping_method: shippingMethod || 'standard',
+      estimated_delivery: estimatedDeliveryDate.toISOString().split('T')[0],
+      currency: 'CHF',
+      locale: 'en',
+    };
+
+    // Run plain insert without .select() or .single() to avoid RLS select restrictions on anon client
+    const { error: orderError } = await supabase
       .from('orders')
-      .insert({
-        order_number: orderNumber,
-        guest_email: email,
-        status: 'confirmed',
-        shipping_address: {
-          fullName,
-          phone,
-          addressLine1: shippingAddress.addressLine1 || '',
-          addressLine2: shippingAddress.addressLine2 || '',
-          city: shippingAddress.city || '',
-          zipCode: shippingAddress.zipCode || '',
-          canton: shippingAddress.canton || '',
-        },
-        billing_address: billingAddress
-          ? {
-              fullName: billingAddress.fullName || fullName,
-              addressLine1: billingAddress.addressLine1 || '',
-              addressLine2: billingAddress.addressLine2 || '',
-              city: billingAddress.city || '',
-              zipCode: billingAddress.zipCode || '',
-              canton: billingAddress.canton || '',
-            }
-          : {
-              fullName,
-              addressLine1: shippingAddress.addressLine1 || '',
-              addressLine2: shippingAddress.addressLine2 || '',
-              city: shippingAddress.city || '',
-              zipCode: shippingAddress.zipCode || '',
-              canton: shippingAddress.canton || '',
-            },
-        subtotal: Number(subtotal),
-        discount_amount: Number(discountAmount),
-        shipping_amount: Number(shippingAmount),
-        total: Number(total),
-        payment_method: paymentMethod || 'twint',
-        paid_at: new Date().toISOString(),
-        coupon_id: couponId,
-        coupon_code: couponCode || null,
-        shipping_method: shippingMethod || 'standard',
-        estimated_delivery: estimatedDeliveryDate.toISOString().split('T')[0],
-        currency: 'CHF',
-        locale: 'en',
-      })
-      .select()
-      .single();
+      .insert(orderInsertData);
 
     if (orderError) {
       console.error('❌ Error saving order to Supabase:', orderError);
@@ -125,7 +130,7 @@ export async function POST(req: NextRequest) {
 
     // 4. Insert order items
     const orderItemsToInsert = items.map((item: any) => ({
-      order_id: order.id,
+      order_id: newOrderId,
       product_id: item.productId || item.variant?.product_id || item.variant?.product?.id,
       variant_id: item.variantId || item.variant?.id,
       product_name: { en: item.name || item.variant?.product?.name?.en || 'UFO Supplement' },
@@ -143,23 +148,30 @@ export async function POST(req: NextRequest) {
     if (itemsError) {
       console.error('❌ Error saving order items to Supabase:', itemsError);
       // Delete the created order to maintain transactional integrity
-      await supabase.from('orders').delete().eq('id', order.id);
+      await supabase.from('orders').delete().eq('id', newOrderId);
       throw new Error(`Database error saving order items: ${itemsError.message}`);
     }
 
     console.log(`[CHECKOUT API] Successfully persisted order: ${orderNumber} in database.`);
 
+    // Construct mock order object containing payload values to pass to emailService
+    const emailOrderData = {
+      ...orderInsertData,
+      email: email,
+      created_at: orderInsertData.paid_at,
+    };
+
     // 5. Send emails in parallel asynchronously
     // Catch errors inside each to log them and not halt success response.
     const emailPromises = [
-      emailService.sendOrderConfirmation(order, orderItemsToInsert).then((res) => {
+      emailService.sendOrderConfirmation(emailOrderData, orderItemsToInsert).then((res) => {
         if (!res.success) {
           console.error(`[CHECKOUT API] Failed to send customer confirmation: ${res.error}`);
         } else {
           console.log(`[CHECKOUT API] Customer confirmation sent: ${res.id}`);
         }
       }),
-      emailService.sendAdminNotification(order, orderItemsToInsert).then((res) => {
+      emailService.sendAdminNotification(emailOrderData, orderItemsToInsert).then((res) => {
         if (!res.success) {
           console.error(`[CHECKOUT API] Failed to send admin notification: ${res.error}`);
         } else {
@@ -175,8 +187,8 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      orderId: order.id,
-      orderNumber: order.order_number,
+      orderId: newOrderId,
+      orderNumber: orderNumber,
       message: 'Order created and emails triggered.',
     });
   } catch (err: any) {
