@@ -280,6 +280,14 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
   const tagline = getLocalizedField(product.tagline)
   const desc = getLocalizedField(product.description)
   const shortDesc = getLocalizedField(product.short_description)
+  const keyBenefits = Array.isArray(product.schema_markup?.key_benefits)
+    ? product.schema_markup.key_benefits
+    : [
+        'Third-party purity tested in independent laboratories.',
+        'Transparent active-ingredient matrix with clear serving guidance.',
+        'Designed to support training performance, recovery, and daily consistency.',
+        'Vegan, GMP, HACCP, and gluten-free positioning where shown on pack.'
+      ]
 
   const selectedVariant = product.variants?.find((v: any) => v.id === selectedVariantId)
   const inStock = (selectedVariant?.stock ?? 0) > 0
@@ -856,12 +864,7 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
             <div className="space-y-4 animate-fade-in">
               <h3 className="text-xl font-bold mb-4 uppercase font-display tracking-wider">Engineered Advantages</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {[
-                  'Third-party purity tested in independent Swiss laboratories.',
-                  'Fully micronized formulation offering ultimate bio-availability.',
-                  'Improves muscular endurance, explosive force, and ATP replenishment.',
-                  'Zero unnecessary chemical bindings, lactose, or soy components.'
-                ].map((benefitText) => (
+                {keyBenefits.map((benefitText: string) => (
                   <div key={benefitText} className="flex gap-3 bg-space-900 border border-white/5 p-4 rounded-xl items-start">
                     <CheckCircle2 className="w-5 h-5 text-alien-green flex-shrink-0 mt-0.5" />
                     <p className="text-xs text-gray-300 leading-relaxed">{benefitText}</p>
@@ -921,17 +924,17 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
               </div>
 
               <div className="flex justify-between py-1 border-b border-gray-300">
-                <span>Total Fat 0g</span>
+                <span>Total Fat {selectedVariant?.nutrition?.total_fat ?? 0}g</span>
                 <span className="font-bold">0%</span>
               </div>
               
               <div className="flex justify-between py-1 border-b border-gray-300">
-                <span>Sodium 0mg</span>
+                <span>Sodium {selectedVariant?.nutrition?.sodium ?? 0}mg</span>
                 <span className="font-bold">0%</span>
               </div>
 
               <div className="flex justify-between py-1 border-b border-gray-300">
-                <span>Total Carbohydrate 0g</span>
+                <span>Total Carbohydrate {selectedVariant?.nutrition?.total_carbohydrate ?? 0}g</span>
                 <span className="font-bold">0%</span>
               </div>
 

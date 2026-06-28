@@ -340,9 +340,12 @@ export default function AdminPage() {
       setLiveProducts(JSON.parse(storedProducts))
     } else {
       const initialProducts = [
-        { id: 'prod-1', title: 'ASTRO CREATINE (500G)', category: 'VARIABLE', price: 39, stock: 450, desc: 'Pure micronized creatine monohydrate.' },
-        { id: 'prod-2', title: 'BLAST PRE-WORKOUT (300G)', category: 'VARIABLE', price: 49, stock: 280, desc: 'High energy synergistic pre-workout formulation.' },
-        { id: 'prod-3', title: 'AMINO FUEL MANGO (300G)', category: 'VARIABLE', price: 45, stock: 190, desc: 'Essential amino acids with natural mango flavor.' }
+        { id: 'prod-col', title: 'Astro Collagen Peptide (300g)', category: 'special-edition', price: 34, stock: 500, desc: 'Premium hydrolyzed grass-fed collagen peptides optimized for rapid absorption, joint strength, and skin elasticity.', product_color: '#9B30FF', featuredImage: 'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782667545/UFO1_ztlvyz.png', slug: 'astro-collagen' },
+        { id: 'prod-blast-energy', title: 'Blast Pre-Workout (Energy Drink)', category: 'pre-workout', price: 24, stock: 400, desc: 'Explosive energy and laser focus formula for extreme pre-workout performance in refreshing citrus energy drink flavor.', product_color: '#FF2244', featuredImage: 'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782667544/UFO3_bfwhlr.png', slug: 'blast-pre-workout-energy' },
+        { id: 'prod-creatine', title: 'Astro Creatine Pure (500g)', category: 'creatine', price: 19, stock: 600, desc: 'Premium 100% micronized creatine monohydrate for explosive power, muscle hypertrophy, and cellular recovery.', product_color: '#00FF88', featuredImage: 'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782667544/UFO4_nuzyls.png', slug: 'astro-creatine' },
+        { id: 'prod-amino-mango', title: 'Amino Fuel EAA (Mango)', category: 'amino-acids', price: 17.90, stock: 450, desc: 'Complete Essential Amino Acids (EAA) matrix with added hydration electrolytes in delicious mango flavor.', product_color: '#FF8C00', featuredImage: 'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782667544/UFO5_l42elt.png', slug: 'amino-fuel-mango' },
+        { id: 'prod-blast-blue', title: 'Blast Pre-Workout (Blue Raspberry)', category: 'pre-workout', price: 24, stock: 350, desc: 'Extreme pre-workout energy and focus formula featuring an electric blue raspberry flavor profile.', product_color: '#00CFFF', featuredImage: 'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782667544/UFO2_hnupdu.png', slug: 'blast-pre-workout-blue' },
+        { id: 'prod-amino-blue', title: 'Amino Fuel EAA (Blue Raspberry)', category: 'amino-acids', price: 17.90, stock: 350, desc: 'Full essential amino acids matrix paired with advanced electrolytes in a cold blue raspberry flavor.', product_color: '#00CFFF', featuredImage: 'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782667544/UFO6_uhxvep.png', slug: 'amino-fuel-blue-raspberry' }
       ]
       setLiveProducts(initialProducts)
       localStorage.setItem('ufo_catalog_products', JSON.stringify(initialProducts))
