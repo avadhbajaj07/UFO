@@ -189,13 +189,13 @@ export default function ProductGrid({ products }: ProductGridProps) {
           PRODUCTS
         </h2>
         <p className="text-muted max-w-xl mx-auto">
-          Five precision-engineered supplements. Each one designed for a specific mission.
+          Precision-engineered supplements. Each one designed for a specific mission.
           All of them built to take you beyond your limits.
         </p>
       </div>
 
       {/* Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 lg:gap-5">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 lg:gap-5">
         {products.map((product) => (
           <ProductCard key={product.id} product={product} />
         ))}

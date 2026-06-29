@@ -12,9 +12,6 @@ interface Props {
 }
 
 async function getProduct(slug: string) {
-  if (['astro-creatine', 'blast-pre-workout', 'amino-fuel-mango'].includes(slug)) {
-    return null
-  }
   const supabase = createClient()
   const { data } = await supabase
     .from('products')
@@ -64,9 +61,7 @@ import { createClient as createBrowserClient } from '@/lib/supabase/client'
 export async function generateStaticParams() {
   const supabase = createBrowserClient()
   const { data } = await supabase.from('products').select('slug').eq('status', 'active')
-  return (data as any[] ?? [])
-    .filter((p) => !['astro-creatine', 'blast-pre-workout', 'amino-fuel-mango'].includes(p.slug))
-    .map((p) => ({ slug: p.slug }))
+  return (data as any[] ?? []).map((p) => ({ slug: p.slug }))
 }
 
 export default async function ProductPage({ params }: Props) {

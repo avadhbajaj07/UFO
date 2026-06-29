@@ -10,7 +10,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .from('products')
     .select('slug, updated_at')
     .eq('status', 'active')
-    .not('slug', 'in', '(astro-creatine,blast-pre-workout,amino-fuel-mango)')
 
   const productUrls = (products as any[] ?? []).map((product) => ({
     url: `${baseUrl}/products/${product.slug}`,

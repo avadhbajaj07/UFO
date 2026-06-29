@@ -41,20 +41,20 @@ const INITIAL_ADDRESSES = [
 // Default recommendation products by goal
 const GOAL_PRODUCTS: Record<string, Array<{ name: string; desc: string; slug: string; price: number }>> = {
   'Muscle Gain': [
-    { name: 'Astro Creatine', desc: 'Pure micronized monohydrate for maximum muscle gains.', slug: 'astro-creatine', price: 39.00 },
-    { name: 'Amino Fuel Mango', desc: 'Complete BCAA recovery formula with electrolytes.', slug: 'amino-fuel-mango', price: 45.00 }
+    { name: 'Astro Creatine', desc: 'Pure micronized monohydrate for maximum muscle gains.', slug: 'astro-creatine', price: 19.00 },
+    { name: 'Amino Fuel Mango', desc: 'Complete BCAA recovery formula with electrolytes.', slug: 'amino-fuel-mango', price: 17.90 }
   ],
   'Weight Loss': [
-    { name: 'Blast Pre-Workout', desc: 'Thermogentic energy driver with natural focus enhancers.', slug: 'blast-pre-workout', price: 49.00 },
-    { name: 'Amino Fuel Blue', desc: 'Intra-workout hydration to support muscle preservation.', slug: 'amino-fuel-blue-raspberry', price: 45.00 }
+    { name: 'Blast Pre-Workout Energy', desc: 'Thermogenic energy driver with natural focus enhancers.', slug: 'blast-pre-workout-energy', price: 24.00 },
+    { name: 'Amino Fuel Blue', desc: 'Intra-workout hydration to support muscle preservation.', slug: 'amino-fuel-blue-raspberry', price: 17.90 }
   ],
   'Endurance': [
-    { name: 'Amino Fuel Mango', desc: 'Complete BCAA recovery matrix with fast-hydration complex.', slug: 'amino-fuel-mango', price: 45.00 },
-    { name: 'Special Edition', desc: 'Cognitive and physical performance booster containing ATP.', slug: 'special-edition', price: 69.00 }
+    { name: 'Amino Fuel Mango', desc: 'Complete BCAA recovery matrix with fast-hydration complex.', slug: 'amino-fuel-mango', price: 17.90 },
+    { name: 'Blast Pre-Workout Blue', desc: 'Cognitive and physical performance booster for focused training.', slug: 'blast-pre-workout-blue', price: 24.00 }
   ],
   'Strength': [
-    { name: 'Astro Creatine', desc: 'Micronized monohydrate for raw strength and power.', slug: 'astro-creatine', price: 39.00 },
-    { name: 'Special Edition', desc: 'Premium strength and cognitive performance blend.', slug: 'special-edition', price: 69.00 }
+    { name: 'Astro Creatine', desc: 'Micronized monohydrate for raw strength and power.', slug: 'astro-creatine', price: 19.00 },
+    { name: 'Astro Collagen', desc: 'Premium recovery support for connective tissue and training resilience.', slug: 'astro-collagen', price: 34.00 }
   ]
 }
 

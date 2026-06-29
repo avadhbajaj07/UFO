@@ -19,7 +19,6 @@ async function getProducts() {
       variants:product_variants(id, name, price, compare_at_price, stock, status, is_default, sort_order)
     `)
     .eq('status', 'active')
-    .not('slug', 'in', '(astro-creatine,blast-pre-workout,amino-fuel-mango)')
     .order('sort_order', { ascending: true })
 
   return data ?? []

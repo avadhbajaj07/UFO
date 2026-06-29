@@ -22,10 +22,10 @@ const CANTONS = [
 
 // Mock marketplace products
 const MARKETPLACE_PRODUCTS = [
-  { id: '1', name: 'Astro Creatine (500g)', slug: 'astro-creatine', rate: '15%', epc: 'CHF 1.42', convRate: '5.2%', isBest: true, isNew: false, price: 39.00 },
-  { id: '2', name: 'Blast Pre-Workout (300g)', slug: 'blast-pre-workout', rate: '20%', epc: 'CHF 2.10', convRate: '4.8%', isBest: true, isNew: false, price: 49.00 },
-  { id: '3', name: 'Amino Fuel Mango (300g)', slug: 'amino-fuel-mango', rate: '15%', epc: 'CHF 1.15', convRate: '3.9%', isBest: false, isNew: false, price: 45.00 },
-  { id: '4', name: 'Special Edition Supplement', slug: 'special-edition', rate: '25%', epc: 'CHF 3.50', convRate: '6.1%', isBest: false, isNew: true, price: 69.00 }
+  { id: '1', name: 'Astro Creatine Pure', slug: 'astro-creatine', rate: '15%', epc: 'CHF 1.42', convRate: '5.2%', isBest: true, isNew: false, price: 19.00 },
+  { id: '2', name: 'Blast Pre-Workout Energy', slug: 'blast-pre-workout-energy', rate: '20%', epc: 'CHF 2.10', convRate: '4.8%', isBest: true, isNew: false, price: 24.00 },
+  { id: '3', name: 'Amino Fuel EAA Mango', slug: 'amino-fuel-mango', rate: '15%', epc: 'CHF 1.15', convRate: '3.9%', isBest: false, isNew: false, price: 17.90 },
+  { id: '4', name: 'Astro Collagen Peptide', slug: 'astro-collagen', rate: '25%', epc: 'CHF 3.50', convRate: '6.1%', isBest: false, isNew: true, price: 34.00 }
 ]
 
 // Mock Marketing Downloads
@@ -57,7 +57,7 @@ export default function AffiliatePage() {
   const [showQrCode, setShowQrCode] = useState(false)
 
   // AI Prompt copywriter
-  const [aiProduct, setAiProduct] = useState('blast-pre-workout')
+  const [aiProduct, setAiProduct] = useState('blast-pre-workout-energy')
   const [aiChannel, setAiChannel] = useState('instagram')
   const [generatedCaption, setGeneratedCaption] = useState('')
   const [isGenerating, setIsGenerating] = useState(false)
@@ -137,10 +137,10 @@ export default function AffiliatePage() {
     setIsGenerating(false)
 
     let copy = ''
-    if (aiProduct === 'blast-pre-workout') {
+    if (aiProduct === 'blast-pre-workout-energy') {
       copy = aiChannel === 'instagram' 
         ? '⚡ BLAST OFF! Reached new heights in training today with UFO LABZ Pre-Workout. Insane pump and zero crash. Use my code MARUTI10 to get 10% off your next energy boost! Link in bio. 🛸 #ufolabz #preworkout #fitswiss'
-        : '📥 Hey team! Just released my review of the Blast Pre-Workout. The focus is unlike anything I’ve tested this year. 200mg Caffeine + L-Citrulline. Grab yours here for 10% off: https://ufolabz.ch/products/blast-pre-workout/?ref=maruti'
+        : '📥 Hey team! Just released my review of the Blast Pre-Workout. The focus is unlike anything I’ve tested this year. 200mg Caffeine + L-Citrulline. Grab yours here for 10% off: https://ufolabz.ch/products/blast-pre-workout-energy/?ref=maruti'
     } else {
       copy = aiChannel === 'instagram'
         ? '🪐 Clean strength synthesis. Astro Creatine is 100% pure micronized monohydrate. Easy mix, pure absorption. Support your recovery with CHF 5.- off using coupon code WELCOME500. Link in bio! 🏋️ #creatine #supplements #swissfit'
@@ -545,9 +545,9 @@ export default function AffiliatePage() {
                             className="input focus:outline-none bg-space-900 border-white/5 text-xs py-2 text-white"
                           >
                             <option value="astro-creatine">Astro Creatine (500g)</option>
-                            <option value="blast-pre-workout">Blast Pre-Workout (300g)</option>
+                            <option value="blast-pre-workout-energy">Blast Pre-Workout Energy</option>
                             <option value="amino-fuel-mango">Amino Fuel Mango (300g)</option>
-                            <option value="special-edition">Special Edition</option>
+                            <option value="astro-collagen">Astro Collagen Peptide</option>
                           </select>
                         </div>
 
@@ -888,7 +888,7 @@ export default function AffiliatePage() {
                             className="input focus:outline-none bg-space-900 border-white/5 text-xs py-2 text-white font-mono"
                           >
                             <option value="astro-creatine">Astro Creatine monohydrate</option>
-                            <option value="blast-pre-workout">Blast Pre-Workout energy</option>
+                            <option value="blast-pre-workout-energy">Blast Pre-Workout energy</option>
                           </select>
                         </div>
 

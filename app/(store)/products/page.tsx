@@ -26,7 +26,6 @@ async function getProducts(searchParams: Record<string, string> = {}) {
       variants:product_variants(id, name, price, compare_at_price, stock, status, is_default, sort_order)
     `)
     .eq('status', 'active')
-    .not('slug', 'in', '(astro-creatine,blast-pre-workout,amino-fuel-mango)')
 
   if (category) {
     const { data: cat } = await supabase.from('categories').select('id').eq('slug', category).single() as any
