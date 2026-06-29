@@ -19,15 +19,15 @@ const companyLinks = [
 
 const contactInfo = [
   { label: 'support@ufolabz.com', href: 'mailto:support@ufolabz.com' },
-  { label: '+41 00 000 00 00', href: 'tel:+41000000000' },
-  { label: 'Zurich, Switzerland', href: '#' },
+  { label: '+41 79 250 35 64', href: 'tel:+41792503564' },
+  { label: 'Bahnhofstrasse 100, 8001 Zürich', href: 'https://maps.app.goo.gl/yQ32D81x11Vn4C2k8' },
 ]
 
 const socials = [
-  { label: 'Instagram', icon: 'IG' },
-  { label: 'Facebook', icon: 'FB' },
-  { label: 'Twitter', icon: 'X' },
-  { label: 'YouTube', icon: 'YT' },
+  { label: 'Instagram', icon: 'IG', href: 'https://instagram.com/ufolabz' },
+  { label: 'Facebook', icon: 'FB', href: 'https://facebook.com/ufolabz' },
+  { label: 'Twitter', icon: 'X', href: 'https://x.com/ufolabz' },
+  { label: 'YouTube', icon: 'YT', href: 'https://youtube.com/@ufolabz' },
 ]
 
 const legalLinks = [
@@ -51,12 +51,12 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8">
           {/* Brand Column */}
           <div className="lg:col-span-1">
-            <Link href="/" className="inline-flex items-center gap-2.5 mb-5 group">
-              <div className="w-9 h-9 rounded-full flex items-center justify-center"
-                   style={{ background: 'linear-gradient(135deg, #7B2FBE 0%, #00FF88 100%)' }}>
-                <span className="text-white text-sm font-bold font-mono">U</span>
-              </div>
-              <span className="font-display text-xl tracking-wider text-white">UFO LABZ</span>
+            <Link href="/" className="inline-flex items-center mb-5 group">
+              <img
+                src="https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782711478/UFO_logo_horizontal_kr0e7j.jpg"
+                alt="UFO LABZ"
+                className="h-10 w-auto object-contain rounded-lg border border-white/5 opacity-90 group-hover:opacity-100 transition-opacity"
+              />
             </Link>
             <p className="text-sm text-muted leading-relaxed mb-5">
               Alien Performance Technology. Premium supplements engineered in Swiss laboratories for peak human performance.
@@ -64,13 +64,16 @@ export default function Footer() {
             {/* Social Icons */}
             <div className="flex items-center gap-3">
               {socials.map((s) => (
-                <button
+                <a
                   key={s.label}
+                  href={s.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="w-9 h-9 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center text-muted hover:text-white hover:border-nebula-600/40 hover:bg-nebula-800/30 transition-all duration-200 text-xs font-mono"
                   aria-label={s.label}
                 >
                   {s.icon}
-                </button>
+                </a>
               ))}
             </div>
           </div>

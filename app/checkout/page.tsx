@@ -4,8 +4,8 @@ import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { 
-  Shield, CheckCircle2, ChevronRight, Lock, 
+import {
+  Shield, CheckCircle2, ChevronRight, Lock,
   HelpCircle, Trash2, ArrowLeft, Plus, Phone, AlertCircle
 } from 'lucide-react'
 import { useCart } from '@/hooks/useCart'
@@ -15,9 +15,9 @@ import { cn } from '@/lib/utils'
 
 // Swiss Cantons for dropdown
 const CANTONS = [
-  'Aargau', 'Appenzell Ausserrhoden', 'Appenzell Innerrhoden', 'Basel-Landschaft', 
-  'Basel-Stadt', 'Bern', 'Fribourg', 'Geneva', 'Glarus', 'Graubünden', 'Jura', 
-  'Luzern', 'Neuchâtel', 'Nidwalden', 'Obwalden', 'Schaffhausen', 'Schwyz', 
+  'Aargau', 'Appenzell Ausserrhoden', 'Appenzell Innerrhoden', 'Basel-Landschaft',
+  'Basel-Stadt', 'Bern', 'Fribourg', 'Geneva', 'Glarus', 'Graubünden', 'Jura',
+  'Luzern', 'Neuchâtel', 'Nidwalden', 'Obwalden', 'Schaffhausen', 'Schwyz',
   'Solothurn', 'St. Gallen', 'Thurgau', 'Ticino', 'Uri', 'Valais', 'Vaud', 'Zug', 'Zurich'
 ]
 
@@ -35,7 +35,7 @@ export default function CheckoutPage() {
   const [canton, setCanton] = useState('Zurich')
   const [zip, setZip] = useState('')
   const [sameAsShipping, setSameAsShipping] = useState(true)
-  
+
   // Billing Address
   const [billFullName, setBillFullName] = useState('')
   const [billAddress, setBillAddress] = useState('')
@@ -47,7 +47,7 @@ export default function CheckoutPage() {
   const [shippingMethod, setShippingMethod] = useState<'standard' | 'priority'>('standard')
   const [carbonOffset, setCarbonOffset] = useState(false)
   const [paymentMethod, setPaymentMethod] = useState<'twint' | 'card' | 'invoice'>('twint')
-  
+
   // Card Details
   const [cardNumber, setCardNumber] = useState('')
   const [expiry, setExpiry] = useState('')
@@ -99,8 +99,8 @@ export default function CheckoutPage() {
   }, [showTwintModal, twintTimer])
 
   // Shipping rates calculations
-  const shippingCost = shippingMethod === 'priority' 
-    ? 15.00 
+  const shippingCost = shippingMethod === 'priority'
+    ? 15.00
     : (breakdown.subtotal >= 99 ? 0 : 9.00)
 
   const offsetCost = carbonOffset ? 1.50 : 0
@@ -168,7 +168,7 @@ export default function CheckoutPage() {
 
   const handleCompletePurchase = async () => {
     setIsSubmitting(true)
-    
+
     // 1. Generate unique order ID
     const orderId = `UFO-CH-${Math.floor(100000 + Math.random() * 900000)}`
 
@@ -345,15 +345,16 @@ export default function CheckoutPage() {
 
   return (
     <div className="min-h-screen bg-space-950 text-white selection:bg-alien-green selection:text-space-950 pb-20 font-sans">
-      
+
       {/* ─── MINI CHECKOUT HEADER ─── */}
       <header className="border-b border-white/5 bg-space-950/80 backdrop-blur-xl sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-alien-green/20 border border-alien-green/40 flex items-center justify-center">
-              <span className="text-alien-green text-xs font-bold font-mono">U</span>
-            </div>
-            <span className="font-display text-xl tracking-wider text-white">UFO LABZ</span>
+          <Link href="/" className="flex items-center group">
+            <img
+              src="https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782711478/UFO_logo_horizontal_kr0e7j.jpg"
+              alt="UFO LABZ"
+              className="h-10 w-auto object-contain rounded-lg border border-white/5 opacity-90 group-hover:opacity-100 transition-opacity"
+            />
           </Link>
           <div className="flex items-center gap-1 text-[10px] sm:text-xs font-mono text-gray-400">
             <span className={cn(checkoutStep === 'info' ? "text-alien-green font-bold" : "text-white/60")}>01. Shipping</span>
@@ -371,7 +372,7 @@ export default function CheckoutPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        
+
         {items.length === 0 ? (
           <div className="text-center py-20 space-y-4">
             <div className="text-5xl">🛸</div>
@@ -380,19 +381,19 @@ export default function CheckoutPage() {
             <Link href="/products" className="btn-primary bg-alien-green text-space-950 font-bold px-6 py-2.5 rounded-xl">Shop Supplements</Link>
           </div>
         ) : (
-          
+
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            
+
             {/* ─── LEFT COLUMN: SHIPPING & BILLING FORMS (width: 7 cols) ─── */}
             <div className="lg:col-span-7 space-y-6">
-              
+
               {checkoutStep === 'info' ? (
                 <form onSubmit={handleSubmitInfo} className="space-y-6">
                   {/* Step Header */}
                   <div className="flex items-center justify-between border-b border-white/5 pb-4">
                     <h2 className="font-display text-2xl tracking-wide uppercase text-white">SHIPPING PARAMETERS</h2>
-                    <button 
-                      type="button" 
+                    <button
+                      type="button"
                       onClick={handlePrefill}
                       className="text-xs font-mono text-alien-green hover:underline"
                     >
@@ -406,8 +407,8 @@ export default function CheckoutPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label className="text-xs font-mono text-gray-400 mb-1.5 block">Full Name</label>
-                        <input 
-                          type="text" 
+                        <input
+                          type="text"
                           required
                           value={fullName}
                           onChange={(e) => setFullName(e.target.value)}
@@ -417,8 +418,8 @@ export default function CheckoutPage() {
                       </div>
                       <div>
                         <label className="text-xs font-mono text-gray-400 mb-1.5 block">Email address</label>
-                        <input 
-                          type="email" 
+                        <input
+                          type="email"
                           required
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
@@ -429,8 +430,8 @@ export default function CheckoutPage() {
                     </div>
                     <div>
                       <label className="text-xs font-mono text-gray-400 mb-1.5 block">Phone Number</label>
-                      <input 
-                        type="text" 
+                      <input
+                        type="text"
                         required
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
@@ -443,7 +444,7 @@ export default function CheckoutPage() {
                   {/* Shipping address details */}
                   <div className="bg-space-900 border border-white/5 rounded-2xl p-6 space-y-4">
                     <h3 className="text-xs font-mono font-bold tracking-widest text-muted text-gray-400 uppercase">02. Shipping Address</h3>
-                    
+
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div className="md:col-span-2">
                         <label className="text-xs font-mono text-gray-400 mb-1.5 block">Country</label>
@@ -454,7 +455,7 @@ export default function CheckoutPage() {
                       </div>
                       <div>
                         <label className="text-xs font-mono text-gray-400 mb-1.5 block">Canton</label>
-                        <select 
+                        <select
                           value={canton}
                           onChange={(e) => setCanton(e.target.value)}
                           className="input focus:outline-none bg-space-950 text-white"
@@ -468,16 +469,16 @@ export default function CheckoutPage() {
 
                     <div>
                       <label className="text-xs font-mono text-gray-400 mb-1.5 block">Street Address</label>
-                      <input 
-                        type="text" 
+                      <input
+                        type="text"
                         required
                         value={address}
                         onChange={(e) => setAddress(e.target.value)}
                         placeholder="Street address, house number"
                         className="input mb-2"
                       />
-                      <input 
-                        type="text" 
+                      <input
+                        type="text"
                         value={address2}
                         onChange={(e) => setAddress2(e.target.value)}
                         placeholder="Apartment, suite, unit (optional)"
@@ -488,8 +489,8 @@ export default function CheckoutPage() {
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="text-xs font-mono text-gray-400 mb-1.5 block">City</label>
-                        <input 
-                          type="text" 
+                        <input
+                          type="text"
                           required
                           value={city}
                           onChange={(e) => setCity(e.target.value)}
@@ -499,8 +500,8 @@ export default function CheckoutPage() {
                       </div>
                       <div>
                         <label className="text-xs font-mono text-gray-400 mb-1.5 block">ZIP Code</label>
-                        <input 
-                          type="text" 
+                        <input
+                          type="text"
                           required
                           value={zip}
                           onChange={(e) => setZip(e.target.value)}
@@ -514,8 +515,8 @@ export default function CheckoutPage() {
                   {/* Billing address Same as Shipping */}
                   <div className="bg-space-900 border border-white/5 rounded-2xl p-6 space-y-4">
                     <div className="flex items-center gap-3">
-                      <input 
-                        type="checkbox" 
+                      <input
+                        type="checkbox"
                         id="sameBilling"
                         checked={sameAsShipping}
                         onChange={(e) => setSameAsShipping(e.target.checked)}
@@ -529,43 +530,43 @@ export default function CheckoutPage() {
                         <h4 className="text-xs font-mono font-bold tracking-widest text-muted text-gray-400 uppercase">03. Billing Details</h4>
                         <div>
                           <label className="text-xs font-mono text-gray-400 mb-1.5 block">Billing Name</label>
-                          <input 
-                            type="text" 
-                            value={billFullName} 
+                          <input
+                            type="text"
+                            value={billFullName}
                             onChange={(e) => setBillFullName(e.target.value)}
-                            placeholder="Billing entity full name" 
-                            className="input" 
+                            placeholder="Billing entity full name"
+                            className="input"
                           />
                         </div>
                         <div>
                           <label className="text-xs font-mono text-gray-400 mb-1.5 block">Billing Street Address</label>
-                          <input 
-                            type="text" 
+                          <input
+                            type="text"
                             value={billAddress}
                             onChange={(e) => setBillAddress(e.target.value)}
-                            placeholder="Billing address" 
-                            className="input" 
+                            placeholder="Billing address"
+                            className="input"
                           />
                         </div>
                         <div className="grid grid-cols-3 gap-4">
                           <div className="col-span-2">
                             <label className="text-xs font-mono text-gray-400 mb-1.5 block">City</label>
-                            <input 
-                              type="text" 
+                            <input
+                              type="text"
                               value={billCity}
                               onChange={(e) => setBillCity(e.target.value)}
-                              placeholder="City" 
-                              className="input" 
+                              placeholder="City"
+                              className="input"
                             />
                           </div>
                           <div>
                             <label className="text-xs font-mono text-gray-400 mb-1.5 block">ZIP Code</label>
-                            <input 
-                              type="text" 
+                            <input
+                              type="text"
                               value={billZip}
                               onChange={(e) => setBillZip(e.target.value)}
-                              placeholder="ZIP" 
-                              className="input" 
+                              placeholder="ZIP"
+                              className="input"
                             />
                           </div>
                         </div>
@@ -578,7 +579,7 @@ export default function CheckoutPage() {
                     <h3 className="text-xs font-mono font-bold tracking-widest text-muted text-gray-400 uppercase">04. Delivery Method</h3>
                     <div className="space-y-3">
                       {/* Standard */}
-                      <div 
+                      <div
                         onClick={() => setShippingMethod('standard')}
                         className={cn(
                           "border-2 rounded-xl p-4 flex items-center justify-between cursor-pointer transition-all",
@@ -600,7 +601,7 @@ export default function CheckoutPage() {
                       </div>
 
                       {/* Priority */}
-                      <div 
+                      <div
                         onClick={() => setShippingMethod('priority')}
                         className={cn(
                           "border-2 rounded-xl p-4 flex items-center justify-between cursor-pointer transition-all",
@@ -622,8 +623,8 @@ export default function CheckoutPage() {
                       {/* Carbon Offset toggle */}
                       <div className="flex items-center justify-between p-3 bg-white/5 rounded-xl text-xs pt-4">
                         <div className="flex items-center gap-3">
-                          <input 
-                            type="checkbox" 
+                          <input
+                            type="checkbox"
                             id="carbon"
                             checked={carbonOffset}
                             onChange={(e) => setCarbonOffset(e.target.checked)}
@@ -648,13 +649,13 @@ export default function CheckoutPage() {
                   </button>
                 </form>
               ) : (
-                
+
                 // ─── STEP 2: PAYMENT INTERFACES ───
                 <form onSubmit={handlePlaceOrderSubmit} className="space-y-6">
                   <div className="flex items-center justify-between border-b border-white/5 pb-4">
                     <h2 className="font-display text-2xl tracking-wide uppercase text-white">SECURE PAYMENT METHOD</h2>
-                    <button 
-                      type="button" 
+                    <button
+                      type="button"
                       onClick={() => setCheckoutStep('info')}
                       className="text-xs font-mono text-gray-400 hover:text-white flex items-center gap-1.5"
                     >
@@ -665,9 +666,9 @@ export default function CheckoutPage() {
 
                   {/* Payment selection list */}
                   <div className="bg-space-900 border border-white/5 rounded-2xl p-6 space-y-4">
-                    
+
                     {/* TWINT */}
-                    <div 
+                    <div
                       onClick={() => setPaymentMethod('twint')}
                       className={cn(
                         "border-2 rounded-xl p-4 flex items-center justify-between cursor-pointer transition-all",
@@ -689,7 +690,7 @@ export default function CheckoutPage() {
                     </div>
 
                     {/* Credit Card */}
-                    <div 
+                    <div
                       onClick={() => setPaymentMethod('card')}
                       className={cn(
                         "border-2 rounded-xl p-4 flex flex-col gap-4 cursor-pointer transition-all",
@@ -716,8 +717,8 @@ export default function CheckoutPage() {
                         <div className="space-y-3 pt-3 border-t border-white/5 animate-fade-in" onClick={(e) => e.stopPropagation()}>
                           <div>
                             <label className="text-[10px] font-mono text-gray-400 mb-1 block">Card Number</label>
-                            <input 
-                              type="text" 
+                            <input
+                              type="text"
                               required
                               value={cardNumber}
                               onChange={(e) => setCardNumber(e.target.value)}
@@ -728,8 +729,8 @@ export default function CheckoutPage() {
                           <div className="grid grid-cols-2 gap-3">
                             <div>
                               <label className="text-[10px] font-mono text-gray-400 mb-1 block">Expiry</label>
-                              <input 
-                                type="text" 
+                              <input
+                                type="text"
                                 required
                                 value={expiry}
                                 onChange={(e) => setExpiry(e.target.value)}
@@ -739,8 +740,8 @@ export default function CheckoutPage() {
                             </div>
                             <div>
                               <label className="text-[10px] font-mono text-gray-400 mb-1 block">CVC</label>
-                              <input 
-                                type="password" 
+                              <input
+                                type="password"
                                 required
                                 value={cvc}
                                 onChange={(e) => setCvc(e.target.value)}
@@ -754,7 +755,7 @@ export default function CheckoutPage() {
                     </div>
 
                     {/* Pay on Invoice (Swiss invoice standard) */}
-                    <div 
+                    <div
                       onClick={() => setPaymentMethod('invoice')}
                       className={cn(
                         "border-2 rounded-xl p-4 flex items-center justify-between cursor-pointer transition-all",
@@ -778,7 +779,7 @@ export default function CheckoutPage() {
                   {/* Delivery Notes */}
                   <div className="bg-space-900 border border-white/5 rounded-2xl p-6 space-y-3">
                     <label className="text-xs font-mono font-bold tracking-widest text-muted text-gray-400 uppercase">Order notes (Optional)</label>
-                    <textarea 
+                    <textarea
                       placeholder="Special instructions for delivery (e.g., leave package in box, door code, gift note...)"
                       rows={3}
                       className="input py-3 h-24"
@@ -787,8 +788,8 @@ export default function CheckoutPage() {
 
                   {/* Terms checkbox */}
                   <div className="flex items-start gap-3 p-1">
-                    <input 
-                      type="checkbox" 
+                    <input
+                      type="checkbox"
                       id="terms"
                       required
                       className="w-4 h-4 rounded accent-alien-green mt-0.5 cursor-pointer"
@@ -814,11 +815,11 @@ export default function CheckoutPage() {
 
             {/* ─── RIGHT COLUMN: ORDER SUMMARY & TRUST (width: 5 cols) ─── */}
             <div className="lg:col-span-5 space-y-6 lg:sticky lg:top-24">
-              
+
               {/* Summary panel */}
               <div className="bg-space-900 border border-white/5 rounded-3xl p-6 space-y-4 shadow-xl">
                 <h3 className="font-display text-xl tracking-wide uppercase text-white pb-3 border-b border-white/5">ORDER SUMMARY</h3>
-                
+
                 {/* List items */}
                 <div className="space-y-4 max-h-60 overflow-y-auto no-scrollbar pr-1">
                   {items.map((item) => {
@@ -853,7 +854,7 @@ export default function CheckoutPage() {
                         <CheckCircle2 className="w-4 h-4" />
                         <span>{appliedCoupon}</span>
                       </div>
-                      <button 
+                      <button
                         onClick={handleRemoveCoupon}
                         className="text-gray-400 hover:text-white"
                         aria-label="Remove Coupon"
@@ -863,15 +864,15 @@ export default function CheckoutPage() {
                     </div>
                   ) : (
                     <form onSubmit={handleApplyCoupon} className="flex gap-2">
-                      <input 
-                        type="text" 
+                      <input
+                        type="text"
                         placeholder="COUPON CODE (e.g. ALIEN10)"
                         value={couponCode}
                         onChange={(e) => setCouponCode(e.target.value)}
                         className="input text-xs font-mono py-2"
                       />
-                      <button 
-                        type="submit" 
+                      <button
+                        type="submit"
                         className="bg-white hover:bg-gray-100 text-space-950 font-bold px-4 rounded-xl text-xs transition-colors"
                       >
                         Apply
@@ -926,7 +927,7 @@ export default function CheckoutPage() {
                 <div className="space-y-3 text-xs text-gray-300">
                   <div className="flex gap-2.5">
                     <Shield className="w-4 h-4 text-alien-green flex-shrink-0" />
-                    <p><strong>30-Day Money Back:</strong> Satisfaction guaranteed, or refund within 30 days.</p>
+                    <p><strong>Final Sale supplements:</strong> No returns or refunds unless products arrive damaged.</p>
                   </div>
                   <div className="flex gap-2.5">
                     <CheckCircle2 className="w-4 h-4 text-alien-green flex-shrink-0" />
@@ -957,7 +958,7 @@ export default function CheckoutPage() {
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-space-900 border border-white/10 p-6 rounded-3xl max-w-sm w-full text-center space-y-6 shadow-2xl relative">
             <h3 className="font-display text-2xl tracking-wider text-white">PAY WITH TWINT</h3>
-            
+
             <p className="text-xs text-gray-400">
               Open your **TWINT app** on your phone, scan the QR code below, and authorize the transaction of <strong className="text-white">{formatPrice(finalTotal)}</strong>.
             </p>
@@ -986,13 +987,13 @@ export default function CheckoutPage() {
             </div>
 
             <div className="flex gap-2">
-              <button 
+              <button
                 onClick={() => setShowTwintModal(false)}
                 className="btn-outline flex-1 py-2 text-xs"
               >
                 Cancel
               </button>
-              <button 
+              <button
                 onClick={handleCompletePurchase}
                 className="btn-primary flex-1 py-2 bg-blue-600 text-white font-bold text-xs"
               >

@@ -4,15 +4,16 @@ import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { 
-  Star, ShoppingBag, Plus, Minus, ChevronDown, ChevronUp, 
-  Shield, FlaskConical, CheckCircle2, Heart, RefreshCw, 
+import {
+  Star, ShoppingBag, Plus, Minus, ChevronDown, ChevronUp,
+  Shield, FlaskConical, CheckCircle2, Heart, RefreshCw,
   Truck, ArrowRight, Award, Flame, Info, Check, MessageCircle, HelpCircle, Phone, Send
 } from 'lucide-react'
 import { formatPrice, getPricedForQuantity } from '@/lib/utils/pricing'
 import { getLocalizedField } from '@/types'
 import { useCart } from '@/hooks/useCart'
 import { cn } from '@/lib/utils'
+import { createClient } from '@/lib/supabase/client'
 
 interface Props {
   product: any
@@ -29,7 +30,7 @@ const CERTIFICATIONS = [
 
 const TRUST_BADGES = [
   { text: 'Secure Checkout', icon: Shield, desc: 'SSL Encrypted payment systems' },
-  { text: 'Easy Returns', icon: RefreshCw, desc: '14-day cooling-off guarantee' },
+  { text: 'Final Sale', icon: RefreshCw, desc: 'No returns unless damaged' },
   { text: 'Fast Shipping', icon: Truck, desc: 'Next day Swiss dispatch' },
   { text: '100% Authentic', icon: Award, desc: 'Direct from UFO LABZ Swiss labs' }
 ]
@@ -37,69 +38,31 @@ const TRUST_BADGES = [
 export default function ProductDetail({ product: serverProduct, slug }: { product: any; slug?: string }) {
   const router = useRouter()
   const { addItem, isLoading } = useCart()
-  
+
   // States
   const [product, setProduct] = useState<any>(serverProduct)
-  const [selectedVariantId, setSelectedVariantId] = useState<string>('')
-  
-  useEffect(() => {
-    const targetSlug = slug || serverProduct?.slug
-    if (targetSlug) {
-      try {
-        const storedProds = localStorage.getItem('ufo_catalog_products')
-        if (storedProds) {
-          const parsed = JSON.parse(storedProds)
-          if (Array.isArray(parsed)) {
-            const found = parsed.find((p: any) => p.slug === targetSlug || p.title.toLowerCase().replace(/[^a-z0-9]/g, '-') === targetSlug)
-            if (found) {
-              const mapped = {
-                id: found.id,
-                name: { en: found.title, de: found.title },
-                slug: found.slug || found.title.toLowerCase().replace(/[^a-z0-9]/g, '-'),
-                tagline: { en: found.desc, de: found.desc },
-                short_description: { en: found.desc, de: found.desc },
-                long_description: { en: found.longDesc || found.desc, de: found.longDesc || found.desc },
-                product_color: found.product_color || '#00FF88',
-                color_name: found.color_name || 'Alien Green',
-                base_price: found.price,
-                compare_at_price: found.base_price,
-                variants: [{
-                  id: `var-${found.id}`,
-                  name: 'Standard size',
-                  price: found.price,
-                  compare_at_price: found.base_price,
-                  stock: found.stock,
-                  status: found.stock > 0 ? 'active' : 'out_of_stock',
-                  is_default: true
-                }],
-                images: (found.imageGallery && found.imageGallery.length > 0)
-                  ? found.imageGallery.map((url: string, idx: number) => ({ url, is_primary: idx === 0, sort_order: idx }))
-                  : [{ url: found.featuredImage || 'https://images.unsplash.com/photo-1579758629938-03607ccdbaba?w=600', is_primary: true }],
-                faqs: (found.faqs && found.faqs.length > 0) ? found.faqs.map((f: any) => ({
-                  question: { en: f.q, de: f.q },
-                  answer: { en: f.a, de: f.a }
-                })) : [
-                  { question: { en: 'Is this supplement gluten-free?' }, answer: { en: 'Yes, this supplement is certified gluten-free.' } }
-                ],
-                key_benefits: found.keyBenefits || ['High Purity Formulation', 'Swiss Laboratory Tested', 'Maximum Bioavailability'],
-                ingredients: found.ingredients || 'Micronized high-grade formulation'
-              }
-              setProduct(mapped)
-              setSelectedVariantId(`var-${found.id}`)
-              return
-            }
-          }
-        }
-      } catch (e) {
-        console.error('Failed to parse stored catalog products', e)
-      }
-    }
+  const [selectedVariantId, setSelectedVariantId] = useState<string>(
+    serverProduct?.variants?.find((v: any) => v.is_default)?.id ??
+    serverProduct?.variants?.[0]?.id ??
+    ''
+  )
+  const [user, setUser] = useState<any>(null)
 
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data }) => {
+      if (data?.user) {
+        setUser(data.user)
+      }
+    })
+  }, [])
+
+  useEffect(() => {
     if (serverProduct) {
       setProduct(serverProduct)
-      setSelectedVariantId(serverProduct.variants?.find((v: any) => v.is_default)?.id ?? serverProduct.variants?.[0]?.id)
+      setSelectedVariantId(serverProduct.variants?.find((v: any) => v.is_default)?.id ?? serverProduct.variants?.[0]?.id ?? '')
     }
-  }, [serverProduct, slug])
+  }, [serverProduct])
 
   const [quantity, setQuantity] = useState(1)
   const [activeSlide, setActiveSlide] = useState(0) // 0: Presentation, 1: Ingredients, 2: Flavors
@@ -146,7 +109,7 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
       'bought Amino Fuel Mango & Pre-Workout Bundle!',
       'earned 250 Alien Points!'
     ]
-    
+
     const runNotification = () => {
       const randomLoc = locations[Math.floor(Math.random() * locations.length)]
       const randomTrigger = triggers[Math.floor(Math.random() * triggers.length)]
@@ -199,7 +162,7 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
           productDesc: product?.short_description?.en || product?.desc
         })
       })
-      
+
       if (response.ok) {
         const data = await response.json()
         if (data.choices && data.choices[0]) {
@@ -224,9 +187,9 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
             body: JSON.stringify({
               model: 'gpt-3.5-turbo',
               messages: [
-                { 
-                  role: 'system', 
-                  content: `You are an advanced UFO LABZ AI Lab Assistant, a premium sports nutrition specialist for a Swiss brand. Respond professionally and scientifically. You are assisting a client interested in the product: "${product?.name?.en || product?.title}". Short description: "${product?.short_description?.en || product?.desc}". Recommend stack details.` 
+                {
+                  role: 'system',
+                  content: `You are an advanced UFO LABZ AI Lab Assistant, a premium sports nutrition specialist for a Swiss brand. Respond professionally and scientifically. You are assisting a client interested in the product: "${product?.name?.en || product?.title}". Short description: "${product?.short_description?.en || product?.desc}". Recommend stack details.`
                 },
                 { role: 'user', content: userText }
               ],
@@ -294,7 +257,7 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
   const isLowStock = inStock && (selectedVariant?.stock ?? 0) < 50
 
   const pricingRules = (product.pricing_rules ?? []).filter((r: any) => r.is_active)
-  
+
   // Subtotal calculations
   const { price: basePrice, savingsPct } = selectedVariant
     ? getPricedForQuantity(selectedVariant.price, quantity, pricingRules)
@@ -307,12 +270,12 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
   const totalFinalPrice = finalPricePerUnit * quantity
 
   // Alien points earn metric
-  const pointsEarned = Math.round(totalFinalPrice * 5)
+  const pointsEarned = Math.round(totalFinalPrice * 10)
 
   // Bundles (Frequently Bought Together)
   const [bundleChecked, setBundleChecked] = useState([true, true]) // Stack item 1 & 2
   const stacks = product.stacks ?? []
-  
+
   const getBundleTotal = () => {
     let priceSum = totalFinalPrice
     stacks.forEach((stack: any, idx: number) => {
@@ -354,7 +317,7 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
 
   return (
     <div className="pt-16 min-h-screen bg-space-950 text-white selection:bg-alien-green selection:text-space-950 overflow-x-hidden">
-      
+
       {/* ─── 1. DYNAMIC NOTIFICATION TOAST ─── */}
       <div className={cn(
         "fixed bottom-6 left-6 z-50 max-w-sm bg-space-900/90 border border-white/10 backdrop-blur-xl p-4 rounded-xl shadow-glow-green transition-all duration-500 transform",
@@ -380,10 +343,10 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
         {showSupport && (
           <div className="absolute bottom-16 right-0 w-64 bg-space-900 border border-white/10 rounded-2xl p-4 shadow-2xl space-y-2 backdrop-blur-xl">
             <h4 className="text-xs font-mono font-bold tracking-widest text-muted text-gray-400 mb-2 uppercase">MISSION SUPPORT</h4>
-            
-            <a 
-              href="https://wa.me/41790000000" 
-              target="_blank" 
+
+            <a
+              href="https://wa.me/41790000000"
+              target="_blank"
               rel="noreferrer"
               className="flex items-center gap-3 p-2.5 hover:bg-white/5 rounded-xl transition-colors text-sm text-gray-200"
             >
@@ -406,7 +369,7 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
               </div>
             </div>
 
-            <div 
+            <div
               onClick={handleOpenAiModal}
               className="flex items-center gap-3 p-2.5 hover:bg-white/5 rounded-xl cursor-pointer transition-colors text-sm text-gray-200"
             >
@@ -426,18 +389,18 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
       <section className="relative min-h-[90vh] lg:min-h-screen flex items-center justify-center overflow-hidden border-b border-white/5 pt-12">
         {/* Deep space glow */}
         <div className="absolute inset-0 bg-space-950 pointer-events-none">
-          <div 
-            className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[500px] h-[500px] rounded-full blur-[160px] opacity-15 transition-all duration-700" 
+          <div
+            className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[500px] h-[500px] rounded-full blur-[160px] opacity-15 transition-all duration-700"
             style={{ backgroundColor: color }}
           />
         </div>
 
         <div className="max-w-7xl mx-auto container-px py-12 relative z-10 w-full">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-            
+
             {/* Slide left column (width: 7 cols) */}
             <div className="lg:col-span-7 space-y-6 text-left">
-              
+
               {/* Slider tabs */}
               <div className="flex items-center gap-2 bg-space-900 border border-white/5 p-1 rounded-xl w-fit">
                 {['01. Formula Info', '02. Ingredient Stats', '03. Flavor Fusion'].map((tabLabel, idx) => (
@@ -446,8 +409,8 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
                     onClick={() => setActiveSlide(idx)}
                     className={cn(
                       "px-3 py-1.5 rounded-lg text-xs font-mono font-medium transition-all",
-                      activeSlide === idx 
-                        ? "bg-white/10 text-white shadow-inner" 
+                      activeSlide === idx
+                        ? "bg-white/10 text-white shadow-inner"
                         : "text-muted text-gray-400 hover:text-white"
                     )}
                   >
@@ -472,7 +435,7 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
                     </h1>
                     <p className="text-xl text-alien-green font-mono font-semibold" style={{ color }}>{tagline}</p>
                     <p className="text-gray-300 text-sm max-w-xl leading-relaxed">{shortDesc || desc}</p>
-                    
+
                     <div className="flex flex-wrap gap-6 pt-4 text-sm text-gray-400">
                       <div className="flex items-center gap-2">
                         <CheckCircle2 className="w-4 h-4 text-alien-green" />
@@ -520,8 +483,8 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
 
                     <div className="flex flex-col gap-2 max-w-sm pt-4">
                       {product.variants?.map((v: any) => (
-                        <div 
-                          key={v.id} 
+                        <div
+                          key={v.id}
                           onClick={() => setSelectedVariantId(v.id)}
                           className={cn(
                             "flex items-center justify-between p-3 rounded-xl border-2 cursor-pointer transition-all",
@@ -566,8 +529,8 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
               <div className="relative w-80 h-80 md:w-96 md:h-96">
                 {/* Space portal circle behind the image */}
                 <div className="absolute inset-0 rounded-full border border-white/5 animate-spin-slow scale-110 pointer-events-none" />
-                <div 
-                  className="absolute inset-4 rounded-full filter blur-xl opacity-20 animate-pulse pointer-events-none" 
+                <div
+                  className="absolute inset-4 rounded-full filter blur-xl opacity-20 animate-pulse pointer-events-none"
                   style={{ backgroundColor: color, boxShadow: `0 0 100px ${color}` }}
                 />
 
@@ -619,15 +582,15 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
       <section className="relative py-16 bg-space-900 border-t border-b border-white/5">
         <div className="max-w-7xl mx-auto container-px">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
-            
+
             {/* Purchase Options Selector */}
             <div className="space-y-6">
               <h3 className="font-display text-3xl tracking-wide uppercase text-white">CHOOSE FREQUENCY</h3>
-              
+
               {/* Option cards */}
               <div className="space-y-3">
                 {/* One time */}
-                <div 
+                <div
                   onClick={() => setIsSubscribed(false)}
                   className={cn(
                     "border-2 rounded-2xl p-4 flex items-center justify-between cursor-pointer transition-all",
@@ -650,7 +613,7 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
                 </div>
 
                 {/* Subscription */}
-                <div 
+                <div
                   onClick={() => setIsSubscribed(true)}
                   className={cn(
                     "border-2 rounded-2xl p-4 flex flex-col gap-3 cursor-pointer transition-all",
@@ -677,8 +640,8 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
                   {isSubscribed && (
                     <div className="pt-2 border-t border-white/5 flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
                       <span className="text-xs font-mono text-gray-400">Deliver every:</span>
-                      <select 
-                        value={frequency} 
+                      <select
+                        value={frequency}
                         onChange={(e) => setFrequency(e.target.value)}
                         className="bg-space-950 border border-white/10 rounded-lg text-xs p-1.5 text-white focus:outline-none"
                       >
@@ -707,7 +670,7 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
 
             {/* Price Calculations and CTAs */}
             <div className="space-y-6 bg-space-950 border border-white/5 p-6 rounded-3xl">
-              
+
               {/* Product Variant Details */}
               <div className="flex items-center justify-between pb-4 border-b border-white/5">
                 <div>
@@ -754,10 +717,17 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
               </div>
 
               {/* Loyalty Reward callout */}
-              <div className="bg-alien-green/5 border border-alien-green/10 p-3 rounded-xl flex items-center justify-between text-xs">
-                <span className="text-gray-400">Loyalty Rewards Point Balance:</span>
-                <span className="font-mono font-bold text-alien-green" style={{ color }}>+{pointsEarned} Alien Points</span>
-              </div>
+              {user ? (
+                <div className="bg-alien-green/5 border border-alien-green/10 p-3 rounded-xl flex items-center justify-between text-xs">
+                  <span className="text-gray-400">Loyalty Rewards Points to Earn:</span>
+                  <span className="font-mono font-bold text-alien-green" style={{ color }}>+{pointsEarned} Alien Points</span>
+                </div>
+              ) : (
+                <div className="bg-white/5 border border-white/10 p-3 rounded-xl flex items-center justify-between text-xs">
+                  <span className="text-gray-400">Join UFO Club to earn rewards:</span>
+                  <Link href="/login" className="font-bold text-alien-green hover:underline" style={{ color }}>Earn {pointsEarned} Points</Link>
+                </div>
+              )}
 
               {/* Actions Grid */}
               <div className="space-y-3">
@@ -807,7 +777,7 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
 
                 {/* Wishlist & Compare Toggles */}
                 <div className="flex items-center justify-center gap-4 pt-2">
-                  <button 
+                  <button
                     onClick={() => setIsWishlisted(!isWishlisted)}
                     className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-white transition-colors"
                   >
@@ -815,7 +785,7 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
                     <span>{isWishlisted ? "Wishlisted" : "Add to Wishlist"}</span>
                   </button>
                   <span className="text-white/10">|</span>
-                  <button 
+                  <button
                     onClick={() => setCompareList(!compareList)}
                     className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-white transition-colors"
                   >
@@ -832,7 +802,7 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
 
       {/* ─── 5. INFORMATION ACCORDIONS / TABS ─── */}
       <section className="py-16 max-w-4xl mx-auto container-px">
-        
+
         {/* Tabs switcher headers */}
         <div className="flex border-b border-white/5 overflow-x-auto no-scrollbar gap-8 mb-8">
           {[
@@ -858,7 +828,7 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
 
         {/* Tab display contents */}
         <div className="min-h-[250px]">
-          
+
           {/* Key Benefits */}
           {activeTab === 'benefits' && (
             <div className="space-y-4 animate-fade-in">
@@ -879,7 +849,7 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
             <div className="space-y-4 animate-fade-in">
               <h3 className="text-xl font-bold mb-2 uppercase font-display tracking-wider">LAB PROFILE MATRIX</h3>
               <p className="text-xs text-gray-400 mb-4">Complete ingredient breakdowns per dosage.</p>
-              
+
               <div className="space-y-3">
                 {product.ingredients?.map((ing: any) => {
                   const ingName = getLocalizedField(ing.ingredient?.name)
@@ -927,7 +897,7 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
                 <span>Total Fat {selectedVariant?.nutrition?.total_fat ?? 0}g</span>
                 <span className="font-bold">0%</span>
               </div>
-              
+
               <div className="flex justify-between py-1 border-b border-gray-300">
                 <span>Sodium {selectedVariant?.nutrition?.sodium ?? 0}mg</span>
                 <span className="font-bold">0%</span>
@@ -1016,7 +986,7 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
       <section className="py-16 bg-space-900/60 border-t border-b border-white/5">
         <div className="max-w-7xl mx-auto container-px text-center">
           <h3 className="font-display text-2xl md:text-3xl tracking-widest text-muted text-gray-400 uppercase mb-10">SWISS QUALITY ASSURED</h3>
-          
+
           {/* Certifications grid */}
           <div className="grid grid-cols-2 md:grid-cols-6 gap-6 mb-12">
             {CERTIFICATIONS.map((cert) => {
@@ -1081,10 +1051,10 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
             <h3 className="font-display text-3xl tracking-wide uppercase mb-8 text-center text-white">FREQUENTLY BOUGHT TOGETHER</h3>
 
             <div className="bg-space-950 border border-white/5 p-6 rounded-3xl space-y-6">
-              
+
               {/* Items row */}
               <div className="flex flex-col md:flex-row items-center justify-center gap-6">
-                
+
                 {/* Main Product */}
                 <div className="flex items-center gap-3">
                   <div className="relative w-16 h-16 bg-space-900 border border-white/5 rounded-xl flex-shrink-0">
@@ -1106,7 +1076,7 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
                   return (
                     <div key={stack.id} className="flex items-center gap-3">
                       <span className="text-2xl text-gray-500 font-bold">+</span>
-                      <div 
+                      <div
                         onClick={() => setBundleChecked((prev) => {
                           const c = [...prev]
                           c[idx] = !c[idx]
@@ -1154,14 +1124,14 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
       <section className="py-16 bg-space-950 border-t border-white/5">
         <div className="max-w-7xl mx-auto container-px">
           <h3 className="font-display text-3xl tracking-wide uppercase mb-10 text-center text-white">RECOMMENDED STACKS</h3>
-          
+
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {stacks.map((stack: any) => {
               const stackName = getLocalizedField(stack.stack_product.name)
               const stackTagline = getLocalizedField(stack.stack_product.tagline)
               const stackImg = stack.stack_product.images?.find((i: any) => i.is_primary)?.url ?? stack.stack_product.images?.[0]?.url
               const stackColor = stack.stack_product.product_color ?? '#00FF88'
-              
+
               return (
                 <div key={stack.id} className="bg-space-900 border border-white/5 p-4 rounded-2xl flex flex-col justify-between hover:border-white/10 transition-all">
                   <div className="space-y-3">
@@ -1178,8 +1148,8 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
                     <span className="font-mono text-xs font-bold text-alien-green" style={{ color: stackColor }}>
                       {formatPrice(stack.stack_product.base_price)}
                     </span>
-                    <Link 
-                      href={`/products/${stack.stack_product.slug}`} 
+                    <Link
+                      href={`/products/${stack.stack_product.slug}`}
                       className="text-[10px] uppercase font-bold tracking-wider hover:text-white transition-colors"
                       style={{ color: stackColor }}
                     >
@@ -1211,7 +1181,7 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
                 </div>
               </div>
             </div>
-            <button 
+            <button
               onClick={() => setIsAiModalOpen(false)}
               className="text-gray-400 hover:text-white font-mono text-xs p-1"
             >
@@ -1222,19 +1192,19 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
           {/* Messages */}
           <div className="flex-grow overflow-y-auto p-4 space-y-4 no-scrollbar text-xs font-sans">
             {aiMessages.map((msg, idx) => (
-              <div 
-                key={idx} 
+              <div
+                key={idx}
                 className={cn(
                   "max-w-[80%] rounded-2xl p-3 leading-relaxed",
-                  msg.sender === 'user' 
-                    ? "bg-white/5 border border-white/10 text-white ml-auto rounded-tr-none" 
+                  msg.sender === 'user'
+                    ? "bg-white/5 border border-white/10 text-white ml-auto rounded-tr-none"
                     : "bg-alien-green/10 border border-alien-green/20 text-gray-200 mr-auto rounded-tl-none"
                 )}
               >
                 {msg.text}
               </div>
             ))}
-            
+
             {/* AI is thinking/typing indicator */}
             {isAiWidgetTyping && (
               <div className="bg-alien-green/10 border border-alien-green/20 text-gray-200 mr-auto rounded-tl-none rounded-2xl p-3 max-w-[80%] flex items-center gap-1">
@@ -1247,7 +1217,7 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
 
           {/* Send Input Form */}
           <form onSubmit={handleSendAiWidgetMessage} className="p-3 border-t border-white/5 bg-space-950 flex gap-2">
-            <input 
+            <input
               type="text"
               required
               value={aiInput}
@@ -1255,7 +1225,7 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
               placeholder="Ask dosage stacking guidelines..."
               className="input bg-space-900 border-white/5 flex-grow py-1.5 px-3 text-xs"
             />
-            <button 
+            <button
               type="submit"
               className="bg-alien-green text-space-950 font-bold px-4 py-2 rounded-xl text-xs flex items-center justify-center hover:shadow-glow-green transition-shadow"
             >

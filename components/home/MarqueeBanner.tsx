@@ -30,8 +30,10 @@ export default function MarqueeBanner() {
   })
 
   const [timeLeft, setTimeLeft] = useState<TimeLeft | null>(null)
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    setMounted(true)
     setTimeLeft(getTimeLeft(targetDate))
     const interval = setInterval(() => {
       setTimeLeft(getTimeLeft(targetDate))
@@ -40,10 +42,10 @@ export default function MarqueeBanner() {
   }, [targetDate])
 
   const timerBlocks: { value: number; label: string }[] = [
-    { value: timeLeft?.days ?? 0, label: 'Days' },
-    { value: timeLeft?.hours ?? 0, label: 'Hrs' },
-    { value: timeLeft?.minutes ?? 0, label: 'Mins' },
-    { value: timeLeft?.seconds ?? 0, label: 'Secs' },
+    { value: mounted && timeLeft ? timeLeft.days : 0, label: 'Days' },
+    { value: mounted && timeLeft ? timeLeft.hours : 0, label: 'Hrs' },
+    { value: mounted && timeLeft ? timeLeft.minutes : 0, label: 'Mins' },
+    { value: mounted && timeLeft ? timeLeft.seconds : 0, label: 'Secs' },
   ]
 
   return (

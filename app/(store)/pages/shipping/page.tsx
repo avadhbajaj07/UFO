@@ -5,7 +5,7 @@ import { Truck, Globe, Send, CheckCircle2, AlertTriangle } from 'lucide-react';
 export const metadata: Metadata = {
   title: 'Shipping & Returns | UFO LABZ',
   description:
-    'Learn about UFO LABZ shipping zones, delivery times, and our 30-day satisfaction guarantee return policy.',
+    'Learn about UFO LABZ shipping zones, delivery times, and our final sale returns policy.',
 };
 
 export default function ShippingPage() {
@@ -146,87 +146,13 @@ export default function ShippingPage() {
         <h2 className="font-display text-3xl text-white mb-8 text-center">
           RETURNS &amp; REFUNDS
         </h2>
-        <div className="card-glass p-8">
+        <div className="card-glass p-8 text-center max-w-3xl mx-auto">
           <h3 className="text-gradient-cosmic font-display text-2xl mb-4">
-            30-Day Satisfaction Guarantee
+            No Refunds or Returns Policy
           </h3>
-          <p className="text-sm text-muted leading-relaxed mb-8">
-            We stand behind the quality of every product we sell. If you&apos;re not
-            completely satisfied with your purchase, you can return it within 30
-            days for a full refund — no questions asked. Simply follow the steps
-            below to initiate your return.
+          <p className="text-sm text-muted leading-relaxed mb-4">
+            All sales are final. We do not accept returns or issue refunds except in the case of products that arrive damaged, defective, or incorrect. If this applies to your order, contact support@ufolabz.com within 7 days of delivery with your order number and a clear photo of the issue. We will review and respond within 24–48 hours.
           </p>
-
-          {/* 4-Step Process */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-            {/* Step 1 */}
-            <div className="text-center">
-              <div
-                className="w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-3 font-mono text-sm font-bold text-space-950"
-                style={{
-                  background:
-                    'linear-gradient(135deg, #7B2FBE 0%, #00FF88 100%)',
-                }}
-              >
-                1
-              </div>
-              <h4 className="font-display text-lg text-white mb-1">CONTACT US</h4>
-              <p className="text-xs text-muted">
-                Email support@ufolabz.com with your order number
-              </p>
-            </div>
-
-            {/* Step 2 */}
-            <div className="text-center">
-              <div
-                className="w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-3 font-mono text-sm font-bold text-space-950"
-                style={{
-                  background:
-                    'linear-gradient(135deg, #7B2FBE 0%, #00FF88 100%)',
-                }}
-              >
-                2
-              </div>
-              <h4 className="font-display text-lg text-white mb-1">GET APPROVAL</h4>
-              <p className="text-xs text-muted">
-                Receive a prepaid return label via email
-              </p>
-            </div>
-
-            {/* Step 3 */}
-            <div className="text-center">
-              <div
-                className="w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-3 font-mono text-sm font-bold text-space-950"
-                style={{
-                  background:
-                    'linear-gradient(135deg, #7B2FBE 0%, #00FF88 100%)',
-                }}
-              >
-                3
-              </div>
-              <h4 className="font-display text-lg text-white mb-1">SHIP IT BACK</h4>
-              <p className="text-xs text-muted">
-                Pack items securely and drop at any Swiss Post location
-              </p>
-            </div>
-
-            {/* Step 4 */}
-            <div className="text-center">
-              <div
-                className="w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-3 font-mono text-sm font-bold text-space-950"
-                style={{
-                  background:
-                    'linear-gradient(135deg, #7B2FBE 0%, #00FF88 100%)',
-                }}
-              >
-                4
-              </div>
-              <h4 className="font-display text-lg text-white mb-1">GET REFUNDED</h4>
-              <p className="text-xs text-muted">
-                Refund processed within 5–7 business days
-              </p>
-            </div>
-          </div>
         </div>
       </section>
 
@@ -243,31 +169,19 @@ export default function ShippingPage() {
             <div className="flex items-start gap-3">
               <span className="w-1.5 h-1.5 rounded-full bg-nebula-400 shrink-0 mt-1.5" />
               <p className="text-sm text-muted">
-                Opened or used supplements cannot be returned for hygiene reasons
+                Supplements are final sale items and cannot be returned or refunded once processed.
               </p>
             </div>
             <div className="flex items-start gap-3">
               <span className="w-1.5 h-1.5 rounded-full bg-nebula-400 shrink-0 mt-1.5" />
               <p className="text-sm text-muted">
-                Products must be in original packaging
+                Any issues with damaged or incorrect items must be reported within 7 days of package delivery.
               </p>
             </div>
             <div className="flex items-start gap-3">
               <span className="w-1.5 h-1.5 rounded-full bg-nebula-400 shrink-0 mt-1.5" />
               <p className="text-sm text-muted">
-                Return shipping is covered by UFO LABZ for Swiss orders
-              </p>
-            </div>
-            <div className="flex items-start gap-3">
-              <span className="w-1.5 h-1.5 rounded-full bg-nebula-400 shrink-0 mt-1.5" />
-              <p className="text-sm text-muted">
-                International return shipping is the customer&apos;s responsibility
-              </p>
-            </div>
-            <div className="flex items-start gap-3">
-              <span className="w-1.5 h-1.5 rounded-full bg-nebula-400 shrink-0 mt-1.5" />
-              <p className="text-sm text-muted">
-                Promotional items and gift cards are non-refundable
+                Please include a clear photo of the packaging and items received when contacting support.
               </p>
             </div>
           </div>

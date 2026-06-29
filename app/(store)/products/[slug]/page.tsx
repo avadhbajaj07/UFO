@@ -12,6 +12,9 @@ interface Props {
 }
 
 async function getProduct(slug: string) {
+  if (['astro-creatine', 'blast-pre-workout-energy', 'amino-fuel-mango'].includes(slug)) {
+    return null
+  }
   const supabase = createClient()
   const { data } = await supabase
     .from('products')
@@ -61,7 +64,9 @@ import { createClient as createBrowserClient } from '@/lib/supabase/client'
 export async function generateStaticParams() {
   const supabase = createBrowserClient()
   const { data } = await supabase.from('products').select('slug').eq('status', 'active')
-  return (data as any[] ?? []).map((p) => ({ slug: p.slug }))
+  return (data as any[] ?? [])
+    .filter((p) => !['astro-creatine', 'blast-pre-workout-energy', 'amino-fuel-mango'].includes(p.slug))
+    .map((p) => ({ slug: p.slug }))
 }
 
 export default async function ProductPage({ params }: Props) {
@@ -70,5 +75,47 @@ export default async function ProductPage({ params }: Props) {
     notFound()
   }
 
-  return <ProductDetail product={product as any} slug={params.slug} />
+  const prod = product as any
+  const localizedName = typeof prod.name === 'object' ? (prod.name.en || prod.name.de) : prod.name
+  const localizedDesc = typeof prod.description === 'object' ? (prod.description.en || prod.description.de) : prod.description
+
+  const images = (prod.images as any[] ?? []).map((img) => img.url)
+  const offersList = (prod.variants as any[] ?? []).map((v) => ({
+    '@type': 'Offer',
+    price: v.price,
+    priceCurrency: 'CHF',
+    itemCondition: 'https://schema.org/NewCondition',
+    availability: v.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+    sku: v.sku,
+    url: `https://ufolabz.com/products/${prod.slug}`,
+  }))
+
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: localizedName,
+    description: localizedDesc,
+    image: images.length > 0 ? images : ['https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782667544/UFO4_nuzyls.png'],
+    sku: prod.variants?.[0]?.sku ?? prod.slug,
+    brand: {
+      '@type': 'Brand',
+      name: 'UFO LABZ',
+    },
+    offers: offersList.length > 0 ? (offersList.length === 1 ? offersList[0] : offersList) : {
+      '@type': 'Offer',
+      price: prod.base_price,
+      priceCurrency: 'CHF',
+      availability: 'https://schema.org/InStock',
+    }
+  }
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <ProductDetail product={product as any} slug={params.slug} />
+    </>
+  )
 }

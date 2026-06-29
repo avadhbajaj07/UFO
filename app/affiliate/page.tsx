@@ -300,12 +300,7 @@ export default function AffiliatePage() {
             <div className="text-center">
               <h2 className="font-display text-3xl tracking-wide uppercase text-white">PARTNER REGISTRATION</h2>
               <p className="text-xs text-gray-400 mt-1">Submit your details to activate your affiliate dashboard immediately.</p>
-              <button 
-                onClick={handlePrefillRegister}
-                className="text-[10px] font-mono text-alien-green mt-2 hover:underline"
-              >
-                [Auto-Fill Demo Credentials]
-              </button>
+
             </div>
 
             <form onSubmit={handleRegisterSubmit} className="space-y-4 text-xs">

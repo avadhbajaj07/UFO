@@ -4,8 +4,8 @@ import ProductsClient from '@/components/product/ProductsClient'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'All Products',
-  description: 'Browse all UFO LABZ supplements. Creatine, Pre Workout, BCAA, and Special Edition formulas.',
+  title: 'Shop Supplements | UFO LABZ',
+  description: 'Power your workouts with premium Swiss-engineered sports supplements. Explore UFO LABZ Creatine, Pre-Workout, and Amino Acid formulas.',
 }
 
 export const revalidate = 3600
@@ -26,6 +26,7 @@ async function getProducts(searchParams: Record<string, string> = {}) {
       variants:product_variants(id, name, price, compare_at_price, stock, status, is_default, sort_order)
     `)
     .eq('status', 'active')
+    .not('slug', 'in', '("astro-creatine","blast-pre-workout-energy","amino-fuel-mango")')
 
   if (category) {
     const { data: cat } = await supabase.from('categories').select('id').eq('slug', category).single() as any

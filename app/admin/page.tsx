@@ -207,7 +207,58 @@ const INITIAL_AUTOMATION_FLOWS: AutomationFlow[] = [
 ]
 
 export default function AdminPage() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [passwordInput, setPasswordInput] = useState('')
+  const [authError, setAuthError] = useState('')
+
+  useEffect(() => {
+    if (sessionStorage.getItem('ufo_admin_authed') === 'true') {
+      setIsAuthenticated(true)
+    }
+  }, [])
+
+  const handleAuthenticate = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (passwordInput === 'UFOLabzAdmin2026!') {
+      setIsAuthenticated(true)
+      sessionStorage.setItem('ufo_admin_authed', 'true')
+      setAuthError('')
+    } else {
+      setAuthError('INVALID ACCESS DECREE. ACCESS DENIED.')
+    }
+  }
+
   const [activeTab, setActiveTab] = useState<'dashboard' | 'products' | 'orders' | 'inventory' | 'pricing' | 'customers' | 'affiliates' | 'marketing' | 'reviews' | 'automations'>('dashboard')
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-space-950 text-white flex items-center justify-center font-mono text-xs px-4 selection:bg-electric-red selection:text-white">
+        <div className="bg-space-900 border border-electric-red/20 p-8 rounded-3xl max-w-sm w-full text-center space-y-6 shadow-glow-red relative overflow-hidden">
+          <div className="absolute inset-0 bg-electric-red/5 blur-[50px] pointer-events-none" />
+          <div className="w-16 h-16 rounded-full bg-electric-red/10 border border-electric-red/20 flex items-center justify-center mx-auto text-electric-red text-2xl relative z-10 animate-pulse">
+            🔒
+          </div>
+          <div className="relative z-10">
+            <h2 className="font-display text-2xl tracking-wider text-white uppercase">RESTRICTED ZONE</h2>
+            <p className="text-gray-400 mt-2 text-[10px] leading-relaxed">Admin access restricted to verified orbital commanders. Enter decryption password.</p>
+          </div>
+          <form onSubmit={handleAuthenticate} className="space-y-4 relative z-10">
+            <input
+              type="password"
+              value={passwordInput}
+              onChange={(e) => setPasswordInput(e.target.value)}
+              placeholder="Decryption Key"
+              className="w-full bg-space-950 border border-white/10 rounded-xl px-4 py-3 text-center text-white focus:outline-none focus:border-electric-red/40 transition-colors"
+            />
+            {authError && <div className="text-electric-red font-bold uppercase text-[9px] tracking-wider animate-bounce">{authError}</div>}
+            <button type="submit" className="w-full bg-electric-red hover:bg-electric-red/80 text-white font-bold py-3 rounded-xl transition-all shadow-glow-red hover:scale-[1.02] transform duration-150">
+              DECRYPT CONTROL PANEL
+            </button>
+          </form>
+        </div>
+      </div>
+    )
+  }
   
   // Orders states
   const [ordersList, setOrdersList] = useState<Order[]>(INITIAL_ORDERS)
@@ -341,9 +392,6 @@ export default function AdminPage() {
     } else {
       const initialProducts = [
         { id: 'prod-col', title: 'Astro Collagen Peptide (300g)', category: 'special-edition', price: 34, stock: 500, desc: 'Premium hydrolyzed grass-fed collagen peptides optimized for rapid absorption, joint strength, and skin elasticity.', product_color: '#9B30FF', featuredImage: 'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782667545/UFO1_ztlvyz.png', slug: 'astro-collagen' },
-        { id: 'prod-blast-energy', title: 'Blast Pre-Workout (Energy Drink)', category: 'pre-workout', price: 24, stock: 400, desc: 'Explosive energy and laser focus formula for extreme pre-workout performance in refreshing citrus energy drink flavor.', product_color: '#FF2244', featuredImage: 'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782667544/UFO3_bfwhlr.png', slug: 'blast-pre-workout-energy' },
-        { id: 'prod-creatine', title: 'Astro Creatine Pure (500g)', category: 'creatine', price: 19, stock: 600, desc: 'Premium 100% micronized creatine monohydrate for explosive power, muscle hypertrophy, and cellular recovery.', product_color: '#00FF88', featuredImage: 'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782667544/UFO4_nuzyls.png', slug: 'astro-creatine' },
-        { id: 'prod-amino-mango', title: 'Amino Fuel EAA (Mango)', category: 'amino-acids', price: 17.90, stock: 450, desc: 'Complete Essential Amino Acids (EAA) matrix with added hydration electrolytes in delicious mango flavor.', product_color: '#FF8C00', featuredImage: 'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782667544/UFO5_l42elt.png', slug: 'amino-fuel-mango' },
         { id: 'prod-blast-blue', title: 'Blast Pre-Workout (Blue Raspberry)', category: 'pre-workout', price: 24, stock: 350, desc: 'Extreme pre-workout energy and focus formula featuring an electric blue raspberry flavor profile.', product_color: '#00CFFF', featuredImage: 'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782667544/UFO2_hnupdu.png', slug: 'blast-pre-workout-blue' },
         { id: 'prod-amino-blue', title: 'Amino Fuel EAA (Blue Raspberry)', category: 'amino-acids', price: 17.90, stock: 350, desc: 'Full essential amino acids matrix paired with advanced electrolytes in a cold blue raspberry flavor.', product_color: '#00CFFF', featuredImage: 'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782667544/UFO6_uhxvep.png', slug: 'amino-fuel-blue-raspberry' }
       ]

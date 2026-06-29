@@ -27,7 +27,7 @@ const features = [
 ]
 
 const stats = [
-  { value: '10K+', label: 'Happy Athletes', icon: Users, color: '#00FF88' },
+  { value: '50K+', label: 'Happy Athletes', icon: Users, color: '#00FF88' },
   { value: '99%', label: 'Purity Tested', icon: Shield, color: '#C850FF' },
   { value: '24H', label: 'Fast Delivery', icon: Clock, color: '#00CFFF' },
   { value: '100%', label: 'Satisfaction', icon: Heart, color: '#FF8C00' },

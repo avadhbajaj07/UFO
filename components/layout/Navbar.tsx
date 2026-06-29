@@ -26,17 +26,12 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="relative">
-              <div className="w-9 h-9 rounded-full flex items-center justify-center group-hover:shadow-glow-purple transition-all duration-300"
-                   style={{ background: 'linear-gradient(135deg, #7B2FBE 0%, #00FF88 100%)' }}>
-                <span className="text-white text-sm font-bold font-mono">U</span>
-              </div>
-              <div className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-alien-green animate-pulse-glow" />
-            </div>
-            <span className="font-display text-xl tracking-wider text-white group-hover:text-gradient-cosmic transition-colors">
-              UFO LABZ
-            </span>
+          <Link href="/" className="flex items-center group">
+            <img
+              src="https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782711478/UFO_logo_horizontal_kr0e7j.jpg"
+              alt="UFO LABZ"
+              className="h-10 w-auto object-contain rounded-lg border border-white/5 opacity-90 group-hover:opacity-100 transition-opacity"
+            />
           </Link>
 
           {/* Desktop nav */}

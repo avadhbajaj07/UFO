@@ -66,12 +66,13 @@ export default function SignupPage() {
       </div>
 
       <div className="w-full max-w-sm relative z-10">
-        <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center gap-2 mb-6">
-            <div className="w-8 h-8 rounded-full bg-alien-green/20 border border-alien-green/40 flex items-center justify-center">
-              <span className="text-alien-green text-xs font-bold font-mono">U</span>
-            </div>
-            <span className="font-display text-xl tracking-wider text-white">UFO LABZ</span>
+        <div className="text-center mb-6">
+          <Link href="/" className="inline-block mb-4 hover:opacity-90 transition-opacity">
+            <img
+              src="https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782711478/ufo_logo_sqaure_h2yvkk.jpg"
+              alt="UFO LABZ"
+              className="w-20 h-20 object-contain rounded-2xl border border-white/10 shadow-lg mx-auto"
+            />
           </Link>
           <h1 className="font-display text-4xl tracking-wider text-white mb-2">JOIN THE CREW</h1>
           <p className="text-sm text-muted">Create your free account and start earning Alien Points</p>

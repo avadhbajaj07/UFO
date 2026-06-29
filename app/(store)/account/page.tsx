@@ -6,10 +6,11 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/store/auth'
 import { useCart } from '@/hooks/useCart'
-import { 
-  User, Shield, ShoppingBag, Heart, RefreshCw, Award, 
-  MapPin, Target, Calendar, BarChart2, Ticket, Download, 
-  MessageCircle, Bell, Lock, LogOut, Check, Plus, Minus, 
+import { createClient } from '@/lib/supabase/client'
+import {
+  User, Shield, ShoppingBag, Heart, RefreshCw, Award,
+  MapPin, Target, Calendar, BarChart2, Ticket, Download,
+  MessageCircle, Bell, Lock, LogOut, Check, Plus, Minus,
   Send, Trash2, Edit2, Play, Info, Sparkles, CheckCircle2, ChevronRight
 } from 'lucide-react'
 import { formatPrice } from '@/lib/utils/pricing'
@@ -18,9 +19,9 @@ import { cn } from '@/lib/utils'
 
 // Swiss Cantons for dropdown
 const CANTONS = [
-  'Aargau', 'Appenzell Ausserrhoden', 'Appenzell Innerrhoden', 'Basel-Landschaft', 
-  'Basel-Stadt', 'Bern', 'Fribourg', 'Geneva', 'Glarus', 'Graubünden', 'Jura', 
-  'Luzern', 'Neuchâtel', 'Nidwalden', 'Obwalden', 'Schaffhausen', 'Schwyz', 
+  'Aargau', 'Appenzell Ausserrhoden', 'Appenzell Innerrhoden', 'Basel-Landschaft',
+  'Basel-Stadt', 'Bern', 'Fribourg', 'Geneva', 'Glarus', 'Graubünden', 'Jura',
+  'Luzern', 'Neuchâtel', 'Nidwalden', 'Obwalden', 'Schaffhausen', 'Schwyz',
   'Solothurn', 'St. Gallen', 'Thurgau', 'Ticino', 'Uri', 'Valais', 'Vaud', 'Zug', 'Zurich'
 ]
 
@@ -66,35 +67,130 @@ export default function AccountPage() {
 
   // Guest/Demo Mode check
   const [isDemoMode, setIsDemoMode] = useState(false)
-  const displayProfile = isDemoMode || user ? {
-    full_name: user?.full_name || 'Commander Shikha Swiss',
-    email: user?.email || 'shikha@ufolabz.ch',
+  const [dbProfile, setDbProfile] = useState<any>(null)
+  const [loyaltyAccount, setLoyaltyAccount] = useState<any>(null)
+  const [dbAddresses, setDbAddresses] = useState<any[]>([])
+  const [dbOrders, setDbOrders] = useState<any[]>([])
+  const [dbSubscriptions, setDbSubscriptions] = useState<any[]>([])
+  const [dbCoupons, setDbCoupons] = useState<any[]>([])
+
+  const displayProfile = isDemoMode ? {
+    full_name: 'Commander Shikha Swiss',
+    email: 'shikha@ufolabz.ch',
     membership: 'VIP Galaxy Elite',
     points: 1240,
     credit: 45.00,
     avatar: ''
-  } : null
+  } : (user ? {
+    full_name: profile?.full_name || user.email.split('@')[0],
+    email: user.email,
+    membership: loyaltyAccount?.tier?.name || 'Earthling',
+    points: loyaltyAccount?.points ?? 100,
+    credit: 0.00,
+    avatar: profile?.avatar_url || ''
+  } : null)
 
-  // Ensure default demo profile active if user not logged in
+  // Fetch live user data if logged in
   useEffect(() => {
     if (!user) {
       setIsDemoMode(true)
+      return
     }
-  }, [user])
+    setIsDemoMode(false)
+
+    const fetchData = async () => {
+      const supabase = createClient() as any
+
+      // 1. Fetch complete profile
+      const { data: prof } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single()
+      if (prof) setDbProfile(prof)
+
+      // 2. Fetch loyalty account with tier
+      const { data: loy } = await supabase
+        .from('loyalty_accounts')
+        .select('*, tier:loyalty_tiers(*)')
+        .eq('profile_id', user.id)
+        .single()
+      if (loy) setLoyaltyAccount(loy)
+
+      // 3. Fetch addresses
+      const { data: addrs } = await supabase
+        .from('addresses')
+        .select('*')
+        .eq('profile_id', user.id)
+      if (addrs) {
+        const mapped = addrs.map((a: any) => ({
+          id: a.id,
+          label: a.label,
+          name: a.full_name,
+          line1: a.line1,
+          city: a.city,
+          zip: a.postal_code,
+          canton: a.state,
+          country: a.country,
+          isDefault: a.is_default
+        }))
+        setDbAddresses(mapped)
+      }
+
+      // 4. Fetch orders
+      const { data: ords } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('profile_id', user.id)
+        .order('created_at', { ascending: false })
+      if (ords) setDbOrders(ords)
+
+      // 5. Fetch subscriptions
+      const { data: subs } = await supabase
+        .from('subscriptions')
+        .select('*, plan:subscription_plans(*)')
+        .eq('profile_id', user.id)
+      if (subs) setDbSubscriptions(subs)
+
+      // 6. Fetch active coupons
+      const { data: coups } = await supabase
+        .from('coupons')
+        .select('*')
+        .eq('is_active', true)
+      if (coups) setDbCoupons(coups)
+    }
+
+    fetchData()
+  }, [user, profile])
 
   // Active navigation tab
   const [activeTab, setActiveTab] = useState<string>('dashboard')
 
   // Section States
   const [goal, setGoal] = useState<string>('Muscle Gain')
-  const [weightLogs, setWeightLogs] = useState<Array<{ date: string; val: number }>>([
-    { date: '2026-06-20', val: 78.5 },
-    { date: '2026-06-22', val: 78.2 },
-    { date: '2026-06-25', val: 77.9 }
-  ])
+  const [weightLogs, setWeightLogs] = useState<Array<{ date: string; val: number }>>([])
   const [weightInput, setWeightInput] = useState('')
-  const [streakCount, setStreakCount] = useState(5)
-  const [waterGlasses, setWaterGlasses] = useState(4)
+  const [streakCount, setStreakCount] = useState(0)
+  const [waterGlasses, setWaterGlasses] = useState(0)
+
+  // Set local state defaults based on isDemoMode
+  useEffect(() => {
+    if (isDemoMode) {
+      setWeightLogs([
+        { date: '2026-06-20', val: 78.5 },
+        { date: '2026-06-22', val: 78.2 },
+        { date: '2026-06-25', val: 77.9 }
+      ])
+      setStreakCount(5)
+      setWaterGlasses(4)
+      setAddresses(INITIAL_ADDRESSES)
+    } else {
+      setWeightLogs([])
+      setStreakCount(0)
+      setWaterGlasses(0)
+      setAddresses(dbAddresses)
+    }
+  }, [isDemoMode, dbAddresses])
 
   // Supplement Checklist
   const [scheduleLogs, setScheduleLogs] = useState<Record<string, boolean>>({
@@ -104,7 +200,7 @@ export default function AccountPage() {
   })
 
   // Address book states
-  const [addresses, setAddresses] = useState(INITIAL_ADDRESSES)
+  const [addresses, setAddresses] = useState<any[]>([])
   const [showAddressForm, setShowAddressForm] = useState(false)
   const [newAddress, setNewAddress] = useState({ label: 'Home', name: '', line1: '', city: '', zip: '', canton: 'Zurich' })
 
@@ -127,28 +223,75 @@ export default function AccountPage() {
   }
 
   // Handle Add Address
-  const handleAddAddressSubmit = (e: React.FormEvent) => {
+  const handleAddAddressSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!newAddress.name || !newAddress.line1 || !newAddress.city || !newAddress.zip) return
-    const created = {
-      id: `addr-${Date.now()}`,
-      ...newAddress,
-      country: 'Switzerland',
-      isDefault: false
+
+    if (isDemoMode) {
+      const created = {
+        id: `addr-${Date.now()}`,
+        ...newAddress,
+        country: 'Switzerland',
+        isDefault: false
+      }
+      setAddresses([...addresses, created])
+    } else if (user) {
+      const supabase = createClient() as any
+      const { data, error } = await supabase
+        .from('addresses')
+        .insert({
+          profile_id: user.id,
+          label: newAddress.label,
+          full_name: newAddress.name,
+          line1: newAddress.line1,
+          city: newAddress.city,
+          postal_code: newAddress.zip,
+          state: newAddress.canton,
+          country: 'Switzerland',
+          is_default: false
+        })
+        .select()
+        .single()
+      if (data) {
+        const mapped = {
+          id: data.id,
+          label: data.label,
+          name: data.full_name,
+          line1: data.line1,
+          city: data.city,
+          zip: data.postal_code,
+          canton: data.state,
+          country: data.country,
+          isDefault: data.is_default
+        }
+        setAddresses([...addresses, mapped])
+      }
     }
-    setAddresses([...addresses, created])
     setShowAddressForm(false)
     setNewAddress({ label: 'Home', name: '', line1: '', city: '', zip: '', canton: 'Zurich' })
   }
 
   // Set Default Address
-  const handleSetDefaultAddress = (id: string) => {
-    setAddresses(addresses.map((a) => ({ ...a, isDefault: a.id === id })))
+  const handleSetDefaultAddress = async (id: string) => {
+    if (isDemoMode) {
+      setAddresses(addresses.map((a) => ({ ...a, isDefault: a.id === id })))
+    } else if (user) {
+      const supabase = createClient() as any
+      await supabase.from('addresses').update({ is_default: false }).eq('profile_id', user.id)
+      await supabase.from('addresses').update({ is_default: true }).eq('id', id)
+      setAddresses(addresses.map((a) => ({ ...a, isDefault: a.id === id })))
+    }
   }
 
   // Delete Address
-  const handleDeleteAddress = (id: string) => {
-    setAddresses(addresses.filter((a) => a.id !== id))
+  const handleDeleteAddress = async (id: string) => {
+    if (isDemoMode) {
+      setAddresses(addresses.filter((a) => a.id !== id))
+    } else if (user) {
+      const supabase = createClient() as any
+      await supabase.from('addresses').delete().eq('id', id)
+      setAddresses(addresses.filter((a) => a.id !== id))
+    }
   }
 
   // Add weight log
@@ -184,9 +327,9 @@ export default function AccountPage() {
           body: JSON.stringify({
             model: 'gpt-3.5-turbo',
             messages: [
-              { 
-                role: 'system', 
-                content: `You are an advanced UFO LABZ AI Lab Assistant, a premium sports nutrition specialist for a Swiss brand. Respond professionally and scientifically. Recommend products like Astro Creatine or Blast Pre-Workout. The user is Shikha Swiss with goals: "${goal}".` 
+              {
+                role: 'system',
+                content: `You are an advanced UFO LABZ AI Lab Assistant, a premium sports nutrition specialist for a Swiss brand. Respond professionally and scientifically. Recommend products like Astro Creatine or Blast Pre-Workout. The user is Shikha Swiss with goals: "${goal}".`
               },
               { role: 'user', content: userText }
             ],
@@ -245,7 +388,7 @@ export default function AccountPage() {
   return (
     <div className="pt-20 min-h-screen bg-space-950 text-white selection:bg-alien-green selection:text-space-950 font-sans">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        
+
         {/* Banner notifying user about Demo Mode */}
         {isDemoMode && (
           <div className="bg-alien-green/10 border border-alien-green/20 text-alien-green p-4 rounded-2xl mb-8 flex items-center justify-between text-xs">
@@ -262,7 +405,7 @@ export default function AccountPage() {
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          
+
           {/* ─── LEFT: SIDEBAR NAVIGATION (width: 3 cols) ─── */}
           <aside className="lg:col-span-3 bg-space-900 border border-white/5 rounded-3xl p-4 space-y-2 overflow-x-auto lg:overflow-x-visible no-scrollbar flex lg:flex-col gap-1 lg:gap-0 select-none">
             <div className="hidden lg:flex items-center gap-3 pb-4 mb-4 border-b border-white/5">
@@ -283,8 +426,8 @@ export default function AccountPage() {
                   onClick={() => setActiveTab(tab.id)}
                   className={cn(
                     "flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-mono font-medium transition-all whitespace-nowrap lg:w-full",
-                    activeTab === tab.id 
-                      ? "bg-alien-green text-space-950 font-bold shadow-glow-green" 
+                    activeTab === tab.id
+                      ? "bg-alien-green text-space-950 font-bold shadow-glow-green"
                       : "text-gray-400 hover:text-white hover:bg-white/5"
                   )}
                 >
@@ -294,7 +437,7 @@ export default function AccountPage() {
               )}
             )}
 
-            <button 
+            <button
               onClick={handleLogoutClick}
               className="flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-mono font-medium text-red-400 hover:text-red-500 hover:bg-red-500/5 whitespace-nowrap lg:w-full lg:mt-6"
             >
@@ -305,14 +448,14 @@ export default function AccountPage() {
 
           {/* ─── RIGHT: DETAILED TAB CONTENT (width: 9 cols) ─── */}
           <main className="lg:col-span-9 bg-space-900 border border-white/5 rounded-3xl p-6 md:p-8 min-h-[600px] relative overflow-hidden">
-            
+
             {/* Background ambient portal */}
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
               <div className="w-[300px] h-[300px] rounded-full bg-alien-green/5 blur-[80px]" />
             </div>
 
             <div className="relative z-10 w-full">
-              
+
               {/* 🏠 DASHBOARD PANEL */}
               {activeTab === 'dashboard' && (
                 <div className="space-y-6 animate-fade-in text-left">
@@ -376,81 +519,111 @@ export default function AccountPage() {
               {activeTab === 'orders' && (
                 <div className="space-y-6 animate-fade-in text-left">
                   <h2 className="font-display text-3xl tracking-wide uppercase text-white">ORDER LEDGER</h2>
-                  
+
                   <div className="space-y-4">
-                    {/* Live Order 1 */}
-                    <div className="bg-space-950 border border-white/5 p-5 rounded-2xl space-y-4">
-                      <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-white/5 pb-3 gap-2 text-xs">
-                        <div>
-                          <div className="font-bold text-white font-mono">Order #UFO-CH-82741</div>
-                          <span className="text-gray-400 text-[10px]">Placed on: June 26, 2026</span>
-                        </div>
-                        <span className="font-mono bg-blue-500/10 border border-blue-500/20 text-blue-500 px-3 py-1 rounded-full font-bold">
-                          SHIPPED (PostPac Priority)
-                        </span>
-                      </div>
+                    {isDemoMode ? (
+                      <>
+                        {/* Live Order 1 */}
+                        <div className="bg-space-950 border border-white/5 p-5 rounded-2xl space-y-4">
+                          <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-white/5 pb-3 gap-2 text-xs">
+                            <div>
+                              <div className="font-bold text-white font-mono">Order #UFO-CH-82741</div>
+                              <span className="text-gray-400 text-[10px]">Placed on: June 26, 2026</span>
+                            </div>
+                            <span className="font-mono bg-blue-500/10 border border-blue-500/20 text-blue-500 px-3 py-1 rounded-full font-bold">
+                              SHIPPED (PostPac Priority)
+                            </span>
+                          </div>
 
-                      <div className="flex items-center gap-4 text-xs">
-                        <div className="w-12 h-12 bg-space-900 border border-white/5 rounded-xl relative flex-shrink-0">
-                          <Image src="/Product1.jpeg" alt="Astro Creatine" fill className="object-contain p-1.5" />
-                        </div>
-                        <div>
-                          <div className="font-bold text-white">Astro Creatine (500g)</div>
-                          <div className="text-gray-400">Qty: 1 · Price: CHF 39.00</div>
-                        </div>
-                      </div>
+                          <div className="flex items-center gap-4 text-xs">
+                            <div className="w-12 h-12 bg-space-900 border border-white/5 rounded-xl relative flex-shrink-0">
+                              <Image src="/Product1.jpeg" alt="Astro Creatine" fill className="object-contain p-1.5" />
+                            </div>
+                            <div>
+                              <div className="font-bold text-white">Astro Creatine (500g)</div>
+                              <div className="text-gray-400">Qty: 1 · Price: CHF 39.00</div>
+                            </div>
+                          </div>
 
-                      {/* Order tracking timeline */}
-                      <div className="pt-2">
-                        <div className="text-[10px] font-mono text-gray-400 mb-2 uppercase">TRACK SHIPMENT</div>
-                        <div className="flex items-center justify-between text-[10px] font-mono text-gray-400 max-w-md">
-                          <span className="text-alien-green font-bold">Confirmed</span>
-                          <ChevronRight className="w-3 h-3" />
-                          <span className="text-alien-green font-bold">Processed</span>
-                          <ChevronRight className="w-3 h-3" />
-                          <span className="text-alien-green font-bold">Shipped</span>
-                          <ChevronRight className="w-3 h-3" />
-                          <span>Out for Delivery</span>
-                        </div>
-                        <div className="w-full bg-white/10 h-1.5 rounded-full mt-2 overflow-hidden max-w-md">
-                          <div className="bg-alien-green h-full w-[75%]" />
-                        </div>
-                      </div>
+                          {/* Order tracking timeline */}
+                          <div className="pt-2">
+                            <div className="text-[10px] font-mono text-gray-400 mb-2 uppercase">TRACK SHIPMENT</div>
+                            <div className="flex items-center justify-between text-[10px] font-mono text-gray-400 max-w-md">
+                              <span className="text-alien-green font-bold">Confirmed</span>
+                              <ChevronRight className="w-3 h-3" />
+                              <span className="text-alien-green font-bold">Processed</span>
+                              <ChevronRight className="w-3 h-3" />
+                              <span className="text-alien-green font-bold">Shipped</span>
+                              <ChevronRight className="w-3 h-3" />
+                              <span>Out for Delivery</span>
+                            </div>
+                            <div className="w-full bg-white/10 h-1.5 rounded-full mt-2 overflow-hidden max-w-md">
+                              <div className="bg-alien-green h-full w-[75%]" />
+                            </div>
+                          </div>
 
-                      <div className="flex flex-wrap gap-2 pt-2 text-xs">
-                        <button className="bg-white/5 hover:bg-white/10 text-white font-mono text-[10px] py-1.5 px-3 rounded-lg border border-white/5">Download Invoice (PDF)</button>
-                        <button className="bg-white/5 hover:bg-white/10 text-white font-mono text-[10px] py-1.5 px-3 rounded-lg border border-white/5">Track Shipment</button>
-                      </div>
-                    </div>
-
-                    {/* Past Order 2 */}
-                    <div className="bg-space-950 border border-white/5 p-5 rounded-2xl space-y-4">
-                      <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-white/5 pb-3 gap-2 text-xs">
-                        <div>
-                          <div className="font-bold text-white font-mono">Order #UFO-CH-71829</div>
-                          <span className="text-gray-400 text-[10px]">Placed on: May 12, 2026</span>
+                          <div className="flex flex-wrap gap-2 pt-2 text-xs">
+                            <button className="bg-white/5 hover:bg-white/10 text-white font-mono text-[10px] py-1.5 px-3 rounded-lg border border-white/5">Download Invoice (PDF)</button>
+                            <button className="bg-white/5 hover:bg-white/10 text-white font-mono text-[10px] py-1.5 px-3 rounded-lg border border-white/5">Track Shipment</button>
+                          </div>
                         </div>
-                        <span className="font-mono bg-alien-green/10 border border-alien-green/20 text-alien-green px-3 py-1 rounded-full font-bold">
-                          DELIVERED
-                        </span>
-                      </div>
 
-                      <div className="flex items-center gap-4 text-xs">
-                        <div className="w-12 h-12 bg-space-900 border border-white/5 rounded-xl relative flex-shrink-0">
-                          <Image src="/Product2.jpeg" alt="Blast Pre-Workout" fill className="object-contain p-1.5" />
-                        </div>
-                        <div>
-                          <div className="font-bold text-white">Blast Pre-Workout (300g)</div>
-                          <div className="text-gray-400">Qty: 1 · Price: CHF 49.00</div>
-                        </div>
-                      </div>
+                        {/* Past Order 2 */}
+                        <div className="bg-space-950 border border-white/5 p-5 rounded-2xl space-y-4">
+                          <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-white/5 pb-3 gap-2 text-xs">
+                            <div>
+                              <div className="font-bold text-white font-mono">Order #UFO-CH-71829</div>
+                              <span className="text-gray-400 text-[10px]">Placed on: May 12, 2026</span>
+                            </div>
+                            <span className="font-mono bg-alien-green/10 border border-alien-green/20 text-alien-green px-3 py-1 rounded-full font-bold">
+                              DELIVERED
+                            </span>
+                          </div>
 
-                      <div className="flex flex-wrap gap-2 pt-2 text-xs">
-                        <button onClick={() => addItem('BLAST-300G')} className="bg-alien-green text-space-950 font-bold font-mono text-[10px] py-1.5 px-4 rounded-lg">Buy Again</button>
-                        <button className="bg-white/5 hover:bg-white/10 text-white font-mono text-[10px] py-1.5 px-3 rounded-lg border border-white/5">Download Receipt</button>
-                        <button className="bg-white/5 hover:bg-white/10 text-white font-mono text-[10px] py-1.5 px-3 rounded-lg border border-white/5">Write Review</button>
-                      </div>
-                    </div>
+                          <div className="flex items-center gap-4 text-xs">
+                            <div className="w-12 h-12 bg-space-900 border border-white/5 rounded-xl relative flex-shrink-0">
+                              <Image src="/Product2.jpeg" alt="Blast Pre-Workout" fill className="object-contain p-1.5" />
+                            </div>
+                            <div>
+                              <div className="font-bold text-white">Blast Pre-Workout (300g)</div>
+                              <div className="text-gray-400">Qty: 1 · Price: CHF 49.00</div>
+                            </div>
+                          </div>
+
+                          <div className="flex flex-wrap gap-2 pt-2 text-xs">
+                            <button onClick={() => addItem('BLAST-300G')} className="bg-alien-green text-space-950 font-bold font-mono text-[10px] py-1.5 px-4 rounded-lg">Buy Again</button>
+                            <button className="bg-white/5 hover:bg-white/10 text-white font-mono text-[10px] py-1.5 px-3 rounded-lg border border-white/5">Download Receipt</button>
+                            <button className="bg-white/5 hover:bg-white/10 text-white font-mono text-[10px] py-1.5 px-3 rounded-lg border border-white/5">Write Review</button>
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      dbOrders.length === 0 ? (
+                        <div className="bg-space-950 border border-white/5 p-8 rounded-3xl text-center text-gray-400 text-xs">
+                          🛸 No orders placed yet. Start your galactic journey by visiting our store!
+                        </div>
+                      ) : (
+                        dbOrders.map((order) => (
+                          <div key={order.id} className="bg-space-950 border border-white/5 p-5 rounded-2xl space-y-4">
+                            <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-white/5 pb-3 gap-2 text-xs">
+                              <div>
+                                <div className="font-bold text-white font-mono">Order #{order.order_number}</div>
+                                <span className="text-gray-400 text-[10px]">Placed on: {new Date(order.created_at).toLocaleDateString()}</span>
+                              </div>
+                              <span className="font-mono bg-alien-green/10 border border-alien-green/20 text-alien-green px-3 py-1 rounded-full font-bold uppercase">
+                                {order.status}
+                              </span>
+                            </div>
+                            <div className="text-xs text-gray-400">
+                              Payment Method: <span className="text-white capitalize font-mono">{order.payment_method || 'Twint'}</span>
+                            </div>
+                            <div className="text-xs text-gray-400">
+                              Total Amount: <strong className="text-white">{formatPrice(order.total)}</strong>
+                            </div>
+                          </div>
+                        ))
+                      )
+                    )}
                   </div>
                 </div>
               )}
@@ -459,76 +632,101 @@ export default function AccountPage() {
               {activeTab === 'subscriptions' && (
                 <div className="space-y-6 animate-fade-in text-left">
                   <h2 className="font-display text-3xl tracking-wide uppercase text-white">RECURRING PLANS</h2>
-                  
-                  <div className="bg-space-950 border border-white/5 p-6 rounded-3xl space-y-6">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-white/5 pb-4 gap-2 text-xs">
-                      <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 bg-space-900 border border-white/5 rounded-xl relative flex-shrink-0">
-                          <Image src="/Product1.jpeg" alt="Astro Creatine" fill className="object-contain p-1.5" />
+
+                   {isDemoMode ? (
+                    <div className="bg-space-950 border border-white/5 p-6 rounded-3xl space-y-6">
+                      <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-white/5 pb-4 gap-2 text-xs">
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 bg-space-900 border border-white/5 rounded-xl relative flex-shrink-0">
+                            <Image src="/Product1.jpeg" alt="Astro Creatine" fill className="object-contain p-1.5" />
+                          </div>
+                          <div>
+                            <h4 className="font-bold text-white text-base">Astro Creatine (500g)</h4>
+                            <p className="text-gray-400 text-xs">Next billing: July 15, 2026</p>
+                          </div>
                         </div>
                         <div>
-                          <h4 className="font-bold text-white text-base">Astro Creatine (500g)</h4>
-                          <p className="text-gray-400 text-xs">Next billing: July 15, 2026</p>
+                          {subStatus === 'active' && (
+                            <span className="font-mono bg-alien-green/10 border border-alien-green/20 text-alien-green px-3 py-1 rounded-full font-bold">
+                              ACTIVE
+                            </span>
+                          )}
+                          {subStatus === 'paused' && (
+                            <span className="font-mono bg-yellow-500/10 border border-yellow-500/20 text-yellow-500 px-3 py-1 rounded-full font-bold">
+                              PAUSED
+                            </span>
+                          )}
+                          {subStatus === 'skipped' && (
+                            <span className="font-mono bg-blue-500/10 border border-blue-500/20 text-blue-500 px-3 py-1 rounded-full font-bold">
+                              NEXT SHIPMENT SKIPPED
+                            </span>
+                          )}
                         </div>
                       </div>
-                      <div>
-                        {subStatus === 'active' && (
-                          <span className="font-mono bg-alien-green/10 border border-alien-green/20 text-alien-green px-3 py-1 rounded-full font-bold">
-                            ACTIVE
-                          </span>
+
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-6 text-xs">
+                        <div>
+                          <span className="text-[10px] font-mono text-gray-400 uppercase">Frequency</span>
+                          <div className="font-bold mt-1 text-white">Every {subFreq}</div>
+                        </div>
+                        <div>
+                          <span className="text-[10px] font-mono text-gray-400 uppercase">Pricing</span>
+                          <div className="font-bold mt-1 text-alien-green">CHF 33.15 <span className="text-gray-500 line-through text-[10px]">CHF 39.00</span></div>
+                        </div>
+                        <div>
+                          <span className="text-[10px] font-mono text-gray-400 uppercase">Payment</span>
+                          <div className="font-bold mt-1 text-white">TWINT (Direct Charge)</div>
+                        </div>
+                      </div>
+
+                      {/* Subscription Actions */}
+                      <div className="pt-4 border-t border-white/5 flex flex-wrap gap-2">
+                        {subStatus === 'active' ? (
+                          <>
+                            <button onClick={() => setSubStatus('paused')} className="bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-500 font-mono text-[10px] py-2 px-4 rounded-xl border border-yellow-500/20">Pause subscription</button>
+                            <button onClick={() => setSubStatus('skipped')} className="bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 font-mono text-[10px] py-2 px-4 rounded-xl border border-yellow-500/20">Skip next shipment</button>
+                          </>
+                        ) : (
+                          <button onClick={() => setSubStatus('active')} className="bg-alien-green text-space-950 font-bold font-mono text-[10px] py-2 px-4 rounded-xl">Resume subscription</button>
                         )}
-                        {subStatus === 'paused' && (
-                          <span className="font-mono bg-yellow-500/10 border border-yellow-500/20 text-yellow-500 px-3 py-1 rounded-full font-bold">
-                            PAUSED
-                          </span>
-                        )}
-                        {subStatus === 'skipped' && (
-                          <span className="font-mono bg-blue-500/10 border border-blue-500/20 text-blue-500 px-3 py-1 rounded-full font-bold">
-                            NEXT SHIPMENT SKIPPED
-                          </span>
-                        )}
+
+                        <select
+                          value={subFreq}
+                          onChange={(e) => setSubFreq(e.target.value)}
+                          className="bg-space-900 border border-white/10 rounded-xl text-[10px] p-2 text-white focus:outline-none font-mono"
+                        >
+                          <option value="30 Days">Every 30 Days</option>
+                          <option value="60 Days">Every 60 Days</option>
+                          <option value="90 Days">Every 90 Days</option>
+                        </select>
+
+                        <button onClick={() => alert('Flavor changed!')} className="bg-white/5 hover:bg-white/10 text-white font-mono text-[10px] py-2 px-4 rounded-xl border border-white/5">Change flavor/variant</button>
                       </div>
                     </div>
-
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-6 text-xs">
-                      <div>
-                        <span className="text-[10px] font-mono text-gray-400 uppercase">Frequency</span>
-                        <div className="font-bold mt-1 text-white">Every {subFreq}</div>
+                  ) : (
+                    dbSubscriptions.length === 0 ? (
+                      <div className="bg-space-950 border border-white/5 p-8 rounded-3xl text-center text-gray-400 text-xs">
+                        🔁 No active recurring plans at the moment.
                       </div>
-                      <div>
-                        <span className="text-[10px] font-mono text-gray-400 uppercase">Pricing</span>
-                        <div className="font-bold mt-1 text-alien-green">CHF 33.15 <span className="text-gray-500 line-through text-[10px]">CHF 39.00</span></div>
-                      </div>
-                      <div>
-                        <span className="text-[10px] font-mono text-gray-400 uppercase">Payment</span>
-                        <div className="font-bold mt-1 text-white">TWINT (Direct Charge)</div>
-                      </div>
-                    </div>
-
-                    {/* Subscription Actions */}
-                    <div className="pt-4 border-t border-white/5 flex flex-wrap gap-2">
-                      {subStatus === 'active' ? (
-                        <>
-                          <button onClick={() => setSubStatus('paused')} className="bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-500 font-mono text-[10px] py-2 px-4 rounded-xl border border-yellow-500/20">Pause subscription</button>
-                          <button onClick={() => setSubStatus('skipped')} className="bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 font-mono text-[10px] py-2 px-4 rounded-xl border border-blue-500/20">Skip next shipment</button>
-                        </>
-                      ) : (
-                        <button onClick={() => setSubStatus('active')} className="bg-alien-green text-space-950 font-bold font-mono text-[10px] py-2 px-4 rounded-xl">Resume subscription</button>
-                      )}
-
-                      <select 
-                        value={subFreq} 
-                        onChange={(e) => setSubFreq(e.target.value)}
-                        className="bg-space-900 border border-white/10 rounded-xl text-[10px] p-2 text-white focus:outline-none font-mono"
-                      >
-                        <option value="30 Days">Every 30 Days</option>
-                        <option value="60 Days">Every 60 Days</option>
-                        <option value="90 Days">Every 90 Days</option>
-                      </select>
-
-                      <button onClick={() => alert('Flavor changed!')} className="bg-white/5 hover:bg-white/10 text-white font-mono text-[10px] py-2 px-4 rounded-xl border border-white/5">Change flavor/variant</button>
-                    </div>
-                  </div>
+                    ) : (
+                      dbSubscriptions.map((sub) => (
+                        <div key={sub.id} className="bg-space-950 border border-white/5 p-6 rounded-3xl space-y-4">
+                          <div className="flex justify-between items-center border-b border-white/5 pb-3">
+                            <div>
+                              <h4 className="font-bold text-white text-base">Plan: {sub.plan?.name?.en || 'UFO Supplement'}</h4>
+                              <p className="text-gray-400 text-[10px]">Next billing date: {sub.next_billing_date ? new Date(sub.next_billing_date).toLocaleDateString() : 'N/A'}</p>
+                            </div>
+                            <span className="font-mono bg-alien-green/10 border border-alien-green/20 text-alien-green px-3 py-1 rounded-full font-bold uppercase">
+                              {sub.status}
+                            </span>
+                          </div>
+                          <div className="text-xs text-gray-400">
+                            Total Recurring Amount: <strong className="text-white">{formatPrice(sub.total)}</strong>
+                          </div>
+                        </div>
+                      ))
+                    )
+                  )}
                 </div>
               )}
 
@@ -536,7 +734,7 @@ export default function AccountPage() {
               {activeTab === 'rewards' && (
                 <div className="space-y-6 animate-fade-in text-left">
                   <h2 className="font-display text-3xl tracking-wide uppercase text-white">ALIEN POINTS</h2>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="bg-space-950 border border-white/5 p-4 rounded-2xl text-center">
                       <div className="text-[10px] font-mono text-gray-400 uppercase">Available Points</div>
@@ -584,7 +782,7 @@ export default function AccountPage() {
               {activeTab === 'referrals' && (
                 <div className="space-y-6 animate-fade-in text-left">
                   <h2 className="font-display text-3xl tracking-wide uppercase text-white">REFERRAL MATRIX</h2>
-                  
+
                   <div className="bg-space-950 border border-white/5 p-6 rounded-3xl space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
                       <div className="space-y-4">
@@ -596,13 +794,13 @@ export default function AccountPage() {
                         <div>
                           <label className="text-[10px] font-mono text-gray-400 mb-1.5 block">Your Referral Link</label>
                           <div className="flex gap-2">
-                            <input 
-                              type="text" 
-                              readOnly 
+                            <input
+                              type="text"
+                              readOnly
                               value={`https://ufolabz.ch/ref/shikha123`}
                               className="input text-xs font-mono py-2 bg-space-900 border-white/5"
                             />
-                            <button 
+                            <button
                               onClick={() => navigator.clipboard.writeText('https://ufolabz.ch/ref/shikha123')}
                               className="bg-white hover:bg-gray-100 text-space-950 font-bold px-4 rounded-xl text-xs"
                             >
@@ -645,7 +843,7 @@ export default function AccountPage() {
               {activeTab === 'goals' && (
                 <div className="space-y-6 animate-fade-in text-left">
                   <h2 className="font-display text-3xl tracking-wide uppercase text-white">FITNESS TARGETS</h2>
-                  
+
                   <div className="bg-space-950 border border-white/5 p-6 rounded-3xl space-y-6">
                     <div>
                       <h4 className="font-bold text-white text-base mb-1">Select your primary fitness goal</h4>
@@ -660,8 +858,8 @@ export default function AccountPage() {
                           onClick={() => setGoal(g)}
                           className={cn(
                             "py-3 px-4 rounded-xl text-xs font-mono font-bold border-2 transition-all text-center",
-                            goal === g 
-                              ? "text-space-950 border-alien-green" 
+                            goal === g
+                              ? "text-space-950 border-alien-green"
                               : "border-white/5 text-gray-400 hover:border-white/10 hover:text-white"
                           )}
                           style={goal === g ? { backgroundColor: color, borderColor: color } : {}}
@@ -714,8 +912,8 @@ export default function AccountPage() {
                       {/* morning */}
                       <div className="bg-space-900 border border-white/5 p-4 rounded-xl flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <input 
-                            type="checkbox" 
+                          <input
+                            type="checkbox"
                             id="creatine-morning"
                             checked={scheduleLogs['creatine-morning']}
                             onChange={(e) => setScheduleLogs({ ...scheduleLogs, 'creatine-morning': e.target.checked })}
@@ -732,8 +930,8 @@ export default function AccountPage() {
                       {/* afternoon */}
                       <div className="bg-space-900 border border-white/5 p-4 rounded-xl flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <input 
-                            type="checkbox" 
+                          <input
+                            type="checkbox"
                             id="amino-afternoon"
                             checked={scheduleLogs['amino-afternoon']}
                             onChange={(e) => setScheduleLogs({ ...scheduleLogs, 'amino-afternoon': e.target.checked })}
@@ -750,8 +948,8 @@ export default function AccountPage() {
                       {/* evening */}
                       <div className="bg-space-900 border border-white/5 p-4 rounded-xl flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <input 
-                            type="checkbox" 
+                          <input
+                            type="checkbox"
                             id="pre-workout-evening"
                             checked={scheduleLogs['pre-workout-evening']}
                             onChange={(e) => setScheduleLogs({ ...scheduleLogs, 'pre-workout-evening': e.target.checked })}
@@ -773,24 +971,24 @@ export default function AccountPage() {
               {activeTab === 'progress' && (
                 <div className="space-y-6 animate-fade-in text-left">
                   <h2 className="font-display text-3xl tracking-wide uppercase text-white">PROGRESS TRACKER</h2>
-                  
+
                   <div className="bg-space-950 border border-white/5 p-6 rounded-3xl space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      
+
                       {/* Weight log form */}
                       <div className="space-y-4">
                         <h4 className="font-bold text-white text-sm uppercase font-mono tracking-wider">Weight logs</h4>
                         <form onSubmit={handleAddWeightLog} className="flex gap-2">
-                          <input 
-                            type="number" 
+                          <input
+                            type="number"
                             step="0.1"
                             value={weightInput}
                             onChange={(e) => setWeightInput(e.target.value)}
                             placeholder="Current weight (kg)"
                             className="input text-xs py-2"
                           />
-                          <button 
-                            type="submit" 
+                          <button
+                            type="submit"
                             className="bg-alien-green text-space-950 font-bold px-4 rounded-xl text-xs"
                           >
                             Log
@@ -813,13 +1011,13 @@ export default function AccountPage() {
                         <div className="text-4xl">💧</div>
                         <div className="text-2xl font-mono font-bold text-white">{waterGlasses} / 8 Glasses</div>
                         <div className="flex justify-center gap-2">
-                          <button 
+                          <button
                             onClick={() => setWaterGlasses((w) => Math.max(0, w - 1))}
                             className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center font-bold text-white hover:bg-white/10"
                           >
                             -
                           </button>
-                          <button 
+                          <button
                             onClick={() => setWaterGlasses((w) => Math.min(20, w + 1))}
                             className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center font-bold text-white hover:bg-white/10"
                           >
@@ -836,7 +1034,7 @@ export default function AccountPage() {
               {activeTab === 'wishlist' && (
                 <div className="space-y-6 animate-fade-in text-left">
                   <h2 className="font-display text-3xl tracking-wide uppercase text-white">SAVED CARGO</h2>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="bg-space-950 border border-white/5 p-4 rounded-2xl flex items-center justify-between gap-4">
                       <div className="flex items-center gap-3">
@@ -862,7 +1060,7 @@ export default function AccountPage() {
                 <div className="space-y-6 animate-fade-in text-left">
                   <div className="flex items-center justify-between border-b border-white/5 pb-4">
                     <h2 className="font-display text-3xl tracking-wide uppercase text-white">ADDRESS DIRECTORY</h2>
-                    <button 
+                    <button
                       onClick={() => setShowAddressForm(!showAddressForm)}
                       className="text-xs font-mono text-alien-green hover:underline flex items-center gap-1"
                     >
@@ -877,8 +1075,8 @@ export default function AccountPage() {
                       <div className="grid grid-cols-2 gap-3 text-xs">
                         <div>
                           <label className="text-[10px] font-mono text-gray-400 mb-1 block">Label</label>
-                          <input 
-                            type="text" 
+                          <input
+                            type="text"
                             required
                             value={newAddress.label}
                             onChange={(e) => setNewAddress({ ...newAddress, label: e.target.value })}
@@ -888,8 +1086,8 @@ export default function AccountPage() {
                         </div>
                         <div>
                           <label className="text-[10px] font-mono text-gray-400 mb-1 block">Recipient Name</label>
-                          <input 
-                            type="text" 
+                          <input
+                            type="text"
                             required
                             value={newAddress.name}
                             onChange={(e) => setNewAddress({ ...newAddress, name: e.target.value })}
@@ -902,8 +1100,8 @@ export default function AccountPage() {
                       <div className="grid grid-cols-3 gap-3 text-xs">
                         <div className="col-span-2">
                           <label className="text-[10px] font-mono text-gray-400 mb-1 block">Street address</label>
-                          <input 
-                            type="text" 
+                          <input
+                            type="text"
                             required
                             value={newAddress.line1}
                             onChange={(e) => setNewAddress({ ...newAddress, line1: e.target.value })}
@@ -913,8 +1111,8 @@ export default function AccountPage() {
                         </div>
                         <div>
                           <label className="text-[10px] font-mono text-gray-400 mb-1 block">ZIP Code</label>
-                          <input 
-                            type="text" 
+                          <input
+                            type="text"
                             required
                             value={newAddress.zip}
                             onChange={(e) => setNewAddress({ ...newAddress, zip: e.target.value })}
@@ -927,8 +1125,8 @@ export default function AccountPage() {
                       <div className="grid grid-cols-2 gap-3 text-xs">
                         <div>
                           <label className="text-[10px] font-mono text-gray-400 mb-1 block">City</label>
-                          <input 
-                            type="text" 
+                          <input
+                            type="text"
                             required
                             value={newAddress.city}
                             onChange={(e) => setNewAddress({ ...newAddress, city: e.target.value })}
@@ -938,7 +1136,7 @@ export default function AccountPage() {
                         </div>
                         <div>
                           <label className="text-[10px] font-mono text-gray-400 mb-1 block">Canton</label>
-                          <select 
+                          <select
                             value={newAddress.canton}
                             onChange={(e) => setNewAddress({ ...newAddress, canton: e.target.value })}
                             className="input py-2 focus:outline-none bg-space-950"
@@ -983,27 +1181,53 @@ export default function AccountPage() {
               {activeTab === 'profile' && (
                 <div className="space-y-6 animate-fade-in text-left">
                   <h2 className="font-display text-3xl tracking-wide uppercase text-white">PROFILE DATA</h2>
-                  
-                  <form onSubmit={(e) => { e.preventDefault(); alert('Saved!'); }} className="bg-space-950 border border-white/5 p-6 rounded-3xl space-y-4 text-xs">
+
+                  <form onSubmit={async (e) => {
+                    e.preventDefault();
+                    const formData = new FormData(e.currentTarget);
+                    const full_name = formData.get('full_name') as string;
+                    const phone = formData.get('phone') as string;
+                    const dob = formData.get('dob') as string;
+
+                    if (isDemoMode) {
+                      alert('Profile saved (Demo Mode)!');
+                    } else if (user) {
+                      const supabase = createClient() as any
+                      const { error } = await supabase
+                        .from('profiles')
+                        .update({
+                          full_name,
+                          phone,
+                          date_of_birth: dob || null
+                        })
+                        .eq('id', user.id);
+                      if (error) {
+                        alert('Error saving profile: ' + error.message);
+                      } else {
+                        alert('Profile saved successfully!');
+                        setDbProfile((prev: any) => ({ ...prev, full_name, phone, date_of_birth: dob }));
+                      }
+                    }
+                  }} className="bg-space-950 border border-white/5 p-6 rounded-3xl space-y-4 text-xs">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label className="text-[10px] font-mono text-gray-400 mb-1.5 block">Full Name</label>
-                        <input type="text" defaultValue={displayProfile?.full_name} className="input" />
+                        <input type="text" name="full_name" defaultValue={displayProfile?.full_name} className="input" />
                       </div>
                       <div>
                         <label className="text-[10px] font-mono text-gray-400 mb-1.5 block">Email address</label>
-                        <input type="email" defaultValue={displayProfile?.email} className="input" />
+                        <input type="email" disabled defaultValue={displayProfile?.email} className="input opacity-60 cursor-not-allowed" />
                       </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label className="text-[10px] font-mono text-gray-400 mb-1.5 block">Phone Number</label>
-                        <input type="text" defaultValue="+41 79 123 45 67" className="input" />
+                        <input type="text" name="phone" defaultValue={isDemoMode ? "+41 79 123 45 67" : (dbProfile?.phone || '')} className="input" />
                       </div>
                       <div>
                         <label className="text-[10px] font-mono text-gray-400 mb-1.5 block">Birthday</label>
-                        <input type="date" defaultValue="1995-06-15" className="input" />
+                        <input type="date" name="dob" defaultValue={isDemoMode ? "1995-06-15" : (dbProfile?.date_of_birth || '')} className="input" />
                       </div>
                     </div>
 
@@ -1018,31 +1242,55 @@ export default function AccountPage() {
               {activeTab === 'coupons' && (
                 <div className="space-y-6 animate-fade-in text-left">
                   <h2 className="font-display text-3xl tracking-wide uppercase text-white">RESERVED COUPONS</h2>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                    <div className="bg-space-950 border border-white/5 p-5 rounded-2xl border-l-4 border-l-alien-green space-y-2">
-                      <div className="flex justify-between font-mono font-bold text-white">
-                        <span>10% OFF TOTAL</span>
-                        <span className="text-alien-green">Active</span>
-                      </div>
-                      <p className="text-[10px] text-gray-400">Save 10% on your next supplement cargo dispatch.</p>
-                      <div className="flex items-center justify-between pt-3">
-                        <span className="font-mono text-white bg-white/5 border border-white/10 px-3 py-1 rounded-lg">ALIEN10</span>
-                        <button onClick={() => navigator.clipboard.writeText('ALIEN10')} className="text-xs text-alien-green hover:underline">Copy Code</button>
-                      </div>
-                    </div>
 
-                    <div className="bg-space-950 border border-white/5 p-5 rounded-2xl border-l-4 border-l-alien-green space-y-2">
-                      <div className="flex justify-between font-mono font-bold text-white">
-                        <span>FREE POSTPAC SHIPPING</span>
-                        <span className="text-alien-green">Active</span>
-                      </div>
-                      <p className="text-[10px] text-gray-400">Free priority Standard Shipping on all orders.</p>
-                      <div className="flex items-center justify-between pt-3">
-                        <span className="font-mono text-white bg-white/5 border border-white/10 px-3 py-1 rounded-lg">FREESHIP</span>
-                        <button onClick={() => navigator.clipboard.writeText('FREESHIP')} className="text-xs text-alien-green hover:underline">Copy Code</button>
-                      </div>
-                    </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                    {isDemoMode ? (
+                      <>
+                        <div className="bg-space-950 border border-white/5 p-5 rounded-2xl border-l-4 border-l-alien-green space-y-2">
+                          <div className="flex justify-between font-mono font-bold text-white">
+                            <span>10% OFF TOTAL</span>
+                            <span className="text-alien-green">Active</span>
+                          </div>
+                          <p className="text-[10px] text-gray-400">Save 10% on your next supplement cargo dispatch.</p>
+                          <div className="flex items-center justify-between pt-3">
+                            <span className="font-mono text-white bg-white/5 border border-white/10 px-3 py-1 rounded-lg">ALIEN10</span>
+                            <button onClick={() => navigator.clipboard.writeText('ALIEN10')} className="text-xs text-alien-green hover:underline">Copy Code</button>
+                          </div>
+                        </div>
+
+                        <div className="bg-space-950 border border-white/5 p-5 rounded-2xl border-l-4 border-l-alien-green space-y-2">
+                          <div className="flex justify-between font-mono font-bold text-white">
+                            <span>FREE POSTPAC SHIPPING</span>
+                            <span className="text-alien-green">Active</span>
+                          </div>
+                          <p className="text-[10px] text-gray-400">Free priority Standard Shipping on all orders.</p>
+                          <div className="flex items-center justify-between pt-3">
+                            <span className="font-mono text-white bg-white/5 border border-white/10 px-3 py-1 rounded-lg">FREESHIP</span>
+                            <button onClick={() => navigator.clipboard.writeText('FREESHIP')} className="text-xs text-alien-green hover:underline">Copy Code</button>
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      dbCoupons.length === 0 ? (
+                        <div className="col-span-2 bg-space-950 border border-white/5 p-8 rounded-3xl text-center text-gray-400 text-xs">
+                          🎟 No active coupons available at the moment. Keep earning points to unlock rewards!
+                        </div>
+                      ) : (
+                        dbCoupons.map((coupon) => (
+                          <div key={coupon.id} className="bg-space-950 border border-white/5 p-5 rounded-2xl border-l-4 border-l-alien-green space-y-2">
+                            <div className="flex justify-between font-mono font-bold text-white">
+                              <span>{coupon.type === 'percentage' ? `${coupon.value}%` : `CHF ${coupon.value}`} OFF</span>
+                              <span className="text-alien-green">Active</span>
+                            </div>
+                            <p className="text-[10px] text-gray-400">{coupon.description || 'Valid for your next order.'}</p>
+                            <div className="flex items-center justify-between pt-3">
+                              <span className="font-mono text-white bg-white/5 border border-white/10 px-3 py-1 rounded-lg">{coupon.code}</span>
+                              <button onClick={() => navigator.clipboard.writeText(coupon.code)} className="text-xs text-alien-green hover:underline">Copy Code</button>
+                            </div>
+                          </div>
+                        ))
+                      )
+                    )}
                   </div>
                 </div>
               )}
@@ -1051,20 +1299,26 @@ export default function AccountPage() {
               {activeTab === 'downloads' && (
                 <div className="space-y-6 animate-fade-in text-left">
                   <h2 className="font-display text-3xl tracking-wide uppercase text-white">NUTRITIONAL DOWNLOADS</h2>
-                  
+
                   <div className="space-y-3">
-                    {DOWNLOADS.map((doc, idx) => (
-                      <div key={idx} className="bg-space-950 border border-white/5 p-4 rounded-xl flex items-center justify-between gap-4 text-xs">
-                        <div>
-                          <div className="font-bold text-white">{doc.title}</div>
-                          <p className="text-[10px] text-gray-400 mt-0.5">{doc.desc}</p>
+                    {isDemoMode ? (
+                      DOWNLOADS.map((doc, idx) => (
+                        <div key={idx} className="bg-space-950 border border-white/5 p-4 rounded-xl flex items-center justify-between gap-4 text-xs">
+                          <div>
+                            <div className="font-bold text-white">{doc.title}</div>
+                            <p className="text-[10px] text-gray-400 mt-0.5">{doc.desc}</p>
+                          </div>
+                          <button onClick={() => alert('Download starting...')} className="bg-white/5 hover:bg-white/10 text-white font-mono text-[10px] py-2 px-3 rounded-lg border border-white/5 flex items-center gap-1.5">
+                            <Download className="w-3.5 h-3.5" />
+                            <span>Download ({doc.size})</span>
+                          </button>
                         </div>
-                        <button onClick={() => alert('Download starting...')} className="bg-white/5 hover:bg-white/10 text-white font-mono text-[10px] py-2 px-3 rounded-lg border border-white/5 flex items-center gap-1.5">
-                          <Download className="w-3.5 h-3.5" />
-                          <span>Download ({doc.size})</span>
-                        </button>
+                      ))
+                    ) : (
+                      <div className="bg-space-950 border border-white/5 p-8 rounded-3xl text-center text-gray-400 text-xs">
+                        📥 No digital downloads available. Secure your training blueprints and guides from our shop to unlock downloads here!
                       </div>
-                    ))}
+                    )}
                   </div>
                 </div>
               )}
@@ -1073,7 +1327,7 @@ export default function AccountPage() {
               {activeTab === 'support' && (
                 <div className="space-y-6 animate-fade-in text-left">
                   <h2 className="font-display text-3xl tracking-wide uppercase text-white">SUPPORT CENTER</h2>
-                  
+
                   <div className="bg-space-950 border border-white/5 p-6 rounded-3xl space-y-6 text-xs">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <a href="https://wa.me/41790000000" target="_blank" rel="noreferrer" className="bg-space-900 border border-white/5 p-5 rounded-2xl flex items-center gap-4 hover:border-white/10 transition-colors text-white">
@@ -1095,18 +1349,18 @@ export default function AccountPage() {
 
                     <div className="pt-6 border-t border-white/5">
                       <h4 className="text-xs font-mono font-bold tracking-widest text-muted text-gray-400 uppercase mb-4">AI Supplement Assistant</h4>
-                      
+
                       {/* Chat desk container */}
                       <div className="bg-space-900 border border-white/5 rounded-2xl overflow-hidden flex flex-col h-80">
                         {/* Messages window */}
                         <div className="flex-1 p-4 overflow-y-auto space-y-3 no-scrollbar text-xs">
                           {chatMessages.map((msg, idx) => (
-                            <div 
-                              key={idx} 
+                            <div
+                              key={idx}
                               className={cn(
                                 "max-w-[75%] p-3 rounded-xl leading-normal",
-                                msg.sender === 'ai' 
-                                  ? "bg-white/5 text-gray-200 self-start mr-auto border border-white/5" 
+                                msg.sender === 'ai'
+                                  ? "bg-white/5 text-gray-200 self-start mr-auto border border-white/5"
                                   : "bg-alien-green text-space-950 font-medium self-end ml-auto"
                               )}
                             >
@@ -1122,8 +1376,8 @@ export default function AccountPage() {
 
                         {/* Input line */}
                         <form onSubmit={handleAiSendMessage} className="p-3 border-t border-white/5 bg-space-950 flex gap-2">
-                          <input 
-                            type="text" 
+                          <input
+                            type="text"
                             placeholder="Ask the AI Supplement Assistant..."
                             value={chatInput}
                             onChange={(e) => setChatInput(e.target.value)}
@@ -1143,7 +1397,7 @@ export default function AccountPage() {
               {activeTab === 'security' && (
                 <div className="space-y-6 animate-fade-in text-left">
                   <h2 className="font-display text-3xl tracking-wide uppercase text-white">SECURITY ACCESS</h2>
-                  
+
                   <div className="bg-space-950 border border-white/5 p-6 rounded-3xl space-y-4 text-xs">
                     <div>
                       <h4 className="font-bold text-white text-sm">Quantized Access parameters</h4>

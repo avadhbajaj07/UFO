@@ -27,6 +27,7 @@ async function getFeaturedProducts() {
     `)
     .eq('status', 'active')
     .eq('featured', true)
+    .not('slug', 'in', '("astro-creatine","blast-pre-workout-energy","amino-fuel-mango")')
     .order('sort_order', { ascending: true })
     .limit(5)
 
@@ -36,8 +37,32 @@ async function getFeaturedProducts() {
 export default async function HomePage() {
   const products = await getFeaturedProducts()
 
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'UFO LABZ',
+    url: 'https://ufolabz.com',
+    logo: 'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782711478/ufo_logo_sqaure_h2yvkk.jpg',
+    contactPoint: {
+      '@type': 'ContactPoint',
+      telephone: '+41 79 250 35 64',
+      contactType: 'customer service',
+      email: 'support@ufolabz.com',
+      availableLanguage: ['English', 'German'],
+    },
+    sameAs: [
+      'https://instagram.com/ufolabz',
+      'https://facebook.com/ufolabz',
+      'https://x.com/ufolabz',
+    ],
+  }
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <HeroSection />
       <MarqueeBanner />
       <ProductGrid products={products as any} />
