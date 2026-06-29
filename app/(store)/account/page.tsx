@@ -82,11 +82,11 @@ export default function AccountPage() {
     credit: 45.00,
     avatar: ''
   } : (user ? {
-    full_name: profile?.full_name || user.email.split('@')[0],
+    full_name: dbProfile?.full_name || profile?.full_name || user.email.split('@')[0],
     email: user.email,
     membership: loyaltyAccount?.tier?.name || 'Earthling',
-    points: loyaltyAccount?.points ?? 100,
-    credit: 0.00,
+    points: loyaltyAccount?.points ?? 0,
+    credit: dbProfile?.wallet_balance ?? 0.00,
     avatar: profile?.avatar_url || ''
   } : null)
 
@@ -183,11 +183,14 @@ export default function AccountPage() {
       setAddresses(INITIAL_ADDRESSES)
     } else {
       setWeightLogs([])
-      setStreakCount(0)
+      setStreakCount(dbProfile?.streak || 0)
       setWaterGlasses(0)
       setAddresses(dbAddresses)
+      if (dbProfile?.fitness_target) {
+        setGoal(dbProfile.fitness_target)
+      }
     }
-  }, [isDemoMode, dbAddresses])
+  }, [isDemoMode, dbAddresses, dbProfile])
 
   // Supplement Checklist
   const [scheduleLogs, setScheduleLogs] = useState<Record<string, boolean>>({
@@ -496,8 +499,12 @@ export default function AccountPage() {
 
                     <div className="bg-space-950 border border-white/5 p-4 rounded-2xl">
                       <span className="text-[10px] font-mono text-gray-400 uppercase">Subscriptions</span>
-                      <div className="text-2xl font-mono font-bold text-white mt-1">1 Active</div>
-                      <span className="text-[9px] text-gray-500">Astro Creatine monohydrate</span>
+                      <div className="text-2xl font-mono font-bold text-white mt-1">
+                        {dbSubscriptions.filter(s => s.status === 'active').length} Active
+                      </div>
+                      <span className="text-[9px] text-gray-500 truncate block max-w-full">
+                        {dbSubscriptions.length > 0 ? (dbSubscriptions[0].plan?.name?.en || 'UFO Supplement') : 'No active plans'}
+                      </span>
                     </div>
 
                     <div className="bg-space-950 border border-white/5 p-4 rounded-2xl">
@@ -760,7 +767,7 @@ export default function AccountPage() {
 
                     <div className="bg-space-950 border border-white/5 p-4 rounded-2xl text-center">
                       <div className="text-[10px] font-mono text-gray-400 uppercase">Lifetime Points</div>
-                      <div className="text-4xl font-mono font-bold text-white mt-2">2,500</div>
+                      <div className="text-4xl font-mono font-bold text-white mt-2">{loyaltyAccount?.lifetime_points ?? loyaltyAccount?.points ?? 0}</div>
                       <span className="text-[9px] text-gray-500">Total earned points</span>
                     </div>
 
@@ -813,11 +820,15 @@ export default function AccountPage() {
                             <input
                               type="text"
                               readOnly
-                              value={`https://ufolabz.ch/ref/shikha123`}
+                              value={typeof window !== 'undefined' ? `${window.location.origin}/ref/${user?.email?.split('@')[0] || 'commander'}` : `https://ufolabz.ch/ref/${user?.email?.split('@')[0] || 'commander'}`}
                               className="input text-xs font-mono py-2 bg-space-900 border-white/5"
                             />
                             <button
-                              onClick={() => navigator.clipboard.writeText('https://ufolabz.ch/ref/shikha123')}
+                              onClick={() => {
+                                const link = typeof window !== 'undefined' ? `${window.location.origin}/ref/${user?.email?.split('@')[0] || 'commander'}` : `https://ufolabz.ch/ref/${user?.email?.split('@')[0] || 'commander'}`
+                                navigator.clipboard.writeText(link)
+                                alert('Referral link copied to clipboard!')
+                              }}
                               className="bg-white hover:bg-gray-100 text-space-950 font-bold px-4 rounded-xl text-xs"
                             >
                               Copy
@@ -840,15 +851,15 @@ export default function AccountPage() {
                     <div className="grid grid-cols-3 gap-4 pt-4 border-t border-white/5 text-center text-xs">
                       <div>
                         <span className="text-[10px] font-mono text-gray-400 uppercase">Recruits</span>
-                        <div className="font-bold text-lg text-white mt-1">3 Athletes</div>
+                        <div className="font-bold text-lg text-white mt-1">0 Athletes</div>
                       </div>
                       <div>
                         <span className="text-[10px] font-mono text-gray-400 uppercase">Earned Credit</span>
-                        <div className="font-bold text-lg text-alien-green mt-1">CHF 30.00</div>
+                        <div className="font-bold text-lg text-alien-green mt-1">{formatPrice(dbProfile?.wallet_balance ?? 0.00)}</div>
                       </div>
                       <div>
                         <span className="text-[10px] font-mono text-gray-400 uppercase">Clicks</span>
-                        <div className="font-bold text-lg text-white mt-1">42 clicks</div>
+                        <div className="font-bold text-lg text-white mt-1">0 clicks</div>
                       </div>
                     </div>
                   </div>

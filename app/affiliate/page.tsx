@@ -90,7 +90,7 @@ export default function AffiliatePage() {
         isNew: p.is_new,
         price: p.base_price
       }))
-    : MARKETPLACE_PRODUCTS
+    : []
 
   useEffect(() => {
     if (!user) return

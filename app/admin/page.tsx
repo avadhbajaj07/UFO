@@ -273,8 +273,8 @@ export default function AdminPage() {
 
 
   // Orders states
-  const [ordersList, setOrdersList] = useState<Order[]>(INITIAL_ORDERS)
-  const [selectedOrderId, setSelectedOrderId] = useState<string>('INV-883492')
+  const [ordersList, setOrdersList] = useState<Order[]>([])
+  const [selectedOrderId, setSelectedOrderId] = useState<string>('')
   const [orderFilter, setOrderFilter] = useState<'All' | 'Online' | 'POS Terminal'>('All')
   const [orderStatusFilter, setOrderStatusFilter] = useState<'All' | 'Pending' | 'Packed' | 'Ready for Pickup' | 'Completed'>('All')
   
@@ -299,7 +299,7 @@ export default function AdminPage() {
   const [manualColorCode, setManualColorCode] = useState('#00FF88')
 
   // Operation rules states
-  const [pricingRules, setPricingRules] = useState<PricingRule[]>(INITIAL_PRICING_RULES)
+  const [pricingRules, setPricingRules] = useState<PricingRule[]>([])
   const [newRuleTrigger, setNewRuleTrigger] = useState('Stock drops < 5')
   const [newRuleCond, setNewRuleCond] = useState('Stock is critically low')
   const [newRuleAct, setNewRuleAct] = useState('Increase Price 10%')
@@ -320,10 +320,7 @@ export default function AdminPage() {
   const [poSupplier, setPoSupplier] = useState('Bio-Formulations Basel')
   const [poItem, setPoItem] = useState('Pure Whey Isolate Raw')
   const [poQty, setPoQty] = useState(100)
-  const [poList, setPoList] = useState<any[]>([
-    { id: 'PO-1002', supplier: 'Alps Nutrition Gmbh', item: 'Micronized Creatine Monohydrate', qty: 500, status: 'RECEIVED', date: '2026-06-20' },
-    { id: 'PO-1003', supplier: 'Bio-Formulations Basel', item: 'L-Glutamine powder', qty: 200, status: 'SENT', date: '2026-06-26' }
-  ])
+  const [poList, setPoList] = useState<any[]>([])
 
   // Customer Expand state
   const [expandedCustomer, setExpandedCustomer] = useState<string | null>(null)
@@ -354,11 +351,63 @@ export default function AdminPage() {
   const [commanderCommission, setCommanderCommission] = useState(25)
 
   // Reviews Moderation list
-  const [reviews, setReviews] = useState<Review[]>(INITIAL_REVIEWS)
+  const [reviews, setReviews] = useState<Review[]>([])
 
   // Automations list
-  const [automations, setAutomations] = useState<AutomationFlow[]>(INITIAL_AUTOMATION_FLOWS)
+  const [automations, setAutomations] = useState<AutomationFlow[]>([])
   const [openAiApiKey, setOpenAiApiKey] = useState('')
+
+  // Dynamic metrics calculations from database lists
+  const liveGrossRevenue = ordersList.reduce((acc, order) => acc + (order.total || 0), 0)
+  const liveTotalTransactions = ordersList.length
+  const liveAvgOrderValue = liveTotalTransactions > 0 ? liveGrossRevenue / liveTotalTransactions : 0
+
+  const liveWebsiteSales = ordersList.filter(o => o.channel === 'Online').reduce((acc, order) => acc + (order.total || 0), 0)
+  const liveWebsitePct = liveGrossRevenue > 0 ? Math.round((liveWebsiteSales / liveGrossRevenue) * 100) : 0
+
+  const liveOfflineSales = ordersList.filter(o => o.channel === 'POS Terminal').reduce((acc, order) => acc + (order.total || 0), 0)
+  const liveOfflinePct = liveGrossRevenue > 0 ? Math.round((liveOfflineSales / liveGrossRevenue) * 100) : 0
+
+  const liveActiveUsers = customersList.length
+  const liveAffiliatesJoined = affiliates.length
+  const livePendingAffiliates = affiliates.filter(a => a.status === 'PENDING').length
+
+  const liveAffiliateCommission = coupons.reduce((acc, c) => acc + (c.totalCommission || 0), 0)
+  const liveDuePayout = 0.00 // fallback
+
+  const liveInventoryAlertsCount = liveProducts.filter(p => p.stock <= 5).length
+
+  // Logistics Fulfilment
+  const liveNeedToPack = ordersList.filter(o => o.status === 'Pending').length
+  const liveReadyForPickup = ordersList.filter(o => o.status === 'Ready for Pickup').length
+
+  // Demographics calculation
+  const swissCities = ['Zurich', 'Geneva', 'Basel', 'Bern']
+  const cityRevenues: Record<string, number> = { Zurich: 0, Geneva: 0, Basel: 0, Bern: 0 }
+  ordersList.forEach(o => {
+    const rawCity = (o as any).city || 'Zurich'
+    const city = swissCities.find(c => rawCity.toLowerCase().includes(c.toLowerCase())) || 'Zurich'
+    cityRevenues[city] += o.total || 0
+  })
+  const cityTotal = Object.values(cityRevenues).reduce((a, b) => a + b, 0)
+  
+  // Top Selling Products
+  const productSalesMap: Record<string, { qty: number; revenue: number }> = {}
+  ordersList.forEach(o => {
+    o.products?.forEach(p => {
+      const name = p.name || 'UFO Supplement'
+      if (!productSalesMap[name]) {
+        productSalesMap[name] = { qty: 0, revenue: 0 }
+      }
+      productSalesMap[name].qty += p.qty || 0
+      productSalesMap[name].revenue += (p.qty || 0) * (p.price || 0)
+    })
+  })
+  const sortedTopProducts = Object.entries(productSalesMap)
+    .map(([name, data]) => ({ name, ...data }))
+    .sort((a, b) => b.qty - a.qty)
+    .slice(0, 3)
+  const maxQty = sortedTopProducts[0]?.qty || 1
 
   // Load localStorage data
   useEffect(() => {
@@ -1205,26 +1254,26 @@ export default function AdminPage() {
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
                     <div className="card-glass bg-space-950/40 border border-white/[0.06] p-4 rounded-2xl relative overflow-hidden shadow-inner hover:border-alien-green/20 hover:scale-[1.01] transition-all duration-300">
                       <span className="text-[10px] text-gray-400 font-bold block uppercase tracking-wider">Gross revenue</span>
-                      <span className="text-2xl font-bold font-sans text-gradient-cosmic mt-1.5 block">CHF 124,840.50</span>
-                      <span className="text-[9px] text-alien-green block mt-1">+14.2% from last month</span>
+                      <span className="text-2xl font-bold font-sans text-gradient-cosmic mt-1.5 block">{formatPrice(liveGrossRevenue)}</span>
+                      <span className="text-[9px] text-alien-green block mt-1">+0% from last month</span>
                     </div>
 
                     <div className="card-glass bg-space-950/40 border border-white/[0.06] p-4 rounded-2xl relative overflow-hidden shadow-inner hover:border-alien-green/20 hover:scale-[1.01] transition-all duration-300">
                       <span className="text-[10px] text-gray-400 font-bold block uppercase tracking-wider">Total transactions</span>
-                      <span className="text-2xl font-bold font-sans text-white mt-1.5 block">1,268 Orders</span>
-                      <span className="text-[9px] text-alien-green block mt-1">Average value: CHF 98.45</span>
+                      <span className="text-2xl font-bold font-sans text-white mt-1.5 block">{liveTotalTransactions} {liveTotalTransactions === 1 ? 'Order' : 'Orders'}</span>
+                      <span className="text-[9px] text-alien-green block mt-1">Average value: {formatPrice(liveAvgOrderValue)}</span>
                     </div>
 
                     <div className="card-glass bg-space-950/40 border border-white/[0.06] p-4 rounded-2xl relative overflow-hidden shadow-inner hover:border-alien-green/20 hover:scale-[1.01] transition-all duration-300">
                       <span className="text-[10px] text-gray-400 font-bold block uppercase tracking-wider">Website sales</span>
-                      <span className="text-2xl font-bold font-sans text-white mt-1.5 block">CHF 84,320.00</span>
-                      <span className="text-[9px] text-gray-400 block mt-1">67.5% of total sales</span>
+                      <span className="text-2xl font-bold font-sans text-white mt-1.5 block">{formatPrice(liveWebsiteSales)}</span>
+                      <span className="text-[9px] text-gray-400 block mt-1">{liveWebsitePct}% of total sales</span>
                     </div>
 
                     <div className="card-glass bg-space-950/40 border border-white/[0.06] p-4 rounded-2xl relative overflow-hidden shadow-inner hover:border-alien-green/20 hover:scale-[1.01] transition-all duration-300">
                       <span className="text-[10px] text-gray-400 font-bold block uppercase tracking-wider">Offline sales (POS)</span>
-                      <span className="text-2xl font-bold font-sans text-alien-green mt-1.5 block">CHF 40,520.00</span>
-                      <span className="text-[9px] text-alien-green block mt-1">32.5% of total sales</span>
+                      <span className="text-2xl font-bold font-sans text-alien-green mt-1.5 block">{formatPrice(liveOfflineSales)}</span>
+                      <span className="text-[9px] text-alien-green block mt-1">{liveOfflinePct}% of total sales</span>
                     </div>
                   </div>
 
@@ -1232,25 +1281,25 @@ export default function AdminPage() {
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
                     <div className="card-glass bg-space-950/40 border border-white/[0.06] p-4 rounded-2xl shadow-inner hover:border-alien-green/10 transition-all duration-300">
                       <span className="text-[10px] text-gray-400 font-bold block uppercase tracking-wider">Active users online</span>
-                      <span className="text-xl font-bold font-sans text-white mt-1 block">42 Active</span>
-                      <span className="text-[9px] text-alien-green block mt-1">Currently in checkout: 3</span>
+                      <span className="text-xl font-bold font-sans text-white mt-1 block">{liveActiveUsers} Active</span>
+                      <span className="text-[9px] text-alien-green block mt-1">Currently in checkout: 0</span>
                     </div>
 
                     <div className="card-glass bg-space-950/40 border border-white/[0.06] p-4 rounded-2xl shadow-inner hover:border-alien-green/10 transition-all duration-300">
                       <span className="text-[10px] text-gray-400 font-bold block uppercase tracking-wider">Affiliates joined</span>
-                      <span className="text-xl font-bold font-sans text-white mt-1 block">24 Affiliates</span>
-                      <span className="text-[9px] text-alien-green block mt-1">+3 signups pending review</span>
+                      <span className="text-xl font-bold font-sans text-white mt-1 block">{liveAffiliatesJoined} Affiliates</span>
+                      <span className="text-[9px] text-alien-green block mt-1">+{livePendingAffiliates} signups pending review</span>
                     </div>
 
                     <div className="card-glass bg-space-950/40 border border-white/[0.06] p-4 rounded-2xl shadow-inner hover:border-alien-green/10 transition-all duration-300">
                       <span className="text-[10px] text-gray-400 font-bold block uppercase tracking-wider">Affiliate commission</span>
-                      <span className="text-xl font-bold font-sans text-alien-green mt-1 block">CHF 4,820.00</span>
-                      <span className="text-[9px] text-gray-400 block mt-1">Due for payout: CHF 430.00</span>
+                      <span className="text-xl font-bold font-sans text-alien-green mt-1 block">{formatPrice(liveAffiliateCommission)}</span>
+                      <span className="text-[9px] text-gray-400 block mt-1">Due for payout: {formatPrice(liveDuePayout)}</span>
                     </div>
 
                     <div className="card-glass bg-space-950/40 border border-white/[0.06] p-4 rounded-2xl shadow-inner hover:border-red-500/20 transition-all duration-300">
                       <span className="text-[10px] text-red-400 font-bold block uppercase tracking-wider">⚠️ Inventory alerts</span>
-                      <span className="text-xl font-bold font-sans text-red-400 mt-1 block">3 Critical items</span>
+                      <span className="text-xl font-bold font-sans text-red-400 mt-1 block">{liveInventoryAlertsCount} {liveInventoryAlertsCount === 1 ? 'Critical item' : 'Critical items'}</span>
                       <span className="text-[9px] text-red-300 block mt-1">Expiring or low stock level</span>
                     </div>
                   </div>
@@ -1264,12 +1313,12 @@ export default function AdminPage() {
                       <div className="grid grid-cols-2 gap-4">
                         <div className="bg-space-900 border border-white/5 p-4 rounded-xl text-center">
                           <span className="text-[10px] text-gray-400 block uppercase">Need to Pack</span>
-                          <span className="text-3xl font-bold font-sans text-white mt-1 block">14</span>
+                          <span className="text-3xl font-bold font-sans text-white mt-1 block">{liveNeedToPack}</span>
                           <span className="text-[8px] text-yellow-400 block mt-1">Pending PostPac Dispatch</span>
                         </div>
                         <div className="bg-space-900 border border-white/5 p-4 rounded-xl text-center">
                           <span className="text-[10px] text-gray-400 block uppercase">Ready for Pickup</span>
-                          <span className="text-3xl font-bold font-sans text-alien-green mt-1 block">6</span>
+                          <span className="text-3xl font-bold font-sans text-alien-green mt-1 block">{liveReadyForPickup}</span>
                           <span className="text-[8px] text-alien-green block mt-1">Zurich Depot Cargo Node</span>
                         </div>
                       </div>
@@ -1280,45 +1329,22 @@ export default function AdminPage() {
                       <h3 className="text-xs font-sans font-bold text-white uppercase tracking-wider border-b border-white/5 pb-2">🇨🇭 Sales Demographics (City Share)</h3>
                       
                       <div className="space-y-2.5 font-sans text-xs">
-                        <div className="space-y-1">
-                          <div className="flex justify-between items-center text-gray-300">
-                            <span>Zurich (ZH)</span>
-                            <span className="font-semibold text-white">45% (CHF 56,178)</span>
-                          </div>
-                          <div className="w-full bg-white/5 h-1 rounded-full overflow-hidden">
-                            <div className="bg-alien-green h-full rounded-full" style={{ width: '45%' }} />
-                          </div>
-                        </div>
-
-                        <div className="space-y-1">
-                          <div className="flex justify-between items-center text-gray-300">
-                            <span>Geneva (GE)</span>
-                            <span className="font-semibold text-white">25% (CHF 31,210)</span>
-                          </div>
-                          <div className="w-full bg-white/5 h-1 rounded-full overflow-hidden">
-                            <div className="bg-blue-400 h-full rounded-full" style={{ width: '25%' }} />
-                          </div>
-                        </div>
-
-                        <div className="space-y-1">
-                          <div className="flex justify-between items-center text-gray-300">
-                            <span>Basel (BS)</span>
-                            <span className="font-semibold text-white">18% (CHF 22,471)</span>
-                          </div>
-                          <div className="w-full bg-white/5 h-1 rounded-full overflow-hidden">
-                            <div className="bg-purple-400 h-full rounded-full" style={{ width: '18%' }} />
-                          </div>
-                        </div>
-
-                        <div className="space-y-1">
-                          <div className="flex justify-between items-center text-gray-300">
-                            <span>Bern (BE)</span>
-                            <span className="font-semibold text-white">12% (CHF 14,981)</span>
-                          </div>
-                          <div className="w-full bg-white/5 h-1 rounded-full overflow-hidden">
-                            <div className="bg-gray-400 h-full rounded-full" style={{ width: '12%' }} />
-                          </div>
-                        </div>
+                        {swissCities.map((city, idx) => {
+                          const revenue = cityRevenues[city] || 0
+                          const sharePct = cityTotal > 0 ? Math.round((revenue / cityTotal) * 100) : 0
+                          const colors = ['bg-alien-green', 'bg-blue-400', 'bg-purple-400', 'bg-gray-400']
+                          return (
+                            <div key={city} className="space-y-1">
+                              <div className="flex justify-between items-center text-gray-300">
+                                <span>{city}</span>
+                                <span className="font-semibold text-white">{sharePct}% ({formatPrice(revenue)})</span>
+                              </div>
+                              <div className="w-full bg-white/5 h-1 rounded-full overflow-hidden">
+                                <div className={cn("h-full rounded-full", colors[idx])} style={{ width: `${sharePct}%` }} />
+                              </div>
+                            </div>
+                          )
+                        })}
                       </div>
                     </div>
                   </div>
@@ -1333,29 +1359,27 @@ export default function AdminPage() {
                       </div>
                       
                       <div className="space-y-3 font-sans">
-                        <div className="flex justify-between items-center">
-                          <span className="text-white font-medium">1. Blast Pre-Workout (300g)</span>
-                          <span className="text-alien-green font-bold">620 units (CHF 30,380)</span>
-                        </div>
-                        <div className="w-full bg-white/5 h-1 rounded-full overflow-hidden">
-                          <div className="bg-alien-green h-full rounded-full" style={{ width: '62%' }} />
-                        </div>
-
-                        <div className="flex justify-between items-center">
-                          <span className="text-white font-medium">2. Astro Creatine (500g)</span>
-                          <span className="text-blue-400 font-bold">450 units (CHF 17,550)</span>
-                        </div>
-                        <div className="w-full bg-white/5 h-1 rounded-full overflow-hidden">
-                          <div className="bg-blue-400 h-full rounded-full" style={{ width: '45%' }} />
-                        </div>
-
-                        <div className="flex justify-between items-center">
-                          <span className="text-white font-medium">3. Amino Fuel Mango (300g)</span>
-                          <span className="text-purple-400 font-bold">280 units (CHF 12,600)</span>
-                        </div>
-                        <div className="w-full bg-white/5 h-1 rounded-full overflow-hidden">
-                          <div className="bg-purple-400 h-full rounded-full" style={{ width: '28%' }} />
-                        </div>
+                        {sortedTopProducts.map((p, idx) => {
+                          const colors = ['bg-alien-green', 'bg-blue-400', 'bg-purple-400']
+                          const textColors = ['text-alien-green', 'text-blue-400', 'text-purple-400']
+                          const pct = maxQty > 0 ? Math.round((p.qty / maxQty) * 100) : 0
+                          return (
+                            <div key={p.name} className="space-y-1">
+                              <div className="flex justify-between items-center">
+                                <span className="text-white font-medium truncate max-w-[180px]">{idx + 1}. {p.name}</span>
+                                <span className={cn("font-bold", textColors[idx])}>{p.qty} {p.qty === 1 ? 'unit' : 'units'} ({formatPrice(p.revenue)})</span>
+                              </div>
+                              <div className="w-full bg-white/5 h-1 rounded-full overflow-hidden">
+                                <div className={cn("h-full rounded-full", colors[idx])} style={{ width: `${pct}%` }} />
+                              </div>
+                            </div>
+                          )
+                        })}
+                        {sortedTopProducts.length === 0 && (
+                          <div className="text-center py-8 text-gray-500">
+                            No product sales recorded.
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -1367,29 +1391,20 @@ export default function AdminPage() {
                       </div>
 
                       <div className="space-y-2.5 text-xs text-left">
-                        <div className="flex justify-between items-center p-2 rounded-xl bg-space-900 border border-white/5">
-                          <div>
-                            <div className="font-bold text-white">INV-883492</div>
-                            <div className="text-[10px] text-gray-400 mt-0.5">Shikha Swiss • Online Checkout</div>
+                        {ordersList.slice(0, 3).map((order) => (
+                          <div key={order.id} className="flex justify-between items-center p-2 rounded-xl bg-space-900 border border-white/5">
+                            <div>
+                              <div className="font-bold text-white">{order.id}</div>
+                              <div className="text-[10px] text-gray-400 mt-0.5">{order.customerName} • {order.channel}</div>
+                            </div>
+                            <span className="font-sans text-alien-green font-bold">{formatPrice(order.total)}</span>
                           </div>
-                          <span className="font-sans text-alien-green font-bold">CHF 119.00</span>
-                        </div>
-
-                        <div className="flex justify-between items-center p-2 rounded-xl bg-space-900 border border-white/5">
-                          <div>
-                            <div className="font-bold text-white">INV-883491</div>
-                            <div className="text-[10px] text-gray-400 mt-0.5">Walk-in Guest • POS Terminal</div>
+                        ))}
+                        {ordersList.length === 0 && (
+                          <div className="text-center py-8 text-gray-500">
+                            No transactions recorded.
                           </div>
-                          <span className="font-sans text-alien-green font-bold">CHF 39.00</span>
-                        </div>
-
-                        <div className="flex justify-between items-center p-2 rounded-xl bg-space-900 border border-white/5">
-                          <div>
-                            <div className="font-bold text-white">INV-883490</div>
-                            <div className="text-[10px] text-gray-400 mt-0.5">John Zurich • Online Checkout</div>
-                          </div>
-                          <span className="font-sans text-alien-green font-bold">CHF 149.00</span>
-                        </div>
+                        )}
                       </div>
                     </div>
                   </div>
