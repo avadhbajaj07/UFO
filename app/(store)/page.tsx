@@ -27,7 +27,7 @@ async function getFeaturedProducts() {
     `)
     .eq('status', 'active')
     .eq('featured', true)
-    .not('slug', 'in', '("astro-creatine","blast-pre-workout-energy","amino-fuel-mango")')
+    .not('slug', 'in', '(astro-creatine,blast-pre-workout,amino-fuel-mango)')
     .order('sort_order', { ascending: true })
     .limit(5)
 

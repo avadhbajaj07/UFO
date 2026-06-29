@@ -230,36 +230,7 @@ export default function AdminPage() {
 
   const [activeTab, setActiveTab] = useState<'dashboard' | 'products' | 'orders' | 'inventory' | 'pricing' | 'customers' | 'affiliates' | 'marketing' | 'reviews' | 'automations'>('dashboard')
 
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-space-950 text-white flex items-center justify-center font-mono text-xs px-4 selection:bg-electric-red selection:text-white">
-        <div className="bg-space-900 border border-electric-red/20 p-8 rounded-3xl max-w-sm w-full text-center space-y-6 shadow-glow-red relative overflow-hidden">
-          <div className="absolute inset-0 bg-electric-red/5 blur-[50px] pointer-events-none" />
-          <div className="w-16 h-16 rounded-full bg-electric-red/10 border border-electric-red/20 flex items-center justify-center mx-auto text-electric-red text-2xl relative z-10 animate-pulse">
-            🔒
-          </div>
-          <div className="relative z-10">
-            <h2 className="font-display text-2xl tracking-wider text-white uppercase">RESTRICTED ZONE</h2>
-            <p className="text-gray-400 mt-2 text-[10px] leading-relaxed">Admin access restricted to verified orbital commanders. Enter decryption password.</p>
-          </div>
-          <form onSubmit={handleAuthenticate} className="space-y-4 relative z-10">
-            <input
-              type="password"
-              value={passwordInput}
-              onChange={(e) => setPasswordInput(e.target.value)}
-              placeholder="Decryption Key"
-              className="w-full bg-space-950 border border-white/10 rounded-xl px-4 py-3 text-center text-white focus:outline-none focus:border-electric-red/40 transition-colors"
-            />
-            {authError && <div className="text-electric-red font-bold uppercase text-[9px] tracking-wider animate-bounce">{authError}</div>}
-            <button type="submit" className="w-full bg-electric-red hover:bg-electric-red/80 text-white font-bold py-3 rounded-xl transition-all shadow-glow-red hover:scale-[1.02] transform duration-150">
-              DECRYPT CONTROL PANEL
-            </button>
-          </form>
-        </div>
-      </div>
-    )
-  }
-  
+
   // Orders states
   const [ordersList, setOrdersList] = useState<Order[]>(INITIAL_ORDERS)
   const [selectedOrderId, setSelectedOrderId] = useState<string>('INV-883492')
@@ -399,6 +370,36 @@ export default function AdminPage() {
       localStorage.setItem('ufo_catalog_products', JSON.stringify(initialProducts))
     }
   }, [activeTab])
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-space-950 text-white flex items-center justify-center font-mono text-xs px-4 selection:bg-electric-red selection:text-white">
+        <div className="bg-space-900 border border-electric-red/20 p-8 rounded-3xl max-w-sm w-full text-center space-y-6 shadow-glow-red relative overflow-hidden">
+          <div className="absolute inset-0 bg-electric-red/5 blur-[50px] pointer-events-none" />
+          <div className="w-16 h-16 rounded-full bg-electric-red/10 border border-electric-red/20 flex items-center justify-center mx-auto text-electric-red text-2xl relative z-10 animate-pulse">
+            🔒
+          </div>
+          <div className="relative z-10">
+            <h2 className="font-display text-2xl tracking-wider text-white uppercase">RESTRICTED ZONE</h2>
+            <p className="text-gray-400 mt-2 text-[10px] leading-relaxed">Admin access restricted to verified orbital commanders. Enter decryption password.</p>
+          </div>
+          <form onSubmit={handleAuthenticate} className="space-y-4 relative z-10">
+            <input
+              type="password"
+              value={passwordInput}
+              onChange={(e) => setPasswordInput(e.target.value)}
+              placeholder="Decryption Key"
+              className="w-full bg-space-950 border border-white/10 rounded-xl px-4 py-3 text-center text-white focus:outline-none focus:border-electric-red/40 transition-colors"
+            />
+            {authError && <div className="text-electric-red font-bold uppercase text-[9px] tracking-wider animate-bounce">{authError}</div>}
+            <button type="submit" className="w-full bg-electric-red hover:bg-electric-red/80 text-white font-bold py-3 rounded-xl transition-all shadow-glow-red hover:scale-[1.02] transform duration-150">
+              DECRYPT CONTROL PANEL
+            </button>
+          </form>
+        </div>
+      </div>
+    )
+  }
 
   // Save live products helper
   const saveProductsToStorage = (newProds: any[]) => {

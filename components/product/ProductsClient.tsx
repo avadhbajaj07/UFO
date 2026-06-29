@@ -30,46 +30,6 @@ export default function ProductsClient({ products, categories, activeCategory, a
   const [displayProducts, setDisplayProducts] = useState(products)
 
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem('ufo_catalog_products')
-      if (stored) {
-        const parsed = JSON.parse(stored)
-        if (Array.isArray(parsed)) {
-          const mapped = parsed.map((p: any) => ({
-            id: p.id,
-            name: { en: p.title, de: p.title },
-            slug: p.slug || p.title.toLowerCase().replace(/[^a-z0-9]/g, '-'),
-            tagline: { en: p.desc, de: p.desc },
-            short_description: { en: p.desc, de: p.desc },
-            product_color: p.product_color || '#00FF88',
-            color_name: p.color_name || 'Alien Green',
-            featured: true,
-            is_new: true,
-            is_best_seller: false,
-            base_price: p.price,
-            compare_at_price: p.base_price,
-            avg_rating: 5.0,
-            total_reviews: 1,
-            images: [{ url: p.featuredImage || 'https://images.unsplash.com/photo-1579758629938-03607ccdbaba?w=600', is_primary: true }],
-            variants: [{
-              id: `var-${p.id}`,
-              name: 'Standard size',
-              price: p.price,
-              compare_at_price: p.base_price,
-              stock: p.stock,
-              status: p.stock > 0 ? 'active' : 'out_of_stock',
-              is_default: true
-            }]
-          }))
-
-          const filteredDb = products.filter(p => !mapped.some((m: any) => m.slug === p.slug))
-          setDisplayProducts([...mapped, ...filteredDb])
-          return
-        }
-      }
-    } catch (e) {
-      console.error('Failed to parse stored catalog products', e)
-    }
     setDisplayProducts(products)
   }, [products])
 

@@ -12,7 +12,7 @@ interface Props {
 }
 
 async function getProduct(slug: string) {
-  if (['astro-creatine', 'blast-pre-workout-energy', 'amino-fuel-mango'].includes(slug)) {
+  if (['astro-creatine', 'blast-pre-workout', 'amino-fuel-mango'].includes(slug)) {
     return null
   }
   const supabase = createClient()
@@ -65,7 +65,7 @@ export async function generateStaticParams() {
   const supabase = createBrowserClient()
   const { data } = await supabase.from('products').select('slug').eq('status', 'active')
   return (data as any[] ?? [])
-    .filter((p) => !['astro-creatine', 'blast-pre-workout-energy', 'amino-fuel-mango'].includes(p.slug))
+    .filter((p) => !['astro-creatine', 'blast-pre-workout', 'amino-fuel-mango'].includes(p.slug))
     .map((p) => ({ slug: p.slug }))
 }
 
