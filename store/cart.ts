@@ -49,6 +49,41 @@ export const useCartStore = create<CartState>()(
             }
           }
 
+          // Fallback to fetch from Supabase dynamically if still not resolved
+          if (!foundProduct || !foundVariant) {
+            try {
+              const { createClient } = await import('@/lib/supabase/client')
+              const supabase = createClient() as any
+              
+              const { data: vData } = await supabase
+                .from('product_variants')
+                .select('*')
+                .eq('id', variantId)
+                .maybeSingle()
+              
+              if (vData) {
+                foundVariant = vData
+                const { data: pData } = await supabase
+                  .from('products')
+                  .select(`
+                    *,
+                    images:product_images(*)
+                  `)
+                  .eq('id', vData.product_id)
+                  .maybeSingle()
+                
+                if (pData) {
+                  foundProduct = {
+                    ...pData,
+                    variants: [vData]
+                  }
+                }
+              }
+            } catch (err) {
+              console.error('Failed to resolve product/variant from Supabase:', err)
+            }
+          }
+
           if (foundVariant && foundProduct) {
             items.push({
               id: `item-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,

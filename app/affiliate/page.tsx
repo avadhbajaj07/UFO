@@ -11,6 +11,8 @@ import {
 } from 'lucide-react'
 import { formatPrice } from '@/lib/utils/pricing'
 import { cn } from '@/lib/utils'
+import { createClient } from '@/lib/supabase/client'
+import { useAuthStore } from '@/store/auth'
 
 // Swiss Cantons for dropdown
 const CANTONS = [
@@ -37,9 +39,11 @@ const MARKETING_ASSETS = [
 ]
 
 export default function AffiliatePage() {
-  // Authentication state simulation
-  const [isRegistered, setIsRegistered] = useState(false)
-  
+  const { user, profile, isLoading } = useAuthStore()
+  const [affiliateRecord, setAffiliateRecord] = useState<any>(null)
+  const [isCheckingRecord, setIsCheckingRecord] = useState(true)
+  const [dbProducts, setDbProducts] = useState<any[]>([])
+
   // Registration Form
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -66,69 +70,147 @@ export default function AffiliatePage() {
   const [withdrawalMethod, setWithdrawalMethod] = useState<'twint' | 'bank' | 'paypal'>('twint')
   const [twintPhone, setTwintPhone] = useState('+41 79 123 45 67')
   const [bankIban, setBankIban] = useState('CH93 0000 0000 0000 0000 0')
-  const [payoutsList, setPayoutsList] = useState([
-    { date: '2026-06-01', amount: 150.00, method: 'TWINT', status: 'PAID' },
-    { date: '2026-05-01', amount: 240.00, method: 'Bank Transfer', status: 'PAID' }
-  ])
+  const [payoutsList, setPayoutsList] = useState<any[]>([])
 
   // Sync balances and lists
-  const [walletBalance, setWalletBalance] = useState(850.00)
+  const [walletBalance, setWalletBalance] = useState(0.00)
   const [commissionsList, setCommissionsList] = useState<any[]>([])
   const [couponsList, setCouponsList] = useState<any[]>([])
   const [newCouponCode, setNewCouponCode] = useState('')
 
+  const marketplaceProducts = dbProducts.length > 0 
+    ? dbProducts.map((p) => ({
+        id: p.id,
+        name: typeof p.name === 'object' ? (p.name.en || p.name.de || 'UFO Product') : p.name,
+        slug: p.slug,
+        rate: '10%',
+        epc: 'CHF 1.50',
+        convRate: '5.0%',
+        isBest: p.featured,
+        isNew: p.is_new,
+        price: p.base_price
+      }))
+    : MARKETPLACE_PRODUCTS
+
   useEffect(() => {
-    // 1. Balance
-    const storedBal = localStorage.getItem('ufo_affiliate_balance')
-    if (storedBal) {
-      setWalletBalance(parseFloat(storedBal))
-    } else {
-      localStorage.setItem('ufo_affiliate_balance', '850.00')
-    }
+    if (!user) return
+    
+    const fetchData = async () => {
+      const supabase = createClient() as any
+      
+      // 1. Fetch affiliate record
+      const { data: aff } = await supabase
+        .from('affiliates')
+        .select('*')
+        .eq('profile_id', user.id)
+        .maybeSingle()
+        
+      if (aff) {
+        setAffiliateRecord(aff)
+        setWalletBalance(Number(aff.balance))
+        setCustomSlug(aff.code)
+        
+        // Fetch commissions
+        const { data: comms } = await supabase
+          .from('affiliate_commissions')
+          .select('*')
+          .eq('affiliate_id', aff.id)
+        if (comms) {
+          setCommissionsList(comms.map((c: any) => ({
+            id: c.id.slice(0, 8),
+            name: 'Supplement Referral',
+            sale: Number(c.commission_amount) * 10,
+            comm: Number(c.commission_amount),
+            status: c.status.toUpperCase()
+          })))
+        }
 
-    // 2. Commissions List
-    const storedComms = localStorage.getItem('ufo_affiliate_commissions')
-    if (storedComms) {
-      setCommissionsList(JSON.parse(storedComms))
-    } else {
-      const initial = [
-        { id: 'UFO-CH-92812', name: 'Blast Pre-Workout (300g)', sale: 49.00, comm: 9.80, status: 'APPROVED' },
-        { id: 'UFO-CH-91823', name: 'Astro Creatine (500g)', sale: 39.00, comm: 5.85, status: 'APPROVED' }
-      ]
-      setCommissionsList(initial)
-      localStorage.setItem('ufo_affiliate_commissions', JSON.stringify(initial))
-    }
+        // Fetch payouts
+        const { data: payouts } = await supabase
+          .from('affiliate_payouts')
+          .select('*')
+          .eq('affiliate_id', aff.id)
+        if (payouts) {
+          setPayoutsList(payouts.map((p: any) => ({
+            date: p.created_at.split('T')[0],
+            amount: Number(p.amount),
+            method: p.payout_method?.toUpperCase() || 'TWINT',
+            status: p.status.toUpperCase()
+          })))
+        }
 
-    // 3. Coupons List
-    const storedCoupons = localStorage.getItem('ufo_admin_coupons')
-    if (storedCoupons) {
-      setCouponsList(JSON.parse(storedCoupons))
-    } else {
-      const initialCoups = [
-        { code: 'MARUTI10', affiliateId: 'aff-1', affiliateName: 'Maruti Partner', discountPct: 10, commissionPct: 10, status: 'APPROVED', salesCount: 3, totalRevenue: 137.00, totalCommission: 13.70 }
-      ]
-      setCouponsList(initialCoups)
-      localStorage.setItem('ufo_admin_coupons', JSON.stringify(initialCoups))
+        // Fetch coupons
+        const { data: coups } = await supabase
+          .from('coupons')
+          .select('*')
+          .eq('affiliate_id', aff.id)
+        if (coups) {
+          setCouponsList(coups)
+        }
+      } else {
+        setAffiliateRecord(null)
+      }
+      
+      // 2. Fetch products for link generator
+      const { data: prods } = await supabase
+        .from('products')
+        .select('id, name, slug, base_price, featured, is_new')
+        .eq('status', 'active')
+      if (prods) {
+        setDbProducts(prods)
+        if (prods.length > 0) {
+          setDeepLinkProduct(prods[0].slug)
+        }
+      }
+      
+      setIsCheckingRecord(false)
     }
-  }, [activeTab])
+    
+    fetchData()
+  }, [user, activeTab])
 
   // Custom deep link outputs
   const referralBase = `https://ufolabz.ch/?ref=${customSlug}`
   const deepLinkResult = `https://ufolabz.ch/products/${deepLinkProduct}/?ref=${customSlug}`
 
-  const handleRegisterSubmit = (e: React.FormEvent) => {
+  const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!name || !email) return
-    setIsRegistered(true)
+    if (!user) return
+    
+    const baseCode = (name || user.email.split('@')[0]).toUpperCase().replace(/[^A-Z0-9]/g, '')
+    const finalCode = baseCode + Math.floor(100 + Math.random() * 900)
+
+    const supabase = createClient() as any
+    const { data, error } = await supabase
+      .from('affiliates')
+      .insert({
+        profile_id: user.id,
+        code: finalCode,
+        status: 'approved',
+        payout_method: withdrawalMethod,
+        payout_details: { bank_iban: bankIban, twint_phone: twintPhone, website, canton, social_link: socialLink },
+        commission_rate: 10.00
+      })
+      .select()
+      .single()
+
+    if (error) {
+      alert('Failed to register as affiliate: ' + error.message)
+    } else {
+      setAffiliateRecord(data)
+      alert('Successfully registered as UFO LABZ Orbital Partner! Welcome aboard!')
+    }
   }
 
-  // Auto-fill demo credentials
+  // Auto-fill registration fields using active user info
   const handlePrefillRegister = () => {
-    setName('Maruti Partner')
-    setEmail('maruti@affiliate.ch')
-    setPhone('+41 79 987 65 43')
-    setWebsite('https://fitlife-switzerland.ch')
-    setSocialLink('instagram.com/fitlife_ch')
+    if (user) {
+      setName(profile?.full_name || user.email.split('@')[0])
+      setEmail(user.email)
+      setPhone('+41 79 987 65 43')
+      setWebsite('https://ufolabz.ch')
+      setSocialLink('instagram.com/' + (profile?.full_name || 'user').toLowerCase())
+    }
   }
 
   const handleGenerateAiCaption = async () => {
@@ -139,58 +221,125 @@ export default function AffiliatePage() {
     let copy = ''
     if (aiProduct === 'blast-pre-workout-energy') {
       copy = aiChannel === 'instagram' 
-        ? '⚡ BLAST OFF! Reached new heights in training today with UFO LABZ Pre-Workout. Insane pump and zero crash. Use my code MARUTI10 to get 10% off your next energy boost! Link in bio. 🛸 #ufolabz #preworkout #fitswiss'
-        : '📥 Hey team! Just released my review of the Blast Pre-Workout. The focus is unlike anything I’ve tested this year. 200mg Caffeine + L-Citrulline. Grab yours here for 10% off: https://ufolabz.ch/products/blast-pre-workout-energy/?ref=maruti'
+        ? `⚡ BLAST OFF! Reached new heights in training today with UFO LABZ Pre-Workout. Insane pump and zero crash. Use my code ${customSlug} to get 10% off your next energy boost! Link in bio. 🛸 #ufolabz #preworkout #fitswiss`
+        : `📥 Hey team! Just released my review of the Blast Pre-Workout. The focus is unlike anything I’ve tested this year. 200mg Caffeine + L-Citrulline. Grab yours here for 10% off: https://ufolabz.ch/products/blast-pre-workout-energy/?ref=${customSlug}`
     } else {
       copy = aiChannel === 'instagram'
-        ? '🪐 Clean strength synthesis. Astro Creatine is 100% pure micronized monohydrate. Easy mix, pure absorption. Support your recovery with CHF 5.- off using coupon code WELCOME500. Link in bio! 🏋️ #creatine #supplements #swissfit'
-        : '📝 Muscle growth requires nutritional consistency. Astro Creatine monohydrate has been a game changer for ATP replenishment. Get it with 10% off: https://ufolabz.ch/products/astro-creatine/?ref=maruti'
+        ? `🪐 Clean strength synthesis. Astro Creatine is 100% pure micronized monohydrate. Easy mix, pure absorption. Support your recovery with 10% off using code ${customSlug}. Link in bio! 🏋️ #creatine #supplements #swissfit`
+        : `📝 Muscle growth requires nutritional consistency. Astro Creatine monohydrate has been a game changer for ATP replenishment. Get it with 10% off: https://ufolabz.ch/products/astro-creatine/?ref=${customSlug}`
     }
     setGeneratedCaption(copy)
   }
 
   // Request custom coupon
-  const handleRequestCouponSubmit = (e: React.FormEvent) => {
+  const handleRequestCouponSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     const code = newCouponCode.trim().toUpperCase()
-    if (!code) return
+    if (!code || !affiliateRecord) return
 
-    const exists = couponsList.some(c => c.code === code)
-    if (exists) {
+    const supabase = createClient() as any
+    const { data: existing } = await supabase
+      .from('coupons')
+      .select('id')
+      .eq('code', code)
+      .maybeSingle()
+
+    if (existing) {
       alert('This coupon code is already registered!')
       return
     }
 
-    const created = {
-      code,
-      affiliateId: 'aff-1',
-      affiliateName: name || 'Maruti Partner',
-      discountPct: 10,
-      commissionPct: 10,
-      status: 'PENDING',
-      salesCount: 0,
-      totalRevenue: 0.00,
-      totalCommission: 0.00
-    }
+    const { data, error } = await supabase
+      .from('coupons')
+      .insert({
+        code,
+        discount_type: 'percentage',
+        discount_value: 10,
+        affiliate_id: affiliateRecord.id,
+        is_active: true,
+        description: `10% discount coupon requested by partner ${name}`
+      })
+      .select()
+      .single()
 
-    const updated = [...couponsList, created]
-    setCouponsList(updated)
-    localStorage.setItem('ufo_admin_coupons', JSON.stringify(updated))
-    setNewCouponCode('')
-    alert(`Promo code request for "${code}" successfully submitted to admin control panel for approval!`)
+    if (error) {
+      alert('Failed to request coupon: ' + error.message)
+    } else {
+      setCouponsList([...couponsList, data])
+      setNewCouponCode('')
+      alert(`Promo code "${code}" has been successfully created and linked to your affiliate profile!`)
+    }
   }
 
-  // Trigger simulated payouts
-  const handleRequestPayout = () => {
-    const amount = walletBalance // available withdrawal balance
-    const methodLabel = withdrawalMethod === 'twint' ? 'TWINT' : (withdrawalMethod === 'paypal' ? 'PayPal' : 'Bank Transfer')
-    const today = new Date().toISOString().split('T')[0]
-    setPayoutsList([{ date: today, amount, method: methodLabel, status: 'PROCESSING' }, ...payoutsList])
-    
-    // Reset local storage balance
-    setWalletBalance(0)
-    localStorage.setItem('ufo_affiliate_balance', '0.00')
-    alert('Withdrawal request successfully registered! Processing takes 1-2 Swiss business days.')
+  // Trigger real payouts
+  const handleRequestPayout = async () => {
+    if (!affiliateRecord || walletBalance <= 0) {
+      alert('You do not have any available balance to withdraw.')
+      return
+    }
+    const amount = walletBalance
+
+    const supabase = createClient() as any
+    const { data, error } = await supabase
+      .from('affiliate_payouts')
+      .insert({
+        affiliate_id: affiliateRecord.id,
+        amount,
+        payout_method: withdrawalMethod,
+        status: 'pending'
+      })
+      .select()
+      .single()
+
+    if (error) {
+      alert('Failed to request payout: ' + error.message)
+    } else {
+      await supabase
+        .from('affiliates')
+        .update({ balance: 0.00 })
+        .eq('id', affiliateRecord.id)
+
+      setWalletBalance(0)
+      setPayoutsList([{
+        date: new Date().toISOString().split('T')[0],
+        amount,
+        method: withdrawalMethod.toUpperCase(),
+        status: 'PENDING'
+      }, ...payoutsList])
+      alert('Withdrawal request successfully registered in Supabase! Payout is pending approval.')
+    }
+  }
+
+  if (isLoading || (user && isCheckingRecord)) {
+    return (
+      <div className="min-h-screen bg-space-950 text-white flex items-center justify-center font-mono text-xs">
+        SYNCING ORBITAL PARTNER DATA...
+      </div>
+    )
+  }
+
+  if (!user) {
+    return (
+      <div className="pt-32 pb-20 min-h-screen bg-space-950 text-white flex items-center justify-center px-4 font-mono text-xs">
+        <div className="bg-space-900 border border-alien-green/20 p-8 rounded-3xl max-w-sm w-full text-center space-y-6 shadow-glow-green relative overflow-hidden">
+          <div className="absolute inset-0 bg-alien-green/5 blur-[50px] pointer-events-none" />
+          <div className="w-16 h-16 rounded-full bg-alien-green/10 border border-alien-green/20 flex items-center justify-center mx-auto text-alien-green text-2xl relative z-10 animate-pulse">
+            🔒
+          </div>
+          <div className="relative z-10">
+            <h2 className="font-display text-2xl tracking-wider text-white uppercase">PARTNER ZONE ACCESS</h2>
+            <p className="text-gray-400 mt-2 text-[10px] leading-relaxed">
+              Please sign in to access your Orbital Affiliate Dashboard, commissions logs, deep links, and payout panel.
+            </p>
+          </div>
+          <div className="relative z-10 pt-2">
+            <Link href={`/login?redirect=/affiliate`} className="btn-primary w-full justify-center py-3 shadow-glow-green">
+              Sign In
+            </Link>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   // Sidebar Dashboard Menu items
@@ -222,7 +371,7 @@ export default function AffiliatePage() {
       </header>
 
       {/* ─── DUAL STATE LAYOUT ─── */}
-      {!isRegistered ? (
+      {!affiliateRecord ? (
         
         // ─── STATE 1: VISITOR LANDING & REGISTRATION ───
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 space-y-20">
@@ -434,13 +583,13 @@ export default function AffiliatePage() {
                 )
               })}
 
-              <button 
-                onClick={() => setIsRegistered(false)}
-                className="flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-mono font-medium text-red-400 hover:text-red-500 hover:bg-red-500/5 whitespace-nowrap lg:w-full lg:mt-6"
+              <Link 
+                href="/account"
+                className="flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-mono font-medium text-red-400 hover:text-red-500 hover:bg-red-500/5 whitespace-nowrap lg:w-full lg:mt-6 text-left"
               >
                 <ArrowLeft className="w-4 h-4 flex-shrink-0" />
-                <span>Exit Dashboard</span>
-              </button>
+                <span>Go to My Account</span>
+              </Link>
             </aside>
 
             {/* Right main display (width: 9 cols) */}
@@ -544,10 +693,20 @@ export default function AffiliatePage() {
                             onChange={(e) => setDeepLinkProduct(e.target.value)}
                             className="input focus:outline-none bg-space-900 border-white/5 text-xs py-2 text-white"
                           >
-                            <option value="astro-creatine">Astro Creatine (500g)</option>
-                            <option value="blast-pre-workout-energy">Blast Pre-Workout Energy</option>
-                            <option value="amino-fuel-mango">Amino Fuel Mango (300g)</option>
-                            <option value="astro-collagen">Astro Collagen Peptide</option>
+                            {dbProducts.length > 0 ? (
+                              dbProducts.map((p) => (
+                                <option key={p.id} value={p.slug}>
+                                  {typeof p.name === 'object' ? (p.name.en || p.name.de || p.slug) : p.name}
+                                </option>
+                              ))
+                            ) : (
+                              <>
+                                <option value="astro-creatine">Astro Creatine (500g)</option>
+                                <option value="blast-pre-workout-energy">Blast Pre-Workout Energy</option>
+                                <option value="amino-fuel-mango">Amino Fuel Mango (300g)</option>
+                                <option value="astro-collagen">Astro Collagen Peptide</option>
+                              </>
+                            )}
                           </select>
                         </div>
 
@@ -655,7 +814,7 @@ export default function AffiliatePage() {
                     <h2 className="font-display text-3xl tracking-wide uppercase text-white">COMMISSION MARKETPLACE</h2>
                     
                     <div className="space-y-4">
-                      {MARKETPLACE_PRODUCTS.map((prod) => (
+                      {marketplaceProducts.map((prod) => (
                         <div key={prod.id} className="bg-space-950 border border-white/5 p-4 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 text-xs">
                           <div>
                             <div className="flex items-center gap-2">

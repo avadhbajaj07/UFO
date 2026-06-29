@@ -148,19 +148,20 @@ export default function ProductsClient({ products, categories, activeCategory, a
                   <h3 className="font-display text-base sm:text-lg tracking-wider text-white mb-0.5 sm:mb-1 line-clamp-2">{name}</h3>
                   <p className="text-[11px] sm:text-xs text-muted line-clamp-1 mb-2 sm:mb-3">{tagline}</p>
                 </Link>
-                <div className="flex items-end justify-between gap-1">
-                  <div className="min-w-0">
+                <div className="mt-3 flex flex-col gap-2">
+                  <div className="flex items-baseline gap-1.5 flex-wrap min-h-[24px]">
                     <span className="text-sm sm:text-base font-bold text-white">{formatPrice(price)}</span>
-                    {compare && <span className="hidden xs:inline ml-1 sm:ml-1.5 text-[10px] sm:text-xs text-muted/60 line-through">{formatPrice(compare)}</span>}
+                    {compare && <span className="text-[10px] sm:text-xs text-muted/60 line-through">{formatPrice(compare)}</span>}
                   </div>
                   <button
-                    onClick={() => variant && addItem(variant.id)}
+                    onClick={() => variant && addItem(variant.id, 1, { product, variant })}
                     disabled={!inStock || isLoading || !variant}
-                    className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center transition-all hover:scale-110 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
-                    style={inStock ? { backgroundColor: color } : { backgroundColor: 'rgba(119,119,170,0.2)' }}
+                    className="w-full py-2 px-3 rounded-lg transition-all duration-200 flex items-center justify-center gap-1.5 font-mono text-[10px] sm:text-xs font-bold text-space-900 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
+                    style={inStock ? { backgroundColor: color, boxShadow: `0 4px 12px ${color}20` } : { backgroundColor: 'rgba(119,119,170,0.2)' }}
                     aria-label={`Add ${name} to cart`}
                   >
                     <ShoppingBag className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-space-900" />
+                    <span>{inStock ? 'Add to Cart' : 'Out of Stock'}</span>
                   </button>
                 </div>
               </div>

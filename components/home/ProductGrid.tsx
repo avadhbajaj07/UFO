@@ -137,34 +137,31 @@ function ProductCard({ product }: { product: Product }) {
           </p>
         </Link>
 
-        {/* Price + CTA */}
-        <div className="flex items-end justify-between gap-1">
-          <div className="min-w-0">
-            <span className="text-sm sm:text-lg font-bold text-white">{formatPrice(price)}</span>
+        {/* Price + CTA stacked to prevent overlaps */}
+        <div className="mt-3 flex flex-col gap-2">
+          <div className="flex items-baseline gap-1.5 flex-wrap min-h-[24px]">
+            <span className="text-sm sm:text-base font-bold text-white">{formatPrice(price)}</span>
             {compare && (
-              <span className="hidden xs:inline ml-1.5 sm:ml-2 text-xs sm:text-sm text-muted/60 line-through">
+              <span className="text-[10px] sm:text-xs text-muted/60 line-through">
                 {formatPrice(compare)}
               </span>
             )}
           </div>
 
           <button
-            onClick={() => variant && addItem(variant.id)}
+            onClick={() => variant && addItem(variant.id, 1, { product, variant })}
             disabled={!inStock || isLoading || !variant}
             className={cn(
-              'p-2 sm:p-2.5 rounded-lg sm:rounded-xl transition-all duration-200 flex items-center justify-center shrink-0',
+              'w-full py-2 px-3 rounded-lg transition-all duration-200 flex items-center justify-center gap-1.5 font-mono text-[10px] sm:text-xs font-bold',
               inStock
                 ? 'text-space-900 hover:shadow-lg active:scale-95'
                 : 'bg-muted/20 text-muted cursor-not-allowed'
             )}
-            style={inStock ? { backgroundColor: color, boxShadow: `0 0 0 0 ${color}40` } : undefined}
+            style={inStock ? { backgroundColor: color, boxShadow: `0 4px 12px ${color}20` } : undefined}
             aria-label={inStock ? `Add ${name} to cart` : 'Out of stock'}
           >
-            {inStock ? (
-              <ShoppingBag className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            ) : (
-              <span className="text-[10px] sm:text-xs px-1">Out</span>
-            )}
+            <ShoppingBag className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+            <span>{inStock ? 'Add to Cart' : 'Out of Stock'}</span>
           </button>
         </div>
       </div>
@@ -194,11 +191,25 @@ export default function ProductGrid({ products }: ProductGridProps) {
         </p>
       </div>
 
-      {/* Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 lg:gap-5">
-        {products.map((product) => (
-          <ProductCard key={product.id} product={product} />
-        ))}
+      {/* Grid: 4 in first row, 2 in second row centered on md+ screens */}
+      <div className="space-y-4 sm:space-y-6">
+        {/* Row 1: 4 products on desktop */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
+          {products.slice(0, 4).map((product) => (
+            <ProductCard key={product.id} product={product} />
+          ))}
+        </div>
+
+        {/* Row 2: 2 products centered on desktop */}
+        {products.length > 4 && (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
+            <div className="hidden md:block" aria-hidden="true" />
+            {products.slice(4, 6).map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+            <div className="hidden md:block" aria-hidden="true" />
+          </div>
+        )}
       </div>
 
       {/* View all */}

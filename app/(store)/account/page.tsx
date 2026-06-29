@@ -62,7 +62,7 @@ export default function AccountPage() {
   const router = useRouter()
   const color = '#00FF88'
 
-  const { user, profile, logout } = useAuthStore()
+  const { user, profile, logout, isLoading } = useAuthStore()
   const { addItem } = useCart()
 
   // Guest/Demo Mode check
@@ -92,11 +92,8 @@ export default function AccountPage() {
 
   // Fetch live user data if logged in
   useEffect(() => {
-    if (!user) {
-      setIsDemoMode(true)
-      return
-    }
     setIsDemoMode(false)
+    if (!user) return
 
     const fetchData = async () => {
       const supabase = createClient() as any
@@ -366,6 +363,38 @@ export default function AccountPage() {
     setChatMessages((prev) => [...prev, { sender: 'ai', text: reply }])
   }
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-space-950 text-white flex items-center justify-center font-mono text-xs">
+        SYNCING GALACTIC ACCOUNT DATA...
+      </div>
+    )
+  }
+
+  if (!user) {
+    return (
+      <div className="pt-32 pb-20 min-h-screen bg-space-950 text-white flex items-center justify-center px-4 font-mono text-xs">
+        <div className="bg-space-900 border border-alien-green/20 p-8 rounded-3xl max-w-sm w-full text-center space-y-6 shadow-glow-green relative overflow-hidden">
+          <div className="absolute inset-0 bg-alien-green/5 blur-[50px] pointer-events-none" />
+          <div className="w-16 h-16 rounded-full bg-alien-green/10 border border-alien-green/20 flex items-center justify-center mx-auto text-alien-green text-2xl relative z-10 animate-pulse">
+            🔒
+          </div>
+          <div className="relative z-10">
+            <h2 className="font-display text-2xl tracking-wider text-white uppercase">AUTHENTICATION REQUIRED</h2>
+            <p className="text-gray-400 mt-2 text-[10px] leading-relaxed">
+              Please sign in to access your orbital dashboard, order logs, address book, and loyalty metrics.
+            </p>
+          </div>
+          <div className="relative z-10 pt-2">
+            <Link href={`/login?redirect=/account`} className="btn-primary w-full justify-center py-3 shadow-glow-green">
+              Sign In
+            </Link>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   // Sidebar Tabs Config
   const tabs = [
     { id: 'dashboard', label: 'Dashboard', icon: User },
@@ -389,20 +418,7 @@ export default function AccountPage() {
     <div className="pt-20 min-h-screen bg-space-950 text-white selection:bg-alien-green selection:text-space-950 font-sans">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
-        {/* Banner notifying user about Demo Mode */}
-        {isDemoMode && (
-          <div className="bg-alien-green/10 border border-alien-green/20 text-alien-green p-4 rounded-2xl mb-8 flex items-center justify-between text-xs">
-            <div className="flex items-center gap-3">
-              <Sparkles className="w-5 h-5 animate-pulse flex-shrink-0" />
-              <span>
-                <strong>DEMO PANEL ACTIVE:</strong> You are currently viewing the panel in demo mode. Sign in to sync real user parameters.
-              </span>
-            </div>
-            <Link href="/login" className="bg-alien-green text-space-950 px-4 py-1.5 rounded-xl font-bold font-sans hover:shadow-glow-green transition-all">
-              Sign In
-            </Link>
-          </div>
-        )}
+        {/* Demo Mode banner removed */}
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 

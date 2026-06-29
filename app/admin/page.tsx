@@ -11,6 +11,8 @@ import {
 } from 'lucide-react'
 import { formatPrice } from '@/lib/utils/pricing'
 import { cn } from '@/lib/utils'
+import { createClient } from '@/lib/supabase/client'
+import { useAuthStore } from '@/store/auth'
 
 // Types
 interface Supplier {
@@ -207,25 +209,64 @@ const INITIAL_AUTOMATION_FLOWS: AutomationFlow[] = [
 ]
 
 export default function AdminPage() {
+  const { user, profile, isLoading } = useAuthStore()
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [passwordInput, setPasswordInput] = useState('')
   const [authError, setAuthError] = useState('')
+  
+  // Supabase auth credentials
+  const [emailInput, setEmailInput] = useState('')
+  const [supaPasswordInput, setSupaPasswordInput] = useState('')
+  const [isSigningIn, setIsSigningIn] = useState(false)
 
   useEffect(() => {
-    if (sessionStorage.getItem('ufo_admin_authed') === 'true') {
+    if (sessionStorage.getItem('ufo_admin_authed') === 'true' && user && (profile?.role === 'admin' || profile?.role === 'super_admin')) {
       setIsAuthenticated(true)
-    }
-  }, [])
-
-  const handleAuthenticate = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (passwordInput === 'UFOLabzAdmin2026!') {
-      setIsAuthenticated(true)
-      sessionStorage.setItem('ufo_admin_authed', 'true')
-      setAuthError('')
     } else {
-      setAuthError('INVALID ACCESS DECREE. ACCESS DENIED.')
+      setIsAuthenticated(false)
     }
+  }, [user, profile])
+
+  const handleAuthenticate = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    if (passwordInput !== 'UFOLabzAdmin2026!') {
+      setAuthError('INVALID ACCESS DECREE. ACCESS DENIED.')
+      return
+    }
+    
+    setIsSigningIn(true)
+    setAuthError('')
+    
+    const supabase = createClient() as any
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      email: emailInput,
+      password: supaPasswordInput
+    })
+
+    if (authError) {
+      setAuthError('SUPABASE AUTH ERROR: ' + authError.message)
+      setIsSigningIn(false)
+      return
+    }
+
+    // Fetch profile to verify role
+    const { data: prof, error: profError } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', authData.user.id)
+      .single()
+
+    if (profError || !prof || (prof.role !== 'admin' && prof.role !== 'super_admin')) {
+      setAuthError('ACCESS RESTRICTED: Your account does not have administrator privileges.')
+      await supabase.auth.signOut()
+      setIsSigningIn(false)
+      return
+    }
+
+    setIsAuthenticated(true)
+    sessionStorage.setItem('ufo_admin_authed', 'true')
+    setIsSigningIn(false)
   }
 
   const [activeTab, setActiveTab] = useState<'dashboard' | 'products' | 'orders' | 'inventory' | 'pricing' | 'customers' | 'affiliates' | 'marketing' | 'reviews' | 'automations'>('dashboard')
@@ -321,79 +362,216 @@ export default function AdminPage() {
 
   // Load localStorage data
   useEffect(() => {
-    const storedAffs = localStorage.getItem('ufo_admin_affiliates')
-    const storedCoupons = localStorage.getItem('ufo_admin_coupons')
-    const storedProducts = localStorage.getItem('ufo_catalog_products')
     const storedApiKey = localStorage.getItem('ufo_openai_api_key')
-    const storedCustomers = localStorage.getItem('ufo_admin_customers')
-
-    if (storedCustomers) {
-      setCustomersList(JSON.parse(storedCustomers))
-    } else {
-      setCustomersList(INITIAL_CUSTOMERS)
-      localStorage.setItem('ufo_admin_customers', JSON.stringify(INITIAL_CUSTOMERS))
-    }
-
     if (storedApiKey) {
       setOpenAiApiKey(storedApiKey)
     }
+  }, [])
 
-    if (storedAffs) {
-      setAffiliates(JSON.parse(storedAffs))
-    } else {
-      const initialAffs = [
-        { id: 'aff-1', name: 'Maruti Partner', email: 'maruti@affiliate.ch', phone: '+41 79 987 65 43', canton: 'Zurich', website: 'fitlife-switzerland.ch', social: 'instagram.com/fitlife_ch', status: 'APPROVED', joinedDate: '2026-05-10', salesCount: 12 }
-      ]
-      setAffiliates(initialAffs)
-      localStorage.setItem('ufo_admin_affiliates', JSON.stringify(initialAffs))
+  useEffect(() => {
+    if (!isAuthenticated) return
+
+    const fetchData = async () => {
+      const supabase = createClient() as any
+      
+      // 1. Fetch products
+      const { data: prods } = await supabase
+        .from('products')
+        .select(`
+          *,
+          images:product_images(*),
+          variants:product_variants(*)
+        `)
+      
+      const mappedProds = prods ? prods.map((p: any) => ({
+        id: p.id,
+        title: typeof p.name === 'object' ? (p.name.en || p.name.de || 'UFO Product').toUpperCase() : String(p.name).toUpperCase(),
+        slug: p.slug,
+        category: p.category_id ? 'PRE-WORKOUT' : 'SPECIAL-EDITION',
+        price: Number(p.base_price),
+        base_price: Number(p.compare_at_price || p.base_price),
+        stock: p.variants?.[0]?.stock ?? 0,
+        desc: typeof p.short_description === 'object' ? (p.short_description.en || p.short_description.de || '') : p.short_description,
+        longDesc: typeof p.description === 'object' ? (p.description.en || p.description.de || '') : p.description,
+        featuredImage: p.images?.[0]?.url || '',
+        imageGallery: p.images?.map((img: any) => img.url) || [],
+        keyBenefits: p.schema_markup?.key_benefits || [],
+        ingredients: p.schema_markup?.ingredients || '',
+        product_color: p.product_color || '#00FF88',
+        color_name: p.color_name || 'Alien Green'
+      })) : []
+      setLiveProducts(mappedProds)
+
+      // 2. Fetch orders
+      const { data: ords } = await supabase
+        .from('orders')
+        .select(`
+          *,
+          items:order_items(*)
+        `)
+        .order('created_at', { ascending: false })
+      
+      const mappedOrds = ords ? ords.map((o: any) => ({
+        id: o.order_number || o.id.slice(0, 8),
+        customerName: o.shipping_address?.fullName || 'Guest Athlete',
+        customerEmail: o.guest_email || 'N/A',
+        date: new Date(o.created_at || o.paid_at).toLocaleString(),
+        channel: (o.payment_method === 'cash' ? 'POS Terminal' : 'Online') as 'Online' | 'POS Terminal',
+        products: o.items ? o.items.map((item: any) => ({
+          name: typeof item.product_name === 'object' ? (item.product_name.en || item.product_name.de || 'UFO Product') : item.product_name,
+          qty: item.quantity,
+          price: Number(item.unit_price)
+        })) : [],
+        subtotal: Number(o.subtotal),
+        discount: Number(o.discount_amount),
+        vat: Number(o.subtotal) * 0.081,
+        total: Number(o.total),
+        status: (o.status === 'confirmed' ? 'Pending' : (o.status === 'shipped' ? 'Completed' : 'Pending')) as 'Pending' | 'Packed' | 'Ready for Pickup' | 'Completed',
+        paymentMethod: (o.payment_method === 'twint' ? 'Twint' : (o.payment_method === 'card' ? 'Credit Card' : 'Invoice')) as 'Credit Card' | 'Twint' | 'Cash' | 'Invoice'
+      })) : []
+      setOrdersList(mappedOrds)
+
+      // 3. Fetch affiliates
+      const { data: affs } = await supabase
+        .from('affiliates')
+        .select(`
+          *,
+          profile:profiles(id, email, full_name, phone)
+        `)
+      
+      const mappedAffs = affs ? affs.map((a: any) => ({
+        id: a.id,
+        name: a.profile?.full_name || a.profile?.email?.split('@')[0] || 'Partner',
+        email: a.profile?.email || 'N/A',
+        phone: a.profile?.phone || 'N/A',
+        canton: a.payout_details?.canton || 'Zurich',
+        website: a.payout_details?.website || 'N/A',
+        social: a.payout_details?.social_link || 'N/A',
+        status: a.status.toUpperCase(),
+        joinedDate: a.created_at.split('T')[0],
+        salesCount: a.total_orders
+      })) : []
+      setAffiliates(mappedAffs)
+
+      // 4. Fetch coupons
+      const { data: coups } = await supabase
+        .from('coupons')
+        .select('*')
+      
+      const mappedCoups = coups ? coups.map((c: any) => ({
+        code: c.code,
+        affiliateId: c.affiliate_id || 'N/A',
+        affiliateName: 'UFO Partner',
+        discountPct: Number(c.discount_value),
+        commissionPct: 10,
+        status: c.is_active ? 'APPROVED' : 'PENDING',
+        salesCount: 0,
+        totalRevenue: 0.00,
+        totalCommission: 0.00
+      })) : []
+      setCoupons(mappedCoups)
+
+      // 5. Fetch customers (profiles)
+      const { data: custs } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: false })
+      
+      const mappedCusts = custs ? custs.map((c: any) => ({
+        id: c.id,
+        name: c.full_name || c.email.split('@')[0],
+        email: c.email,
+        spending: Number(c.total_spent),
+        ltv: Number(c.total_spent),
+        points: 100,
+        goals: c.notes || 'Peak Performance',
+        status: (c.role === 'admin' ? 'VIP' : 'Regular') as 'VIP' | 'Regular' | 'New',
+        purchaseFreq: 'Every 30 Days',
+        ordersCount: c.total_orders,
+        purchasedProducts: []
+      })) : []
+      setCustomersList(mappedCusts)
+
+      // 6. Fetch reviews
+      const { data: revs } = await supabase
+        .from('reviews')
+        .select('*')
+      
+      const mappedRevs = revs ? revs.map((r: any) => ({
+        id: r.id,
+        author: r.author_name || 'Guest Athlete',
+        product: 'UFO Supplement',
+        rating: r.rating,
+        comment: r.body || '',
+        status: (r.status.toUpperCase() === 'APPROVED' ? 'APPROVED' : (r.status.toUpperCase() === 'SPAM' ? 'SPAM' : 'PENDING')) as 'PENDING' | 'APPROVED' | 'SPAM'
+      })) : []
+      setReviews(mappedRevs)
     }
 
-    if (storedCoupons) {
-      setCoupons(JSON.parse(storedCoupons))
-    } else {
-      const initialCoups = [
-        { code: 'MARUTI10', affiliateId: 'aff-1', affiliateName: 'Maruti Partner', discountPct: 10, commissionPct: 10, status: 'APPROVED', salesCount: 3, totalRevenue: 137.00, totalCommission: 13.70 }
-      ]
-      setCoupons(initialCoups)
-      localStorage.setItem('ufo_admin_coupons', JSON.stringify(initialCoups))
-    }
+    fetchData()
+  }, [isAuthenticated, activeTab])
 
-    if (storedProducts) {
-      setLiveProducts(JSON.parse(storedProducts))
-    } else {
-      const initialProducts = [
-        { id: 'prod-col', title: 'Astro Collagen Peptide (300g)', category: 'special-edition', price: 34, stock: 500, desc: 'Premium hydrolyzed grass-fed collagen peptides optimized for rapid absorption, joint strength, and skin elasticity.', product_color: '#9B30FF', featuredImage: 'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782667545/UFO1_ztlvyz.png', slug: 'astro-collagen' },
-        { id: 'prod-blast-blue', title: 'Blast Pre-Workout (Blue Raspberry)', category: 'pre-workout', price: 24, stock: 350, desc: 'Extreme pre-workout energy and focus formula featuring an electric blue raspberry flavor profile.', product_color: '#00CFFF', featuredImage: 'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782667544/UFO2_hnupdu.png', slug: 'blast-pre-workout-blue' },
-        { id: 'prod-amino-blue', title: 'Amino Fuel EAA (Blue Raspberry)', category: 'amino-acids', price: 17.90, stock: 350, desc: 'Full essential amino acids matrix paired with advanced electrolytes in a cold blue raspberry flavor.', product_color: '#00CFFF', featuredImage: 'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782667544/UFO6_uhxvep.png', slug: 'amino-fuel-blue-raspberry' }
-      ]
-      setLiveProducts(initialProducts)
-      localStorage.setItem('ufo_catalog_products', JSON.stringify(initialProducts))
-    }
-  }, [activeTab])
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-space-950 text-white flex items-center justify-center font-mono text-xs">
+        ESTABLISHING CONTROL NODE HANDSHAKE...
+      </div>
+    )
+  }
 
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-space-950 text-white flex items-center justify-center font-mono text-xs px-4 selection:bg-electric-red selection:text-white">
-        <div className="bg-space-900 border border-electric-red/20 p-8 rounded-3xl max-w-sm w-full text-center space-y-6 shadow-glow-red relative overflow-hidden">
+        <div className="bg-space-900 border border-electric-red/20 p-8 rounded-3xl max-w-sm w-full text-left space-y-6 shadow-glow-red relative overflow-hidden">
           <div className="absolute inset-0 bg-electric-red/5 blur-[50px] pointer-events-none" />
           <div className="w-16 h-16 rounded-full bg-electric-red/10 border border-electric-red/20 flex items-center justify-center mx-auto text-electric-red text-2xl relative z-10 animate-pulse">
             🔒
           </div>
-          <div className="relative z-10">
+          <div className="relative z-10 text-center">
             <h2 className="font-display text-2xl tracking-wider text-white uppercase">RESTRICTED ZONE</h2>
-            <p className="text-gray-400 mt-2 text-[10px] leading-relaxed">Admin access restricted to verified orbital commanders. Enter decryption password.</p>
+            <p className="text-gray-400 mt-2 text-[10px] leading-relaxed">Admin access restricted to verified orbital commanders. Enter credentials and decryption password.</p>
           </div>
           <form onSubmit={handleAuthenticate} className="space-y-4 relative z-10">
-            <input
-              type="password"
-              value={passwordInput}
-              onChange={(e) => setPasswordInput(e.target.value)}
-              placeholder="Decryption Key"
-              className="w-full bg-space-950 border border-white/10 rounded-xl px-4 py-3 text-center text-white focus:outline-none focus:border-electric-red/40 transition-colors"
-            />
-            {authError && <div className="text-electric-red font-bold uppercase text-[9px] tracking-wider animate-bounce">{authError}</div>}
-            <button type="submit" className="w-full bg-electric-red hover:bg-electric-red/80 text-white font-bold py-3 rounded-xl transition-all shadow-glow-red hover:scale-[1.02] transform duration-150">
-              DECRYPT CONTROL PANEL
+            <div>
+              <label className="text-[9px] text-gray-400 font-mono block mb-1">Commander Email</label>
+              <input
+                type="email"
+                required
+                value={emailInput}
+                onChange={(e) => setEmailInput(e.target.value)}
+                placeholder="email@ufolabz.ch"
+                className="w-full bg-space-950 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-electric-red/40 transition-colors"
+              />
+            </div>
+            <div>
+              <label className="text-[9px] text-gray-400 font-mono block mb-1">Orbital Password</label>
+              <input
+                type="password"
+                required
+                value={supaPasswordInput}
+                onChange={(e) => setSupaPasswordInput(e.target.value)}
+                placeholder="Supabase Auth Password"
+                className="w-full bg-space-950 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-electric-red/40 transition-colors"
+              />
+            </div>
+            <div>
+              <label className="text-[9px] text-gray-400 font-mono block mb-1">Decryption Code</label>
+              <input
+                type="password"
+                required
+                value={passwordInput}
+                onChange={(e) => setPasswordInput(e.target.value)}
+                placeholder="UFOLabzAdmin2026!"
+                className="w-full bg-space-950 border border-white/10 rounded-xl px-4 py-2.5 text-center text-white focus:outline-none focus:border-electric-red/40 transition-colors font-mono"
+              />
+            </div>
+            {authError && <div className="text-electric-red font-bold uppercase text-[9px] tracking-wider text-center animate-bounce">{authError}</div>}
+            <button
+              type="submit"
+              disabled={isSigningIn}
+              className="w-full bg-electric-red hover:bg-electric-red/80 text-white font-bold py-3 rounded-xl transition-all shadow-glow-red hover:scale-[1.02] transform duration-150 flex items-center justify-center gap-2"
+            >
+              <span>{isSigningIn ? 'DECRYPTING ORBITAL LINK...' : 'DECRYPT CONTROL PANEL'}</span>
             </button>
           </form>
         </div>
@@ -474,92 +652,158 @@ export default function AdminPage() {
   }
 
   // Quick Inline Stock Update
-  const handleUpdateStockInline = (id: string, newStock: number) => {
-    const updated = liveProducts.map(p => p.id === id ? { ...p, stock: Math.max(0, newStock) } : p)
-    saveProductsToStorage(updated)
+  const handleUpdateStockInline = async (id: string, newStock: number) => {
+    const supabase = createClient() as any
+    const { error } = await supabase
+      .from('product_variants')
+      .update({ stock: Math.max(0, newStock) })
+      .eq('product_id', id)
+    if (error) alert('Failed to update stock: ' + error.message)
+    else setActiveTab('dashboard')
   }
 
   // Create or Update manual product
-  const handleCreateManualProduct = (e: React.FormEvent) => {
+  const handleCreateManualProduct = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!manualTitle) return
 
+    const supabase = createClient() as any
+    
+    let categoryId = null
+    const { data: catData } = await supabase
+      .from('categories')
+      .select('id')
+      .eq('slug', manualCategory.toLowerCase())
+      .maybeSingle()
+    if (catData) {
+      categoryId = catData.id
+    }
+
+    const slug = manualTitle.toLowerCase().replace(/[^a-z0-9]/g, '-')
+
     if (editingProduct) {
       // Update Mode
-      const updated = liveProducts.map(p => {
-        if (p.id === editingProduct.id) {
-          return {
-            ...p,
-            title: manualTitle.toUpperCase(),
-            slug: manualTitle.toLowerCase().replace(/[^a-z0-9]/g, '-'),
-            category: manualCategory.toUpperCase(),
-            price: manualPrice,
-            base_price: manualBasePrice,
-            stock: manualStock,
-            desc: manualDesc,
-            longDesc: manualLongDesc || manualDesc,
-            featuredImage: manualFeaturedImage,
-            imageGallery: manualImageGallery ? manualImageGallery.split(',').map(url => url.trim()) : [manualFeaturedImage],
-            keyBenefits: manualKeyBenefits ? manualKeyBenefits.split(',').map(b => b.trim()) : ['Premium Bioavailability', 'Tested In Swiss Laboratory', 'Optimized Muscle Synthesis'],
+      const { error: prodError } = await supabase
+        .from('products')
+        .update({
+          name: { en: manualTitle.toUpperCase(), de: manualTitle.toUpperCase() },
+          slug: slug,
+          category_id: categoryId,
+          base_price: manualPrice,
+          compare_at_price: manualBasePrice,
+          short_description: { en: manualDesc, de: manualDesc },
+          description: { en: manualLongDesc || manualDesc, de: manualLongDesc || manualDesc },
+          product_color: manualColorCode || '#00FF88',
+          schema_markup: {
             ingredients: manualIngredients,
-            product_color: manualColorCode || '#00FF88'
+            key_benefits: manualKeyBenefits ? manualKeyBenefits.split(',').map(b => b.trim()) : ['Premium Bioavailability', 'Tested In Swiss Laboratory', 'Optimized Muscle Synthesis']
           }
-        }
-        return p
-      })
-      saveProductsToStorage(updated)
-      setEditingProduct(null)
-      alert(`Successfully updated product details for "${manualTitle.toUpperCase()}"!`)
-    } else {
-      // Create Mode
-      const exists = liveProducts.some(p => p.title.toUpperCase() === manualTitle.toUpperCase())
-      if (exists) {
-        alert('A product with this title already exists in the catalog!')
+        })
+        .eq('id', editingProduct.id)
+
+      if (prodError) {
+        alert('Failed to update product: ' + prodError.message)
         return
       }
 
-      const newProd = {
-        id: `prod-${Math.floor(100 + Math.random() * 900)}`,
-        title: manualTitle.toUpperCase(),
-        slug: manualTitle.toLowerCase().replace(/[^a-z0-9]/g, '-'),
-        category: manualCategory.toUpperCase(),
-        price: manualPrice,
-        base_price: manualBasePrice,
-        stock: manualStock,
-        desc: manualDesc || 'No description provided.',
-        longDesc: manualLongDesc || manualDesc || 'No description provided.',
-        featuredImage: manualFeaturedImage || 'https://images.unsplash.com/photo-1579758629938-03607ccdbaba?w=600',
-        imageGallery: manualImageGallery ? manualImageGallery.split(',').map(url => url.trim()) : [manualFeaturedImage || 'https://images.unsplash.com/photo-1579758629938-03607ccdbaba?w=600'],
-        keyBenefits: manualKeyBenefits ? manualKeyBenefits.split(',').map(b => b.trim()) : ['Premium Bioavailability', 'Tested In Swiss Laboratory', 'Optimized Muscle Synthesis'],
-        ingredients: manualIngredients || 'Micronized high-grade formulation',
-        product_color: manualColorCode || '#00FF88',
-        color_name: 'Alien Green'
+      await supabase
+        .from('product_variants')
+        .update({
+          price: manualPrice,
+          compare_at_price: manualBasePrice,
+          stock: manualStock
+        })
+        .eq('product_id', editingProduct.id)
+
+      if (manualFeaturedImage) {
+        await supabase
+          .from('product_images')
+          .delete()
+          .eq('product_id', editingProduct.id)
+
+        await supabase
+          .from('product_images')
+          .insert({
+            product_id: editingProduct.id,
+            url: manualFeaturedImage,
+            is_primary: true
+          })
       }
 
-      const updated = [...liveProducts, newProd]
-      saveProductsToStorage(updated)
-      alert(`Successfully added product: "${newProd.title}"!`)
+      alert(`Successfully updated product details for "${manualTitle.toUpperCase()}" in Supabase!`)
+      setEditingProduct(null)
+    } else {
+      // Create Mode
+      const newProdId = crypto.randomUUID ? crypto.randomUUID() : `prod-${Date.now()}`
+      
+      const { error: prodError } = await supabase
+        .from('products')
+        .insert({
+          id: newProdId,
+          name: { en: manualTitle.toUpperCase(), de: manualTitle.toUpperCase() },
+          slug: slug,
+          category_id: categoryId,
+          base_price: manualPrice,
+          compare_at_price: manualBasePrice,
+          status: 'active',
+          featured: true,
+          short_description: { en: manualDesc || 'No description provided.', de: manualDesc || 'No description provided.' },
+          description: { en: manualLongDesc || manualDesc || 'No description provided.', de: manualLongDesc || manualDesc || 'No description provided.' },
+          product_color: manualColorCode || '#00FF88',
+          color_name: 'Alien Green',
+          schema_markup: {
+            ingredients: manualIngredients || 'Micronized high-grade formulation',
+            key_benefits: manualKeyBenefits ? manualKeyBenefits.split(',').map(b => b.trim()) : ['Premium Bioavailability', 'Tested In Swiss Laboratory', 'Optimized Muscle Synthesis']
+          }
+        })
+
+      if (prodError) {
+        alert('Failed to add product: ' + prodError.message)
+        return
+      }
+
+      await supabase
+        .from('product_variants')
+        .insert({
+          product_id: newProdId,
+          name: 'Standard size',
+          sku: 'SKU-' + manualTitle.toUpperCase().replace(/[^A-Z0-9]/g, '-') + '-' + Math.floor(100 + Math.random() * 900),
+          price: manualPrice,
+          compare_at_price: manualBasePrice,
+          stock: manualStock,
+          is_default: true
+        })
+
+      await supabase
+        .from('product_images')
+        .insert({
+          product_id: newProdId,
+          url: manualFeaturedImage || 'https://images.unsplash.com/photo-1579758629938-03607ccdbaba?w=600',
+          is_primary: true
+        })
+
+      alert(`Successfully added product: "${manualTitle.toUpperCase()}" to Supabase!`)
     }
     
-    // Clear inputs
-    setManualTitle('')
-    setManualDesc('')
-    setManualLongDesc('')
-    setManualPrice(49)
-    setManualBasePrice(59)
-    setManualStock(150)
-    setManualFeaturedImage('')
-    setManualImageGallery('')
-    setManualKeyBenefits('')
-    setManualIngredients('')
-    setManualColorCode('#00FF88')
+    handleCancelEditing()
+    setActiveTab('dashboard')
   }
 
   // Delete product
-  const handleDeleteProduct = (id: string) => {
-    if (confirm('Are you sure you want to delete this product from the live catalog?')) {
-      const updated = liveProducts.filter(p => p.id !== id)
-      saveProductsToStorage(updated)
+  const handleDeleteProduct = async (id: string) => {
+    if (confirm('Are you sure you want to delete this product from Supabase catalog?')) {
+      const supabase = createClient() as any
+      const { error } = await supabase
+        .from('products')
+        .delete()
+        .eq('id', id)
+
+      if (error) {
+        alert('Failed to delete product: ' + error.message)
+      } else {
+        alert('Product deleted successfully from Supabase!')
+        setActiveTab('dashboard')
+      }
     }
   }
 
@@ -575,25 +819,55 @@ export default function AdminPage() {
   }
 
   // Affiliate Actions
-  const handleApproveAffiliate = (id: string) => {
-    saveAffiliatesToStorage(affiliates.map(a => a.id === id ? { ...a, status: 'APPROVED' } : a))
+  const handleApproveAffiliate = async (id: string) => {
+    const supabase = createClient() as any
+    const { error } = await supabase
+      .from('affiliates')
+      .update({ status: 'approved', approved_at: new Date().toISOString() })
+      .eq('id', id)
+    if (error) alert('Failed: ' + error.message)
+    else setActiveTab('dashboard')
   }
 
-  const handleSuspendAffiliate = (id: string) => {
-    saveAffiliatesToStorage(affiliates.map(a => a.id === id ? { ...a, status: 'SUSPENDED' } : a))
+  const handleSuspendAffiliate = async (id: string) => {
+    const supabase = createClient() as any
+    const { error } = await supabase
+      .from('affiliates')
+      .update({ status: 'suspended' })
+      .eq('id', id)
+    if (error) alert('Failed: ' + error.message)
+    else setActiveTab('dashboard')
   }
 
   // Coupon Actions
-  const handleApproveCoupon = (code: string) => {
-    saveCouponsToStorage(coupons.map(c => c.code === code ? { ...c, status: 'APPROVED' } : c))
+  const handleApproveCoupon = async (code: string) => {
+    const supabase = createClient() as any
+    const { error } = await supabase
+      .from('coupons')
+      .update({ is_active: true })
+      .eq('code', code)
+    if (error) alert('Failed: ' + error.message)
+    else setActiveTab('dashboard')
   }
 
-  const handleRejectCoupon = (code: string) => {
-    saveCouponsToStorage(coupons.map(c => c.code === code ? { ...c, status: 'REJECTED' } : c))
+  const handleRejectCoupon = async (code: string) => {
+    const supabase = createClient() as any
+    const { error } = await supabase
+      .from('coupons')
+      .update({ is_active: false })
+      .eq('code', code)
+    if (error) alert('Failed: ' + error.message)
+    else setActiveTab('dashboard')
   }
 
-  const handleUpdateRates = (code: string, discount: number, commission: number) => {
-    saveCouponsToStorage(coupons.map(c => c.code === code ? { ...c, discountPct: discount, commissionPct: commission } : c))
+  const handleUpdateRates = async (code: string, discount: number, commission: number) => {
+    const supabase = createClient() as any
+    const { error } = await supabase
+      .from('coupons')
+      .update({ discount_value: discount })
+      .eq('code', code)
+    if (error) alert('Failed: ' + error.message)
+    else setActiveTab('dashboard')
   }
 
   // Save CRM customers helper
