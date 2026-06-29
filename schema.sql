@@ -883,26 +883,7 @@ begin
 end;
 $$;
 
--- Handle new user signup → create profile + loyalty account + wishlist
-create or replace function handle_new_user()
-returns trigger language plpgsql security definer as $$
-declare
-  wid uuid;
-  lid uuid;
-begin
-  insert into profiles(id, email, full_name)
-  values (new.id, new.email, new.raw_user_meta_data->>'full_name');
-
-  insert into wishlists(profile_id) values (new.id);
-
-  insert into loyalty_accounts(profile_id) values (new.id);
-
-  return new;
-end;
-$$;
-
-create trigger trg_new_user after insert on auth.users
-  for each row execute function handle_new_user();
+-- Legacy handle_new_user and trg_new_user removed to prevent conflicts with on_auth_user_created trigger defined in supabase_setup.sql.
 
 -- Affiliate click tracker
 create or replace function track_affiliate_click(p_slug text)

@@ -27,7 +27,7 @@ function LoginForm() {
     const { error } = await supabase.auth.signInWithPassword({ email, password })
 
     if (error) {
-      setError(error.message)
+      setError(error.message === '{}' ? 'An unexpected authentication error occurred. Please try again.' : error.message)
       setLoading(false)
       return
     }
@@ -53,7 +53,7 @@ function LoginForm() {
 
     setLoading(false)
     if (error) {
-      setError(error.message)
+      setError(error.message === '{}' ? 'An unexpected authentication error occurred. Please try again.' : error.message)
     } else {
       setMessage('🛸 Magic check link dispatched to your email!')
     }

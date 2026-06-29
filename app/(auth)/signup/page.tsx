@@ -35,7 +35,7 @@ export default function SignupPage() {
 
     setLoading(false)
     if (error) {
-      setError(error.message)
+      setError(error.message === '{}' ? 'An unexpected database trigger or network error occurred. Please contact the administrator.' : error.message)
     } else {
       setSuccess(true)
     }
