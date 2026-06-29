@@ -86,6 +86,7 @@ interface OrderItem {
 }
 
 interface Order {
+  dbId?: string
   id: string
   customerName: string
   customerEmail: string
@@ -461,6 +462,7 @@ export default function AdminPage() {
         .order('created_at', { ascending: false })
       
       const mappedOrds = ords ? ords.map((o: any) => ({
+        dbId: o.id,
         id: o.order_number || o.id.slice(0, 8),
         customerName: o.shipping_address?.fullName || 'Guest Athlete',
         customerEmail: o.guest_email || 'N/A',
@@ -475,7 +477,10 @@ export default function AdminPage() {
         discount: Number(o.discount_amount),
         vat: Number(o.subtotal) * 0.081,
         total: Number(o.total),
-        status: (o.status === 'confirmed' ? 'Pending' : (o.status === 'shipped' ? 'Completed' : 'Pending')) as 'Pending' | 'Packed' | 'Ready for Pickup' | 'Completed',
+        status: (o.status === 'confirmed' || o.status === 'pending' ? 'Pending' :
+                 o.status === 'packed' ? 'Packed' :
+                 o.status === 'ready_for_pickup' ? 'Ready for Pickup' :
+                 o.status === 'shipped' || o.status === 'completed' ? 'Completed' : 'Pending') as 'Pending' | 'Packed' | 'Ready for Pickup' | 'Completed',
         paymentMethod: (o.payment_method === 'twint' ? 'Twint' : (o.payment_method === 'card' ? 'Credit Card' : 'Invoice')) as 'Credit Card' | 'Twint' | 'Cash' | 'Invoice'
       })) : []
       setOrdersList(mappedOrds)
@@ -1165,7 +1170,7 @@ export default function AdminPage() {
               className={getSidebarBtnClass('products')}
             >
               <Package className="w-4 h-4 flex-shrink-0" />
-              <span>AI Product Builder</span>
+              <span>Product Builder</span>
             </button>
 
             <button 
@@ -1392,12 +1397,49 @@ export default function AdminPage() {
 
                       <div className="space-y-2.5 text-xs text-left">
                         {ordersList.slice(0, 3).map((order) => (
-                          <div key={order.id} className="flex justify-between items-center p-2 rounded-xl bg-space-900 border border-white/5">
+                          <div key={order.id} className="flex justify-between items-center p-2 rounded-xl bg-space-900 border border-white/5 gap-3">
                             <div>
                               <div className="font-bold text-white">{order.id}</div>
                               <div className="text-[10px] text-gray-400 mt-0.5">{order.customerName} • {order.channel}</div>
                             </div>
-                            <span className="font-sans text-alien-green font-bold">{formatPrice(order.total)}</span>
+                            <div className="flex items-center gap-2">
+                              <select 
+                                value={order.status}
+                                onChange={(e) => {
+                                  const nextStatus = e.target.value as any
+                                  // 1. Update in local state
+                                  setOrdersList(ordersList.map(o => o.id === order.id ? { ...o, status: nextStatus } : o))
+                                  
+                                  // 2. Map status to db format
+                                  let dbStatus = 'confirmed'
+                                  if (nextStatus === 'Pending') dbStatus = 'confirmed'
+                                  if (nextStatus === 'Packed') dbStatus = 'packed'
+                                  if (nextStatus === 'Ready for Pickup') dbStatus = 'ready_for_pickup'
+                                  if (nextStatus === 'Completed') dbStatus = 'shipped'
+
+                                  // 3. Update Supabase
+                                  const supabase = createClient() as any
+                                  supabase
+                                    .from('orders')
+                                    .update({ status: dbStatus })
+                                    .eq('id', order.dbId)
+                                    .then(({ error }: any) => {
+                                      if (error) {
+                                        alert('Database sync failed: ' + error.message)
+                                      } else {
+                                        alert(`Order status updated successfully to: ${nextStatus}`)
+                                      }
+                                    })
+                                }}
+                                className="bg-space-950 border border-white/10 text-white text-[9px] rounded px-1.5 py-0.5 focus:outline-none focus:border-alien-green/50 max-w-[110px]"
+                              >
+                                <option value="Pending">Pending</option>
+                                <option value="Packed">Packed</option>
+                                <option value="Ready for Pickup">Ready for Pickup</option>
+                                <option value="Completed">Completed</option>
+                              </select>
+                              <span className="font-sans text-alien-green font-bold text-xs shrink-0">{formatPrice(order.total)}</span>
+                            </div>
                           </div>
                         ))}
                         {ordersList.length === 0 && (
@@ -1482,302 +1524,214 @@ export default function AdminPage() {
                 </div>
               )}
 
-              {/* 📦 TAB 2: AI PRODUCT BUILDER */}
+              {/* 📦 TAB 2: PRODUCT BUILDER */}
               {activeTab === 'products' && (
-                <div className="space-y-6 animate-fade-in">
+                <div className="space-y-8 animate-fade-in">
                   
-                  {/* Two Column Layout: AI Creator & Manual Creator */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Left: AI Creator Form */}
-                    <div className="bg-space-950 border border-white/5 p-6 rounded-3xl space-y-4">
+                  {/* Clean Redesigned Product Creator Form */}
+                  <div className="max-w-3xl mx-auto bg-space-950/85 border border-white/5 p-6 sm:p-8 rounded-3xl space-y-8 shadow-2xl">
+                    <div className="flex justify-between items-center border-b border-white/5 pb-4">
                       <div>
-                        <h3 className="font-sans text-base font-bold tracking-tight text-white">AI Product Generator</h3>
-                        <p className="text-[10px] text-gray-400">Generate structured descriptions, SEO tags, and translations using AI.</p>
+                        <h3 className="font-display text-xl uppercase tracking-wider text-white">
+                          {editingProduct ? '✏️ Edit Supplement Product' : '📦 Supplement Product Creator'}
+                        </h3>
+                        <p className="text-xs text-gray-400 mt-1">
+                          {editingProduct ? `Modify catalog parameters for "${editingProduct.title}".` : 'Register a new active offering into the live UFO Labz product catalog.'}
+                        </p>
                       </div>
-
-                      <form onSubmit={handleGenerateAiProduct} className="space-y-4 text-xs">
-                        <div>
-                          <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Supplement Title</label>
-                          <input 
-                            type="text" 
-                            required
-                            value={aiTitle}
-                            onChange={(e) => setAiTitle(e.target.value)}
-                            placeholder="e.g. Astro Beta-Alanine Pure"
-                            className="input bg-space-900 border-white/5"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Product Category</label>
-                          <select 
-                            value={aiCategory}
-                            onChange={(e) => setAiCategory(e.target.value)}
-                            className="input focus:outline-none bg-space-900 border-white/5 text-white"
-                          >
-                            <option value="variable">Variable formulation (Flavors/Sizes)</option>
-                            <option value="bundle">Product Bundle Stack</option>
-                            <option value="subscription">Subscription Recurring Product</option>
-                            <option value="digital">Digital Guides / E-Books</option>
-                          </select>
-                        </div>
-
+                      {editingProduct && (
                         <button 
-                          type="submit" 
-                          disabled={isGenerating}
-                          className="w-full bg-alien-green text-space-950 font-bold h-10 rounded-xl flex items-center justify-center gap-1.5 hover:shadow-glow-green"
+                          type="button"
+                          onClick={handleCancelEditing}
+                          className="bg-red-500/10 border border-red-500/20 text-red-400 hover:text-white hover:bg-red-500 px-4 py-1.5 rounded-xl text-xs font-mono transition-all"
                         >
-                          <Sparkles className="w-4 h-4" />
-                          <span>{isGenerating ? 'Synthesizing with AI...' : 'Generate with AI'}</span>
+                          Cancel Editing
                         </button>
-                      </form>
+                      )}
                     </div>
 
-                    {/* Right: Manual Product Form */}
-                    <div className="bg-space-950 border border-white/5 p-6 rounded-3xl space-y-4">
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <h3 className="font-sans text-base font-bold tracking-tight text-white">
-                            {editingProduct ? 'Edit Product' : 'Manual Creator'}
-                          </h3>
-                          <p className="text-[10px] text-gray-400">
-                            {editingProduct ? `Modifying details for "${editingProduct.title}".` : 'Specify comprehensive details to list custom products directly.'}
-                          </p>
-                        </div>
-                        {editingProduct && (
-                          <button 
-                            type="button"
-                            onClick={handleCancelEditing}
-                            className="bg-red-500/10 border border-red-500/20 text-red-400 hover:text-white hover:bg-red-500 px-3 py-1 rounded-lg text-[10px] font-sans transition-all"
-                          >
-                            Cancel
-                          </button>
-                        )}
-                      </div>
-
-                      <form onSubmit={handleCreateManualProduct} className="space-y-3 text-xs">
-                        <div className="grid grid-cols-2 gap-3">
-                          <div>
-                            <label className="text-[10px] font-sans text-gray-400 mb-1 block">Title *</label>
+                    <form onSubmit={handleCreateManualProduct} className="space-y-6 text-xs text-left">
+                      {/* Section 1: Basic Parameters */}
+                      <div className="space-y-4">
+                        <h4 className="text-[10px] font-mono tracking-widest text-alien-green uppercase font-semibold">1. Basic Parameters</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                          <div className="md:col-span-2">
+                            <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Product Title *</label>
                             <input 
                               type="text" 
                               required
                               value={manualTitle}
                               onChange={(e) => setManualTitle(e.target.value)}
-                              placeholder="e.g. Astro Creatine"
-                              className="input bg-space-900 border-white/5 py-1 text-xs"
+                              placeholder="e.g. Astro Creatine Monohydrate Pure"
+                              className="input bg-space-900 border-white/5 text-white"
                             />
                           </div>
                           <div>
-                            <label className="text-[10px] font-sans text-gray-400 mb-1 block">Category</label>
+                            <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Category Type</label>
                             <select 
                               value={manualCategory}
                               onChange={(e) => setManualCategory(e.target.value)}
-                              className="input focus:outline-none bg-space-900 border-white/5 text-white py-1 text-xs"
+                              className="input focus:outline-none bg-space-900 border-white/5 text-white"
                             >
-                              <option value="variable">Variable</option>
-                              <option value="bundle">Bundle</option>
-                              <option value="subscription">Subscription</option>
-                              <option value="digital">Digital</option>
+                              <option value="variable">Variable formulation</option>
+                              <option value="bundle">Product Bundle Stack</option>
+                              <option value="subscription">Recurring Subscription</option>
+                              <option value="digital">Digital Guides / E-Books</option>
                             </select>
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-3 gap-3">
+                        <div className="grid grid-cols-3 gap-5">
                           <div>
-                            <label className="text-[10px] font-sans text-gray-400 mb-1 block">Sale Price (CHF) *</label>
+                            <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Sale Price (CHF) *</label>
                             <input 
                               type="number" 
                               required
                               value={manualPrice}
                               onChange={(e) => setManualPrice(parseFloat(e.target.value) || 0)}
-                              className="input bg-space-900 border-white/5 py-1 text-xs"
+                              className="input bg-space-900 border-white/5 text-white"
                             />
                           </div>
                           <div>
-                            <label className="text-[10px] font-sans text-gray-400 mb-1 block">Actual Price *</label>
+                            <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Actual Price (Compare At) *</label>
                             <input 
                               type="number" 
                               required
                               value={manualBasePrice}
                               onChange={(e) => setManualBasePrice(parseFloat(e.target.value) || 0)}
-                              className="input bg-space-900 border-white/5 py-1 text-xs"
+                              className="input bg-space-900 border-white/5 text-white"
                             />
                           </div>
                           <div>
-                            <label className="text-[10px] font-sans text-gray-400 mb-1 block">Stock Units *</label>
+                            <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Initial Stock Units *</label>
                             <input 
                               type="number" 
                               required
                               value={manualStock}
                               onChange={(e) => setManualStock(parseInt(e.target.value) || 0)}
-                              className="input bg-space-900 border-white/5 py-1 text-xs"
+                              className="input bg-space-900 border-white/5 text-white"
                             />
                           </div>
                         </div>
+                      </div>
 
-                        <div className="grid grid-cols-2 gap-3">
-                          <div>
-                            <label className="text-[10px] font-sans text-gray-400 mb-1 block">Featured Image URL</label>
+                      {/* Section 2: Visual Assets & Branding */}
+                      <div className="space-y-4 pt-4 border-t border-white/5">
+                        <h4 className="text-[10px] font-mono tracking-widest text-alien-green uppercase font-semibold">2. Branding & Media</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                          <div className="md:col-span-2">
+                            <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Featured Image URL</label>
                             <input 
                               type="text" 
                               value={manualFeaturedImage}
                               onChange={(e) => setManualFeaturedImage(e.target.value)}
-                              placeholder="e.g. https://images.unsplash.com/..."
-                              className="input bg-space-900 border-white/5 py-1 text-xs"
+                              placeholder="e.g. https://res.cloudinary.com/..."
+                              className="input bg-space-900 border-white/5 text-white"
                             />
                           </div>
                           <div>
-                            <label className="text-[10px] font-sans text-gray-400 mb-1 block">Color Hex Code</label>
+                            <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Brand Color Hex Code</label>
                             <input 
                               type="text" 
                               value={manualColorCode}
                               onChange={(e) => setManualColorCode(e.target.value)}
-                              placeholder="#00FF88"
-                              className="input bg-space-900 border-white/5 py-1 text-xs"
+                              placeholder="e.g. #00FF88"
+                              className="input bg-space-900 border-white/5 text-white"
                             />
                           </div>
                         </div>
 
                         <div>
-                          <label className="text-[10px] font-sans text-gray-400 mb-1 block">Image Gallery (Comma-separated URLs)</label>
+                          <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Image Gallery (Comma-separated URLs)</label>
                           <input 
                             type="text" 
                             value={manualImageGallery}
                             onChange={(e) => setManualImageGallery(e.target.value)}
                             placeholder="url1, url2, url3"
-                            className="input bg-space-900 border-white/5 py-1 text-xs"
+                            className="input bg-space-900 border-white/5 text-white"
                           />
                         </div>
+                      </div>
 
-                        <div>
-                          <label className="text-[10px] font-sans text-gray-400 mb-1 block">Key Benefits (Comma-separated)</label>
-                          <input 
-                            type="text" 
-                            value={manualKeyBenefits}
-                            onChange={(e) => setManualKeyBenefits(e.target.value)}
-                            placeholder="Tested In Swiss Labs, GMP Certified, 100% Vegan"
-                            className="input bg-space-900 border-white/5 py-1 text-xs"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="text-[10px] font-sans text-gray-400 mb-1 block">Ingredients Matrix</label>
-                          <input 
-                            type="text" 
-                            value={manualIngredients}
-                            onChange={(e) => setManualIngredients(e.target.value)}
-                            placeholder="Pure Micronized Beta-Alanine..."
-                            className="input bg-space-900 border-white/5 py-1 text-xs"
-                          />
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-3">
+                      {/* Section 3: Extra Product Specs */}
+                      <div className="space-y-4 pt-4 border-t border-white/5">
+                        <h4 className="text-[10px] font-mono tracking-widest text-alien-green uppercase font-semibold">3. Additional Specifications</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                           <div>
-                            <label className="text-[10px] font-sans text-gray-400 mb-1 block">Short Description *</label>
+                            <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Key Benefits (Comma-separated)</label>
+                            <input 
+                              type="text" 
+                              value={manualKeyBenefits}
+                              onChange={(e) => setManualKeyBenefits(e.target.value)}
+                              placeholder="e.g. Tested In Swiss Labs, GMP Certified, 100% Vegan"
+                              className="input bg-space-900 border-white/5 text-white"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Ingredients Matrix</label>
+                            <input 
+                              type="text" 
+                              value={manualIngredients}
+                              onChange={(e) => setManualIngredients(e.target.value)}
+                              placeholder="e.g. Pure Micronized Beta-Alanine, Stevia Extract"
+                              className="input bg-space-900 border-white/5 text-white"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Section 4: Descriptions */}
+                      <div className="space-y-4 pt-4 border-t border-white/5">
+                        <h4 className="text-[10px] font-mono tracking-widest text-alien-green uppercase font-semibold">4. Description Logs</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                          <div>
+                            <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Short Tagline Description *</label>
                             <textarea 
                               required
                               value={manualDesc}
                               onChange={(e) => setManualDesc(e.target.value)}
-                              placeholder="Brief product summary..."
-                              rows={2}
-                              className="input bg-space-900 border-white/5 py-1.5 h-12 text-xs"
+                              placeholder="Brief product summary displayed under the title..."
+                              rows={3}
+                              className="input bg-space-900 border-white/5 text-white h-20 py-2"
                             />
                           </div>
                           <div>
-                            <label className="text-[10px] font-sans text-gray-400 mb-1 block">Long Description</label>
+                            <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Long Details Description</label>
                             <textarea 
                               value={manualLongDesc}
                               onChange={(e) => setManualLongDesc(e.target.value)}
-                              placeholder="Detailed usage and specifications..."
-                              rows={2}
-                              className="input bg-space-900 border-white/5 py-1.5 h-12 text-xs"
+                              placeholder="Detailed usage directions, dosage instructions, and specifications..."
+                              rows={3}
+                              className="input bg-space-900 border-white/5 text-white h-20 py-2"
                             />
                           </div>
                         </div>
+                      </div>
 
-                        <div className="flex gap-3">
-                          {editingProduct && (
-                            <button 
-                              type="button"
-                              onClick={handleCancelEditing}
-                              className="w-1/3 bg-white/5 border border-white/10 text-white font-bold h-10 rounded-xl flex items-center justify-center gap-1.5 hover:bg-white/10 transition-colors"
-                            >
-                              <span>Cancel</span>
-                            </button>
-                          )}
+                      {/* Form Actions */}
+                      <div className="flex gap-4 pt-6 border-t border-white/5">
+                        {editingProduct && (
                           <button 
-                            type="submit"
-                            className={cn(
-                              "font-bold h-10 rounded-xl flex items-center justify-center gap-1.5 transition-colors",
-                              editingProduct ? "w-2/3 bg-alien-green text-space-950 hover:shadow-glow-green" : "w-full bg-white text-space-950 hover:bg-gray-100"
-                            )}
+                            type="button"
+                            onClick={handleCancelEditing}
+                            className="w-1/3 bg-white/5 border border-white/10 text-white font-bold h-11 rounded-xl flex items-center justify-center gap-1.5 hover:bg-white/10 transition-colors text-xs font-mono"
                           >
-                            {editingProduct ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-                            <span>{editingProduct ? 'Update Product' : 'Add to Live Catalog'}</span>
+                            <span>Cancel</span>
                           </button>
-                        </div>
-                      </form>
-                    </div>
-                  </div>
-
-                  {/* AI Results Output Container */}
-                  {aiResult && (
-                    <div className="bg-space-950 border border-white/5 p-6 rounded-3xl space-y-6 text-xs animate-fade-in text-left">
-                      <div className="flex justify-between items-start border-b border-white/5 pb-3 gap-4">
-                        <div>
-                          <span className="font-sans text-alien-green uppercase font-bold text-[10px]">AI-Generated Blueprint</span>
-                          <h3 className="text-base font-bold text-white mt-1">{aiResult.title}</h3>
-                          <span className="text-[9px] bg-white/5 border border-white/10 px-2 py-0.5 rounded font-sans text-gray-400 mt-2 inline-block">
-                            {aiResult.category}
-                          </span>
-                        </div>
+                        )}
                         <button 
-                          onClick={handleSaveAiProductToCatalog}
-                          className="bg-alien-green text-space-950 font-bold px-4 py-2 rounded-xl flex items-center gap-1 hover:shadow-glow-green"
+                          type="submit"
+                          className={cn(
+                            "font-bold h-11 rounded-xl flex items-center justify-center gap-1.5 transition-all text-xs font-mono",
+                            editingProduct ? "w-2/3 bg-alien-green text-space-950 hover:shadow-glow-green" : "w-full bg-white text-space-950 hover:bg-gray-100"
+                          )}
                         >
-                          <Check className="w-3.5 h-3.5" />
-                          <span>Save Generated Product</span>
+                          {editingProduct ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                          <span>{editingProduct ? 'Update Product Details' : 'Publish Product to Live Catalog'}</span>
                         </button>
                       </div>
-
-                      <div className="space-y-4">
-                        <div>
-                          <h4 className="font-bold text-white font-sans text-[10px] uppercase text-gray-400">Short Description</h4>
-                          <p className="text-gray-300 leading-relaxed mt-1">{aiResult.shortDesc}</p>
-                        </div>
-
-                        <div>
-                          <h4 className="font-bold text-white font-sans text-[10px] uppercase text-gray-400">Long Description</h4>
-                          <p className="text-gray-300 leading-relaxed mt-1">{aiResult.longDesc}</p>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-space-900 border border-white/5 p-4 rounded-xl">
-                          <div>
-                            <span className="font-bold text-white font-sans text-[9px] uppercase text-alien-green">SEO Title Tag</span>
-                            <div className="text-gray-300 mt-1 font-sans">{aiResult.seoTitle}</div>
-                          </div>
-                          <div>
-                            <span className="font-bold text-white font-sans text-[9px] uppercase text-alien-green">SEO Meta Description</span>
-                            <div className="text-gray-300 mt-1 font-sans">{aiResult.seoDesc}</div>
-                          </div>
-                        </div>
-
-                        <div>
-                          <h4 className="font-bold text-white font-sans text-[10px] uppercase text-gray-400">Ingredients Matrix</h4>
-                          <p className="text-gray-300 leading-relaxed mt-1 font-sans">{aiResult.ingredients}</p>
-                        </div>
-
-                        <div>
-                          <h4 className="font-bold text-white font-sans text-[10px] uppercase text-gray-400">German Translation (AI Localized)</h4>
-                          <div className="border border-white/5 p-3 rounded-lg bg-space-900/40">
-                            <div className="font-bold text-white">{aiResult.deTranslation.title}</div>
-                            <p className="text-gray-400 mt-1">{aiResult.deTranslation.shortDesc}</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                    </form>
+                  </div>
 
                   {/* Live Catalog Table */}
                   <div className="bg-space-950 border border-white/5 rounded-3xl overflow-hidden text-xs">
@@ -2088,8 +2042,29 @@ export default function AdminPage() {
                                   value={order.status}
                                   onChange={(e) => {
                                     const nextStatus = e.target.value as any
+                                    // 1. Update in local state
                                     setOrdersList(ordersList.map(o => o.id === order.id ? { ...o, status: nextStatus } : o))
-                                    alert(`Order status updated successfully to: ${nextStatus}`)
+                                    
+                                    // 2. Map status to db format
+                                    let dbStatus = 'confirmed'
+                                    if (nextStatus === 'Pending') dbStatus = 'confirmed'
+                                    if (nextStatus === 'Packed') dbStatus = 'packed'
+                                    if (nextStatus === 'Ready for Pickup') dbStatus = 'ready_for_pickup'
+                                    if (nextStatus === 'Completed') dbStatus = 'shipped'
+
+                                    // 3. Update Supabase
+                                    const supabase = createClient() as any
+                                    supabase
+                                      .from('orders')
+                                      .update({ status: dbStatus })
+                                      .eq('id', order.dbId)
+                                      .then(({ error }: any) => {
+                                        if (error) {
+                                          alert('Database sync failed: ' + error.message)
+                                        } else {
+                                          alert(`Order status updated successfully to: ${nextStatus}`)
+                                        }
+                                      })
                                   }}
                                   className="input bg-space-900 border-white/5 py-1.5 text-white"
                                 >

@@ -112,7 +112,7 @@ export default function ProductsClient({ products, categories, activeCategory, a
           return (
             <div
               key={product.id}
-              className="group bg-space-800 border border-muted/10 rounded-2xl overflow-hidden hover:border-opacity-30 transition-all duration-300"
+              className="group bg-space-800 border border-muted/10 rounded-2xl overflow-hidden hover:border-opacity-30 transition-all duration-300 flex flex-col h-full"
             >
               {/* Color bar */}
               <div className="h-0.5 opacity-50" style={{ background: `linear-gradient(90deg, transparent, ${color}, transparent)` }} />
@@ -137,18 +137,20 @@ export default function ProductsClient({ products, categories, activeCategory, a
               </div>
 
               {/* Content */}
-              <div className="p-3 sm:p-4">
-                {product.total_reviews > 0 && (
-                  <div className="flex items-center gap-1 mb-1 sm:mb-1.5">
-                    <Star className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-yellow-400 text-yellow-400" />
-                    <span className="text-[10px] sm:text-[11px] text-muted">{product.avg_rating.toFixed(1)} ({product.total_reviews})</span>
-                  </div>
-                )}
-                <Link href={`/products/${product.slug}`}>
-                  <h3 className="font-display text-base sm:text-lg tracking-wider text-white mb-0.5 sm:mb-1 line-clamp-2">{name}</h3>
-                  <p className="text-[11px] sm:text-xs text-muted line-clamp-1 mb-2 sm:mb-3">{tagline}</p>
-                </Link>
-                <div className="mt-3 flex flex-col gap-2">
+              <div className="p-3 sm:p-4 flex flex-col flex-grow">
+                <div className="flex-grow">
+                  {product.total_reviews > 0 && (
+                    <div className="flex items-center gap-1 mb-1 sm:mb-1.5">
+                      <Star className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-yellow-400 text-yellow-400" />
+                      <span className="text-[10px] sm:text-[11px] text-muted">{product.avg_rating.toFixed(1)} ({product.total_reviews})</span>
+                    </div>
+                  )}
+                  <Link href={`/products/${product.slug}`}>
+                    <h3 className="font-display text-base sm:text-lg tracking-wider text-white mb-0.5 sm:mb-1 line-clamp-2">{name}</h3>
+                    <p className="text-[11px] sm:text-xs text-muted line-clamp-1 mb-2 sm:mb-3">{tagline}</p>
+                  </Link>
+                </div>
+                <div className="mt-auto pt-3 border-t border-white/[0.03] flex flex-col gap-2">
                   <div className="flex items-baseline gap-1.5 flex-wrap min-h-[24px]">
                     <span className="text-sm sm:text-base font-bold text-white">{formatPrice(price)}</span>
                     {compare && <span className="text-[10px] sm:text-xs text-muted/60 line-through">{formatPrice(compare)}</span>}

@@ -43,7 +43,7 @@ function ProductCard({ product }: { product: Product }) {
 
   return (
     <div
-      className="card-glass overflow-hidden hover:shadow-card-hover transition-all duration-500 group relative"
+      className="card-glass overflow-hidden hover:shadow-card-hover transition-all duration-500 group relative flex flex-col h-full"
       style={{ '--product-color': color } as React.CSSProperties}
     >
       {/* Top accent bar */}
@@ -81,7 +81,7 @@ function ProductCard({ product }: { product: Product }) {
       {/* Image */}
       <Link
         href={`/products/${product.slug}`}
-        className="block relative aspect-square bg-space-900/50 overflow-hidden"
+        className="block relative aspect-square bg-space-900/50 overflow-hidden shrink-0"
       >
         {primary?.url ? (
           <Image
@@ -107,38 +107,41 @@ function ProductCard({ product }: { product: Product }) {
       </Link>
 
       {/* Content */}
-      <div className="p-3 sm:p-5">
-        {/* Rating */}
-        {product.total_reviews > 0 && (
-          <div className="flex items-center gap-1 mb-1.5 sm:mb-2">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <Star
-                key={i}
-                className={cn(
-                  'w-2.5 h-2.5 sm:w-3 sm:h-3',
-                  i < Math.round(product.avg_rating)
-                    ? 'fill-yellow-400 text-yellow-400'
-                    : 'fill-transparent text-muted/30'
-                )}
-              />
-            ))}
-            <span className="text-[10px] sm:text-xs text-muted ml-1">
-              ({product.total_reviews})
-            </span>
-          </div>
-        )}
+      <div className="p-3 sm:p-5 flex flex-col flex-grow">
+        {/* Top text content container */}
+        <div className="flex-grow">
+          {/* Rating */}
+          {product.total_reviews > 0 && (
+            <div className="flex items-center gap-1 mb-1.5 sm:mb-2">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Star
+                  key={i}
+                  className={cn(
+                    'w-2.5 h-2.5 sm:w-3 sm:h-3',
+                    i < Math.round(product.avg_rating)
+                      ? 'fill-yellow-400 text-yellow-400'
+                      : 'fill-transparent text-muted/30'
+                  )}
+                />
+              ))}
+              <span className="text-[10px] sm:text-xs text-muted ml-1">
+                ({product.total_reviews})
+              </span>
+            </div>
+          )}
 
-        <Link href={`/products/${product.slug}`}>
-          <h3 className="font-display text-base sm:text-xl tracking-wider text-white group-hover:text-opacity-90 mb-0.5 sm:mb-1 transition-colors line-clamp-2">
-            {name}
-          </h3>
-          <p className="text-[11px] sm:text-xs text-muted leading-relaxed line-clamp-1 sm:line-clamp-2 mb-2.5 sm:mb-4">
-            {tagline}
-          </p>
-        </Link>
+          <Link href={`/products/${product.slug}`}>
+            <h3 className="font-display text-base sm:text-xl tracking-wider text-white group-hover:text-opacity-90 mb-0.5 sm:mb-1 transition-colors line-clamp-2">
+              {name}
+            </h3>
+            <p className="text-[11px] sm:text-xs text-muted leading-relaxed line-clamp-1 sm:line-clamp-2 mb-2.5 sm:mb-4">
+              {tagline}
+            </p>
+          </Link>
+        </div>
 
         {/* Price + CTA stacked to prevent overlaps */}
-        <div className="mt-3 flex flex-col gap-2">
+        <div className="mt-auto pt-3 border-t border-white/[0.03] flex flex-col gap-2">
           <div className="flex items-baseline gap-1.5 flex-wrap min-h-[24px]">
             <span className="text-sm sm:text-base font-bold text-white">{formatPrice(price)}</span>
             {compare && (
