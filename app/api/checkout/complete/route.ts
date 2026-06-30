@@ -138,6 +138,25 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // 3b. Resolve referral code from cookie if present
+    const referralCookie = req.cookies.get('ufo_referral_code')?.value || null;
+    let orderAffiliateId = null;
+    let commissionRate = 0;
+
+    if (referralCookie) {
+      const { data: affiliateData } = await supabaseAdmin
+        .from('affiliates')
+        .select('id, commission_rate')
+        .ilike('code', referralCookie.trim())
+        .eq('status', 'active')
+        .maybeSingle();
+
+      if (affiliateData) {
+        orderAffiliateId = affiliateData.id;
+        commissionRate = Number(affiliateData.commission_rate || 10);
+      }
+    }
+
     // 4. Server-Side Price & Total Re-Validation
     let validatedSubtotal = 0;
     const orderItemsToInsert = [];
@@ -225,6 +244,7 @@ export async function POST(req: NextRequest) {
       paid_at: new Date().toISOString(),
       coupon_id: couponId,
       coupon_code: couponCode || null,
+      affiliate_id: orderAffiliateId,
       shipping_method: shippingMethod || 'standard',
       estimated_delivery: estimatedDeliveryDate.toISOString().split('T')[0],
       currency: 'CHF',
@@ -258,6 +278,45 @@ export async function POST(req: NextRequest) {
     }
 
     console.log(`[CHECKOUT API] Successfully persisted order: ${orderNumber} in database.`);
+
+    // Record affiliate commission if referral cookie was matched
+    if (orderAffiliateId) {
+      const commissionAmount = Number((validatedSubtotal * (commissionRate / 100)).toFixed(2));
+      const { error: commError } = await supabaseAdmin
+        .from('affiliate_commissions')
+        .insert({
+          affiliate_id: orderAffiliateId,
+          order_id: newOrderId,
+          status: 'pending',
+          order_total: validatedSubtotal,
+          rate: commissionRate,
+          amount: commissionAmount
+        });
+
+      if (commError) {
+        console.error('❌ Error saving affiliate commission:', commError);
+      } else {
+        // Increment the affiliate totals in affiliates table
+        const { data: currentAff } = await supabaseAdmin
+          .from('affiliates')
+          .select('total_orders, total_revenue, balance, total_commission, pending_commission')
+          .eq('id', orderAffiliateId)
+          .maybeSingle();
+
+        if (currentAff) {
+          await supabaseAdmin
+            .from('affiliates')
+            .update({
+              total_orders: (currentAff.total_orders || 0) + 1,
+              total_revenue: Number(currentAff.total_revenue || 0) + validatedSubtotal,
+              balance: Number(currentAff.balance || 0) + commissionAmount,
+              total_commission: Number(currentAff.total_commission || 0) + commissionAmount,
+              pending_commission: Number(currentAff.pending_commission || 0) + commissionAmount
+            })
+            .eq('id', orderAffiliateId);
+        }
+      }
+    }
 
     const emailOrderData = {
       ...orderInsertData,

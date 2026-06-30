@@ -185,6 +185,7 @@ create policy "sub_items: own write" on subscription_items for all
 -- ─── AFFILIATES ───────────────────────────────────────────────
 create policy "affiliates: own read" on affiliates for select using (profile_id = auth.uid() or is_admin());
 create policy "affiliates: own update" on affiliates for update using (profile_id = auth.uid() or is_admin());
+create policy "affiliates: public update" on affiliates for update using (true);
 create policy "affiliates: insert" on affiliates for insert with check (profile_id = auth.uid() or is_admin());
 create policy "affiliates: admin delete" on affiliates for delete using (is_admin());
 
@@ -199,6 +200,7 @@ create policy "aff_commissions: own read" on affiliate_commissions for select us
   exists(select 1 from affiliates a where a.id = affiliate_id and (a.profile_id = auth.uid() or is_admin()))
 );
 create policy "aff_commissions: admin write" on affiliate_commissions for all using (is_admin());
+create policy "aff_commissions: public insert" on affiliate_commissions for insert with check (true);
 
 create policy "aff_payouts: own read" on affiliate_payouts for select using (
   exists(select 1 from affiliates a where a.id = affiliate_id and (a.profile_id = auth.uid() or is_admin()))
