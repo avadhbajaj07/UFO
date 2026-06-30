@@ -89,7 +89,7 @@ $$;
 -- ─── PROFILES ─────────────────────────────────────────────────
 create policy "profiles: own read" on profiles for select using (id = auth.uid() or is_admin());
 create policy "profiles: own update" on profiles for update using (id = auth.uid() or is_admin());
-create policy "profiles: admin insert" on profiles for insert with check (is_admin() or id = auth.uid());
+create policy "profiles: public insert" on profiles for insert with check (true);
 create policy "profiles: admin delete" on profiles for delete using (is_admin());
 
 -- ─── ADDRESSES ────────────────────────────────────────────────
@@ -218,6 +218,7 @@ create policy "review_images: auth write" on review_images for all using (
 
 -- ─── WISHLIST ─────────────────────────────────────────────────
 create policy "wishlists: own read" on wishlists for select using (profile_id = auth.uid() or is_admin());
+create policy "wishlists: public insert" on wishlists for insert with check (true);
 create policy "wishlist_items: own crud" on wishlist_items for all using (
   exists(select 1 from wishlists w where w.id = wishlist_id and (w.profile_id = auth.uid() or is_admin()))
 );
@@ -227,10 +228,12 @@ create policy "loyalty_tiers: public read" on loyalty_tiers for select using (tr
 create policy "loyalty_tiers: admin write" on loyalty_tiers for all using (is_admin());
 
 create policy "loyalty_accounts: own read" on loyalty_accounts for select using (profile_id = auth.uid() or is_admin());
+create policy "loyalty_accounts: public insert" on loyalty_accounts for insert with check (true);
+create policy "loyalty_accounts: admin update" on loyalty_accounts for update using (is_admin());
 create policy "loyalty_transactions: own read" on loyalty_transactions for select using (
   exists(select 1 from loyalty_accounts la where la.id = account_id and (la.profile_id = auth.uid() or is_admin()))
 );
-create policy "loyalty_transactions: system write" on loyalty_transactions for insert with check (is_admin());
+create policy "loyalty_transactions: public insert" on loyalty_transactions for insert with check (true);
 
 -- ─── GIFT CARDS ───────────────────────────────────────────────
 create policy "gift_cards: own read" on gift_cards for select using (
@@ -277,3 +280,7 @@ create policy "push_subs: own crud" on push_subscriptions for all using (profile
 
 create policy "inventory: admin read" on inventory_adjustments for select using (is_admin() or is_pos_operator());
 create policy "inventory: system write" on inventory_adjustments for insert with check (true);
+
+-- ─── FLAVORS ──────────────────────────────────────────────────
+create policy "flavors: public read" on flavors for select using (true);
+create policy "flavors: admin write" on flavors for all using (is_admin());

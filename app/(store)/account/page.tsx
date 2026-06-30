@@ -137,7 +137,7 @@ export default function AccountPage() {
       // 4. Fetch orders
       const { data: ords } = await supabase
         .from('orders')
-        .select('*')
+        .select('*, items:order_items(*)')
         .eq('profile_id', user.id)
         .order('created_at', { ascending: false })
       if (ords) setDbOrders(ords)
@@ -637,11 +637,40 @@ export default function AccountPage() {
                                 {order.status}
                               </span>
                             </div>
-                            <div className="text-xs text-gray-400">
-                              Payment Method: <span className="text-white capitalize font-mono">{order.payment_method || 'Twint'}</span>
+                            <div className="grid grid-cols-2 gap-2 text-xs text-gray-400">
+                              <div>
+                                Payment Method: <span className="text-white capitalize font-mono">{order.payment_method || 'Twint'}</span>
+                              </div>
+                              <div>
+                                Total Amount: <strong className="text-white">{formatPrice(order.total)}</strong>
+                              </div>
                             </div>
-                            <div className="text-xs text-gray-400">
-                              Total Amount: <strong className="text-white">{formatPrice(order.total)}</strong>
+
+                            {/* Order Items */}
+                            <div className="border-t border-white/5 pt-3">
+                              <span className="text-[9px] text-gray-500 font-sans block uppercase mb-2">Purchased Items</span>
+                              <div className="space-y-2">
+                                {order.items && order.items.length > 0 ? (
+                                  order.items.map((item: any) => {
+                                    const productName = item.product_name && typeof item.product_name === 'object'
+                                      ? (item.product_name.en || item.product_name.de || 'UFO Supplement')
+                                      : (item.product_name || 'UFO Supplement');
+                                    return (
+                                      <div key={item.id} className="flex justify-between items-center text-xs text-white">
+                                        <div>
+                                          <span className="font-bold font-sans">{productName}</span>
+                                          <span className="text-gray-400 text-[10px] block font-sans">
+                                            {item.variant_name} x {item.quantity}
+                                          </span>
+                                        </div>
+                                        <span className="text-alien-green font-mono">{formatPrice(Number(item.unit_price) * item.quantity)}</span>
+                                      </div>
+                                    );
+                                  })
+                                ) : (
+                                  <span className="text-gray-500 text-[10px] italic">No items logged.</span>
+                                )}
+                              </div>
                             </div>
                           </div>
                         ))

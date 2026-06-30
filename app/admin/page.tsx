@@ -2,11 +2,11 @@
 // app/admin/page.tsx
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { 
-  Shield, User, Award, CheckCircle2, AlertCircle, XCircle, 
-  ChevronRight, ArrowLeft, ArrowRight, DollarSign, BarChart2, 
+import {
+  Shield, User, Award, CheckCircle2, AlertCircle, XCircle,
+  ChevronRight, ArrowLeft, ArrowRight, DollarSign, BarChart2,
   Trash2, QrCode, MessageCircle, Percent, Settings, RefreshCw, Key,
-  Package, Sparkles, Building, Layers, Eye, Plus, Send, Zap, 
+  Package, Sparkles, Building, Layers, Eye, Plus, Send, Zap,
   FileText, Check, Search, Globe, Truck, CreditCard, Heart, ShoppingBag, Star, Edit
 } from 'lucide-react'
 import { formatPrice } from '@/lib/utils/pricing'
@@ -214,7 +214,7 @@ export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [passwordInput, setPasswordInput] = useState('')
   const [authError, setAuthError] = useState('')
-  
+
   // Supabase auth credentials
   const [emailInput, setEmailInput] = useState('')
   const [supaPasswordInput, setSupaPasswordInput] = useState('')
@@ -230,15 +230,15 @@ export default function AdminPage() {
 
   const handleAuthenticate = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (passwordInput !== 'UFOLabzAdmin2026!') {
       setAuthError('INVALID ACCESS DECREE. ACCESS DENIED.')
       return
     }
-    
+
     setIsSigningIn(true)
     setAuthError('')
-    
+
     const supabase = createClient() as any
     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
       email: emailInput,
@@ -278,7 +278,7 @@ export default function AdminPage() {
   const [selectedOrderId, setSelectedOrderId] = useState<string>('')
   const [orderFilter, setOrderFilter] = useState<'All' | 'Online' | 'POS Terminal'>('All')
   const [orderStatusFilter, setOrderStatusFilter] = useState<'All' | 'Pending' | 'Packed' | 'Ready for Pickup' | 'Completed'>('All')
-  
+
   // Storage synced states
   const [affiliates, setAffiliates] = useState<any[]>([])
   const [coupons, setCoupons] = useState<any[]>([])
@@ -286,8 +286,18 @@ export default function AdminPage() {
   // Live products catalog
   const [liveProducts, setLiveProducts] = useState<any[]>([])
   const [editingProduct, setEditingProduct] = useState<any | null>(null)
+
+  // Sub-tabs in Product Builder
+  const [productSubTab, setProductSubTab] = useState<'builder' | 'flavors'>('builder')
+  const [dbCategories, setDbCategories] = useState<any[]>([])
+  const [dbFlavors, setDbFlavors] = useState<any[]>([])
+  const [newFlavorName, setNewFlavorName] = useState('')
+  const [newCategoryName, setNewCategoryName] = useState('')
+  const [newCategorySlug, setNewCategorySlug] = useState('')
+
+  // Expanded Product Form States
   const [manualTitle, setManualTitle] = useState('')
-  const [manualCategory, setManualCategory] = useState('variable')
+  const [manualCategory, setManualCategory] = useState('') // category ID
   const [manualPrice, setManualPrice] = useState(49)
   const [manualBasePrice, setManualBasePrice] = useState(59)
   const [manualStock, setManualStock] = useState(150)
@@ -298,6 +308,35 @@ export default function AdminPage() {
   const [manualKeyBenefits, setManualKeyBenefits] = useState('')
   const [manualIngredients, setManualIngredients] = useState('')
   const [manualColorCode, setManualColorCode] = useState('#00FF88')
+
+  const [manualSKU, setManualSKU] = useState('')
+  const [manualBarcode, setManualBarcode] = useState('')
+  const [manualSize, setManualSize] = useState('300g')
+  const [manualFlavorId, setManualFlavorId] = useState('')
+  const [manualVideo, setManualVideo] = useState('')
+  const [manualHowToUse, setManualHowToUse] = useState('')
+  const [manualWarnings, setManualWarnings] = useState('')
+  const [manualStorage, setManualStorage] = useState('')
+  const [manualServingSize, setManualServingSize] = useState('')
+  const [manualServings, setManualServings] = useState(30)
+  const [manualCalories, setManualCalories] = useState(120)
+  const [manualProtein, setManualProtein] = useState(25)
+  const [manualCarbs, setManualCarbs] = useState(3)
+  const [manualFat, setManualFat] = useState(1.5)
+  const [manualWeight, setManualWeight] = useState(300)
+  const [manualWidth, setManualWidth] = useState(10)
+  const [manualHeight, setManualHeight] = useState(15)
+  const [manualDepth, setManualDepth] = useState(10)
+  const [manualSeoTitle, setManualSeoTitle] = useState('')
+  const [manualSeoDesc, setManualSeoDesc] = useState('')
+  const [manualRelated, setManualRelated] = useState('')
+  const [manualCrossSells, setManualCrossSells] = useState('')
+  const [manualUpsells, setManualUpsells] = useState('')
+  const [manualFaqs, setManualFaqs] = useState<Array<{ question: string; answer: string }>>([])
+
+  const [manualReviewAuthor, setManualReviewAuthor] = useState('')
+  const [manualReviewRating, setManualReviewRating] = useState(5)
+  const [manualReviewBody, setManualReviewBody] = useState('')
 
   // Operation rules states
   const [pricingRules, setPricingRules] = useState<PricingRule[]>([])
@@ -329,7 +368,7 @@ export default function AdminPage() {
 
   // CRM state
   const [customersList, setCustomersList] = useState<CustomerProfile[]>([])
-  
+
   // CRM Form state
   const [newCustName, setNewCustName] = useState('')
   const [newCustEmail, setNewCustEmail] = useState('')
@@ -392,7 +431,7 @@ export default function AdminPage() {
     cityRevenues[city] += o.total || 0
   })
   const cityTotal = Object.values(cityRevenues).reduce((a, b) => a + b, 0)
-  
+
   // Top Selling Products
   const productSalesMap: Record<string, { qty: number; revenue: number }> = {}
   ordersList.forEach(o => {
@@ -424,33 +463,71 @@ export default function AdminPage() {
 
     const fetchData = async () => {
       const supabase = createClient() as any
-      
+
       // 1. Fetch products
       const { data: prods } = await supabase
         .from('products')
         .select(`
           *,
           images:product_images(*),
-          variants:product_variants(*)
+          videos:product_videos(*),
+          faqs:product_faqs(*),
+          variants:product_variants(
+            *,
+            nutrition:nutrition_facts(*)
+          )
         `)
-      
-      const mappedProds = prods ? prods.map((p: any) => ({
-        id: p.id,
-        title: typeof p.name === 'object' ? (p.name.en || p.name.de || 'UFO Product').toUpperCase() : String(p.name).toUpperCase(),
-        slug: p.slug,
-        category: p.category_id ? 'PRE-WORKOUT' : 'SPECIAL-EDITION',
-        price: Number(p.base_price),
-        base_price: Number(p.compare_at_price || p.base_price),
-        stock: p.variants?.[0]?.stock ?? 0,
-        desc: typeof p.short_description === 'object' ? (p.short_description.en || p.short_description.de || '') : p.short_description,
-        longDesc: typeof p.description === 'object' ? (p.description.en || p.description.de || '') : p.description,
-        featuredImage: p.images?.[0]?.url || '',
-        imageGallery: p.images?.map((img: any) => img.url) || [],
-        keyBenefits: p.schema_markup?.key_benefits || [],
-        ingredients: p.schema_markup?.ingredients || '',
-        product_color: p.product_color || '#00FF88',
-        color_name: p.color_name || 'Alien Green'
-      })) : []
+
+      const mappedProds = prods ? prods.map((p: any) => {
+        const primaryVariant = p.variants?.[0] || {}
+        const nutritionRaw = primaryVariant.nutrition
+        const nutrition = Array.isArray(nutritionRaw) ? nutritionRaw[0] : (nutritionRaw || {})
+
+        return {
+          id: p.id,
+          title: typeof p.name === 'object' ? (p.name.en || p.name.de || 'UFO Product').toUpperCase() : String(p.name).toUpperCase(),
+          slug: p.slug,
+          category_id: p.category_id || '',
+          category: p.category_id ? 'PRE-WORKOUT' : 'SPECIAL-EDITION',
+          price: Number(p.base_price),
+          base_price: Number(p.compare_at_price || p.base_price),
+          stock: primaryVariant.stock ?? 0,
+          desc: typeof p.short_description === 'object' ? (p.short_description.en || p.short_description.de || '') : p.short_description,
+          longDesc: typeof p.description === 'object' ? (p.description.en || p.description.de || '') : p.description,
+          featuredImage: p.images?.find((img: any) => img.is_primary)?.url || p.images?.[0]?.url || '',
+          imageGallery: p.images?.map((img: any) => img.url) || [],
+          keyBenefits: p.schema_markup?.key_benefits || [],
+          ingredients: p.schema_markup?.ingredients || '',
+          product_color: p.product_color || '#00FF88',
+          color_name: p.color_name || 'Alien Green',
+
+          // New fields mapped for edit loading
+          sku: primaryVariant.sku || '',
+          barcode: primaryVariant.barcode || '',
+          size: primaryVariant.name || '',
+          flavor_id: primaryVariant.flavor_id || '',
+          video: p.videos?.[0]?.url || '',
+          how_to_use: p.schema_markup?.how_to_use || '',
+          warnings: p.schema_markup?.warnings || '',
+          storage_instructions: p.schema_markup?.storage_instructions || '',
+          serving_size: primaryVariant.serving_size || nutrition.serving_size || '',
+          servings: primaryVariant.servings || nutrition.servings_per_container || 30,
+          calories: nutrition.calories || 120,
+          protein: nutrition.protein || 25,
+          carbs: nutrition.total_carbohydrate || 3,
+          fat: nutrition.total_fat || 1.5,
+          weight: primaryVariant.weight_grams || 300,
+          width: p.schema_markup?.dimensions?.width || 10,
+          height: p.schema_markup?.dimensions?.height || 15,
+          depth: p.schema_markup?.dimensions?.depth || 10,
+          seo_title: p.seo_title?.en || '',
+          seo_description: p.seo_description?.en || '',
+          related_products: p.schema_markup?.related_products || [],
+          cross_sells: p.schema_markup?.cross_sells || [],
+          upsells: p.schema_markup?.upsells || [],
+          faqs: p.faqs || []
+        }
+      }) : []
       setLiveProducts(mappedProds)
 
       // 2. Fetch orders
@@ -462,7 +539,7 @@ export default function AdminPage() {
         `)
         .order('created_at', { ascending: false })
       if (ordsError) console.error('Error fetching orders:', ordsError)
-      
+
       const mappedOrds = ords ? ords.map((o: any) => ({
         dbId: o.id,
         id: o.order_number || o.id.slice(0, 8),
@@ -495,7 +572,7 @@ export default function AdminPage() {
           profile:profiles!profile_id(id, email, full_name, phone)
         `)
       if (affsError) console.error('Error fetching affiliates:', affsError)
-      
+
       const mappedAffs = affs ? affs.map((a: any) => ({
         id: a.id,
         name: a.profile?.full_name || a.profile?.email?.split('@')[0] || 'Partner',
@@ -516,7 +593,7 @@ export default function AdminPage() {
       const { data: coups } = await supabase
         .from('coupons')
         .select('*')
-      
+
       const mappedCoups = coups ? coups.map((c: any) => ({
         code: c.code,
         affiliateId: c.affiliate_id || 'N/A',
@@ -538,7 +615,7 @@ export default function AdminPage() {
           loyalty:loyalty_accounts(points)
         `)
         .order('created_at', { ascending: false })
-      
+
       const mappedCusts = custs ? custs.map((c: any) => ({
         id: c.id,
         name: c.full_name || c.email.split('@')[0],
@@ -558,7 +635,7 @@ export default function AdminPage() {
       const { data: revs } = await supabase
         .from('reviews')
         .select('*')
-      
+
       const mappedRevs = revs ? revs.map((r: any) => ({
         id: r.id,
         author: r.author_name || 'Guest Athlete',
@@ -568,6 +645,26 @@ export default function AdminPage() {
         status: (r.status.toUpperCase() === 'APPROVED' ? 'APPROVED' : (r.status.toUpperCase() === 'SPAM' ? 'SPAM' : 'PENDING')) as 'PENDING' | 'APPROVED' | 'SPAM'
       })) : []
       setReviews(mappedRevs)
+
+      // 7. Fetch categories
+      const { data: cats } = await supabase
+        .from('categories')
+        .select('*')
+      if (cats) setDbCategories(cats)
+
+      // 8. Fetch flavors safely
+      try {
+        const { data: flavs, error: flavsError } = await supabase
+          .from('flavors')
+          .select('*')
+        if (flavs && !flavsError) {
+          setDbFlavors(flavs)
+        } else {
+          console.warn('Flavors table not initialized or empty. Please run DDL migration.')
+        }
+      } catch (err) {
+        console.error('Failed to fetch flavors:', err)
+      }
     }
 
     fetchData()
@@ -683,7 +780,7 @@ export default function AdminPage() {
   const handleLoadProductForEditing = (prod: any) => {
     setEditingProduct(prod)
     setManualTitle(prod.title)
-    setManualCategory(prod.category.toLowerCase())
+    setManualCategory(prod.category_id || '')
     setManualPrice(prod.price)
     setManualBasePrice(prod.base_price || prod.price)
     setManualStock(prod.stock)
@@ -694,6 +791,39 @@ export default function AdminPage() {
     setManualKeyBenefits(prod.keyBenefits ? prod.keyBenefits.join(', ') : '')
     setManualIngredients(prod.ingredients || '')
     setManualColorCode(prod.product_color || '#00FF88')
+
+    // New fields
+    setManualSKU(prod.sku || '')
+    setManualBarcode(prod.barcode || '')
+    setManualSize(prod.size || '')
+    setManualFlavorId(prod.flavor_id || '')
+    setManualVideo(prod.video || '')
+    setManualHowToUse(prod.how_to_use || '')
+    setManualWarnings(prod.warnings || '')
+    setManualStorage(prod.storage_instructions || '')
+    setManualServingSize(prod.serving_size || '')
+    setManualServings(Number(prod.servings) || 30)
+    setManualCalories(Number(prod.calories) || 120)
+    setManualProtein(Number(prod.protein) || 25)
+    setManualCarbs(Number(prod.carbs) || 3)
+    setManualFat(Number(prod.fat) || 1.5)
+    setManualWeight(Number(prod.weight) || 300)
+    setManualWidth(Number(prod.width) || 10)
+    setManualHeight(Number(prod.height) || 15)
+    setManualDepth(Number(prod.depth) || 10)
+    setManualSeoTitle(prod.seo_title || '')
+    setManualSeoDesc(prod.seo_description || '')
+    setManualRelated(prod.related_products ? prod.related_products.join(', ') : '')
+    setManualCrossSells(prod.cross_sells ? prod.cross_sells.join(', ') : '')
+    setManualUpsells(prod.upsells ? prod.upsells.join(', ') : '')
+    setManualFaqs(prod.faqs?.map((f: any) => ({
+      question: typeof f.question === 'object' ? (f.question.en || '') : String(f.question),
+      answer: typeof f.answer === 'object' ? (f.answer.en || '') : String(f.answer)
+    })) || [])
+    setManualReviewAuthor('')
+    setManualReviewRating(5)
+    setManualReviewBody('')
+
     alert(`Loaded "${prod.title}" details into the form above for editing.`)
   }
 
@@ -701,16 +831,46 @@ export default function AdminPage() {
   const handleCancelEditing = () => {
     setEditingProduct(null)
     setManualTitle('')
-    setManualDesc('')
-    setManualLongDesc('')
+    setManualCategory('')
     setManualPrice(49)
     setManualBasePrice(59)
     setManualStock(150)
+    setManualDesc('')
+    setManualLongDesc('')
     setManualFeaturedImage('')
     setManualImageGallery('')
     setManualKeyBenefits('')
     setManualIngredients('')
     setManualColorCode('#00FF88')
+
+    // Reset new fields
+    setManualSKU('')
+    setManualBarcode('')
+    setManualSize('300g')
+    setManualFlavorId('')
+    setManualVideo('')
+    setManualHowToUse('')
+    setManualWarnings('')
+    setManualStorage('')
+    setManualServingSize('')
+    setManualServings(30)
+    setManualCalories(120)
+    setManualProtein(25)
+    setManualCarbs(3)
+    setManualFat(1.5)
+    setManualWeight(300)
+    setManualWidth(10)
+    setManualHeight(15)
+    setManualDepth(10)
+    setManualSeoTitle('')
+    setManualSeoDesc('')
+    setManualRelated('')
+    setManualCrossSells('')
+    setManualUpsells('')
+    setManualFaqs([])
+    setManualReviewAuthor('')
+    setManualReviewRating(5)
+    setManualReviewBody('')
   }
 
   // Quick Inline Stock Update
@@ -724,21 +884,123 @@ export default function AdminPage() {
     else setActiveTab('dashboard')
   }
 
+  // Create a new category
+  const handleCreateCategory = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!newCategoryName || !newCategorySlug) return
+    const supabase = createClient() as any
+    const { data, error } = await supabase
+      .from('categories')
+      .insert({
+        name: { en: newCategoryName, de: newCategoryName },
+        slug: newCategorySlug.toLowerCase().replace(/[^a-z0-9]/g, '-')
+      })
+      .select()
+
+    if (error) {
+      alert('Failed to add category: ' + error.message)
+    } else {
+      if (data) {
+        setDbCategories([...dbCategories, data[0]])
+      }
+      setNewCategoryName('')
+      setNewCategorySlug('')
+      alert('Category successfully added!')
+    }
+  }
+
+  // Delete a category
+  const handleDeleteCategory = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this category?')) return
+    const supabase = createClient() as any
+    const { error } = await supabase
+      .from('categories')
+      .delete()
+      .eq('id', id)
+
+    if (error) {
+      alert('Failed to delete category: ' + error.message)
+    } else {
+      setDbCategories(dbCategories.filter(cat => cat.id !== id))
+      alert('Category deleted successfully!')
+    }
+  }
+
+  // Create a new flavor
+  const handleCreateFlavor = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!newFlavorName) return
+    const supabase = createClient() as any
+    const slug = newFlavorName.toLowerCase().replace(/[^a-z0-9]/g, '-')
+    const { data, error } = await supabase
+      .from('flavors')
+      .insert({
+        name: newFlavorName,
+        slug: slug
+      })
+      .select()
+
+    if (error) {
+      alert('Failed to add flavor: ' + error.message)
+    } else {
+      if (data) {
+        setDbFlavors([...dbFlavors, data[0]])
+      }
+      setNewFlavorName('')
+      alert('Flavor successfully added!')
+    }
+  }
+
+  // Delete a flavor
+  const handleDeleteFlavor = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this flavor?')) return
+    const supabase = createClient() as any
+    const { error } = await supabase
+      .from('flavors')
+      .delete()
+      .eq('id', id)
+
+    if (error) {
+      alert('Failed to delete flavor: ' + error.message)
+    } else {
+      setDbFlavors(dbFlavors.filter(f => f.id !== id))
+      alert('Flavor deleted successfully!')
+    }
+  }
+
   // Create or Update manual product
   const handleCreateManualProduct = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!manualTitle) return
 
     const supabase = createClient() as any
-    
-    let categoryId = null
-    const { data: catData } = await supabase
-      .from('categories')
-      .select('id')
-      .eq('slug', manualCategory.toLowerCase())
-      .maybeSingle()
-    if (catData) {
-      categoryId = catData.id
+    const categoryId = manualCategory || null
+    const flavorId = manualFlavorId || null
+    const sku = manualSKU || 'SKU-' + manualTitle.toUpperCase().replace(/[^A-Z0-9]/g, '-') + '-' + Math.floor(100 + Math.random() * 900)
+    const sizeVal = manualSize || 'Standard size'
+    const barcodeVal = manualBarcode || null
+    const weightVal = Number(manualWeight) || 0
+    const videoVal = manualVideo || null
+
+    const keyBenefitsArray = manualKeyBenefits ? manualKeyBenefits.split(',').map(b => b.trim()) : ['Premium Bioavailability', 'Tested In Swiss Laboratory', 'Optimized Muscle Synthesis']
+    const relatedArray = manualRelated ? manualRelated.split(',').map(r => r.trim()).filter(Boolean) : []
+    const crossSellsArray = manualCrossSells ? manualCrossSells.split(',').map(c => c.trim()).filter(Boolean) : []
+    const upsellsArray = manualUpsells ? manualUpsells.split(',').map(u => u.trim()).filter(Boolean) : []
+
+    const schemaMarkupObj = {
+      ingredients: manualIngredients || 'Micronized high-grade formulation',
+      key_benefits: keyBenefitsArray,
+      how_to_use: manualHowToUse || '',
+      warnings: manualWarnings || '',
+      storage_instructions: manualStorage || '',
+      related_products: relatedArray,
+      cross_sells: crossSellsArray,
+      upsells: upsellsArray,
+      dimensions: {
+        width: Number(manualWidth) || 10,
+        height: Number(manualHeight) || 15,
+        depth: Number(manualDepth) || 10
+      }
     }
 
     const slug = manualTitle.toLowerCase().replace(/[^a-z0-9]/g, '-')
@@ -756,10 +1018,9 @@ export default function AdminPage() {
           short_description: { en: manualDesc, de: manualDesc },
           description: { en: manualLongDesc || manualDesc, de: manualLongDesc || manualDesc },
           product_color: manualColorCode || '#00FF88',
-          schema_markup: {
-            ingredients: manualIngredients,
-            key_benefits: manualKeyBenefits ? manualKeyBenefits.split(',').map(b => b.trim()) : ['Premium Bioavailability', 'Tested In Swiss Laboratory', 'Optimized Muscle Synthesis']
-          }
+          seo_title: { en: manualSeoTitle || manualTitle.toUpperCase() },
+          seo_description: { en: manualSeoDesc || manualDesc },
+          schema_markup: schemaMarkupObj
         })
         .eq('id', editingProduct.id)
 
@@ -768,20 +1029,67 @@ export default function AdminPage() {
         return
       }
 
-      await supabase
+      // Fetch or update primary variant
+      const { data: variants } = await supabase
         .from('product_variants')
-        .update({
-          price: manualPrice,
-          compare_at_price: manualBasePrice,
-          stock: manualStock
-        })
+        .select('id')
         .eq('product_id', editingProduct.id)
 
+      const primaryVariantId = variants?.[0]?.id
+
+      if (primaryVariantId) {
+        await supabase
+          .from('product_variants')
+          .update({
+            name: sizeVal,
+            sku: sku,
+            barcode: barcodeVal,
+            price: manualPrice,
+            compare_at_price: manualBasePrice,
+            stock: manualStock,
+            flavor_id: flavorId,
+            weight_grams: weightVal,
+            serving_size: manualServingSize || null,
+            servings: Number(manualServings) || null
+          })
+          .eq('id', primaryVariantId)
+
+        // Update or insert nutrition facts
+        const { data: existingNutrition } = await supabase
+          .from('nutrition_facts')
+          .select('id')
+          .eq('variant_id', primaryVariantId)
+          .maybeSingle()
+
+        const nutritionData = {
+          variant_id: primaryVariantId,
+          serving_size: manualServingSize || '1 serving',
+          servings_per_container: Number(manualServings) || 30,
+          calories: Number(manualCalories) || 0,
+          protein: Number(manualProtein) || 0,
+          total_carbohydrate: Number(manualCarbs) || 0,
+          total_fat: Number(manualFat) || 0
+        }
+
+        if (existingNutrition) {
+          await supabase
+            .from('nutrition_facts')
+            .update(nutritionData)
+            .eq('id', existingNutrition.id)
+        } else {
+          await supabase
+            .from('nutrition_facts')
+            .insert(nutritionData)
+        }
+      }
+
+      // Media updates
       if (manualFeaturedImage) {
         await supabase
           .from('product_images')
           .delete()
           .eq('product_id', editingProduct.id)
+          .eq('is_primary', true)
 
         await supabase
           .from('product_images')
@@ -792,12 +1100,51 @@ export default function AdminPage() {
           })
       }
 
+      if (manualImageGallery !== undefined) {
+        await supabase
+          .from('product_images')
+          .delete()
+          .eq('product_id', editingProduct.id)
+          .eq('is_primary', false)
+
+        const galleryUrls = manualImageGallery.split(',').map(url => url.trim()).filter(Boolean)
+        const galleryInserts = galleryUrls.map((url, index) => ({
+          product_id: editingProduct.id,
+          url,
+          is_primary: false,
+          sort_order: index + 1
+        }))
+        if (galleryInserts.length > 0) {
+          await supabase.from('product_images').insert(galleryInserts)
+        }
+      }
+
+      await supabase.from('product_videos').delete().eq('product_id', editingProduct.id)
+      if (videoVal) {
+        await supabase.from('product_videos').insert({
+          product_id: editingProduct.id,
+          url: videoVal,
+          title: { en: 'Product Showcase' }
+        })
+      }
+
+      await supabase.from('product_faqs').delete().eq('product_id', editingProduct.id)
+      if (manualFaqs && manualFaqs.length > 0) {
+        const faqsInserts = manualFaqs.map((faq, index) => ({
+          product_id: editingProduct.id,
+          question: { en: faq.question },
+          answer: { en: faq.answer },
+          sort_order: index + 1
+        }))
+        await supabase.from('product_faqs').insert(faqsInserts)
+      }
+
       alert(`Successfully updated product details for "${manualTitle.toUpperCase()}" in Supabase!`)
       setEditingProduct(null)
     } else {
       // Create Mode
       const newProdId = crypto.randomUUID ? crypto.randomUUID() : `prod-${Date.now()}`
-      
+
       const { error: prodError } = await supabase
         .from('products')
         .insert({
@@ -813,10 +1160,9 @@ export default function AdminPage() {
           description: { en: manualLongDesc || manualDesc || 'No description provided.', de: manualLongDesc || manualDesc || 'No description provided.' },
           product_color: manualColorCode || '#00FF88',
           color_name: 'Alien Green',
-          schema_markup: {
-            ingredients: manualIngredients || 'Micronized high-grade formulation',
-            key_benefits: manualKeyBenefits ? manualKeyBenefits.split(',').map(b => b.trim()) : ['Premium Bioavailability', 'Tested In Swiss Laboratory', 'Optimized Muscle Synthesis']
-          }
+          seo_title: { en: manualSeoTitle || manualTitle.toUpperCase() },
+          seo_description: { en: manualSeoDesc || manualDesc },
+          schema_markup: schemaMarkupObj
         })
 
       if (prodError) {
@@ -824,15 +1170,22 @@ export default function AdminPage() {
         return
       }
 
+      const newVariantId = crypto.randomUUID ? crypto.randomUUID() : `var-${Date.now()}`
       await supabase
         .from('product_variants')
         .insert({
+          id: newVariantId,
           product_id: newProdId,
-          name: 'Standard size',
-          sku: 'SKU-' + manualTitle.toUpperCase().replace(/[^A-Z0-9]/g, '-') + '-' + Math.floor(100 + Math.random() * 900),
+          name: sizeVal,
+          sku: sku,
+          barcode: barcodeVal,
           price: manualPrice,
           compare_at_price: manualBasePrice,
           stock: manualStock,
+          flavor_id: flavorId,
+          weight_grams: weightVal,
+          serving_size: manualServingSize || null,
+          servings: Number(manualServings) || null,
           is_default: true
         })
 
@@ -844,9 +1197,67 @@ export default function AdminPage() {
           is_primary: true
         })
 
+      if (manualImageGallery) {
+        const galleryUrls = manualImageGallery.split(',').map(url => url.trim()).filter(Boolean)
+        const galleryInserts = galleryUrls.map((url, index) => ({
+          product_id: newProdId,
+          url,
+          is_primary: false,
+          sort_order: index + 1
+        }))
+        if (galleryInserts.length > 0) {
+          await supabase.from('product_images').insert(galleryInserts)
+        }
+      }
+
+      if (videoVal) {
+        await supabase.from('product_videos').insert({
+          product_id: newProdId,
+          url: videoVal,
+          title: { en: 'Product Showcase' }
+        })
+      }
+
+      // Supplement Facts (nutrition_facts)
+      await supabase
+        .from('nutrition_facts')
+        .insert({
+          variant_id: newVariantId,
+          serving_size: manualServingSize || '1 serving',
+          servings_per_container: Number(manualServings) || 30,
+          calories: Number(manualCalories) || 0,
+          protein: Number(manualProtein) || 0,
+          total_carbohydrate: Number(manualCarbs) || 0,
+          total_fat: Number(manualFat) || 0
+        })
+
+      // FAQs
+      if (manualFaqs && manualFaqs.length > 0) {
+        const faqsInserts = manualFaqs.map((faq, index) => ({
+          product_id: newProdId,
+          question: { en: faq.question },
+          answer: { en: faq.answer },
+          sort_order: index + 1
+        }))
+        await supabase.from('product_faqs').insert(faqsInserts)
+      }
+
+      // Initial Review
+      if (manualReviewBody && manualReviewAuthor) {
+        await supabase
+          .from('reviews')
+          .insert({
+            product_id: newProdId,
+            author_name: manualReviewAuthor,
+            rating: Number(manualReviewRating) || 5,
+            body: manualReviewBody,
+            status: 'approved'
+          })
+      }
+
       alert(`Successfully added product: "${manualTitle.toUpperCase()}" to Supabase!`)
     }
-    
+
     handleCancelEditing()
     setActiveTab('dashboard')
   }
@@ -892,7 +1303,7 @@ export default function AdminPage() {
       alert('Failed: ' + error.message)
     } else {
       setAffiliates(affiliates.map(a => a.id === id ? { ...a, status: 'APPROVED' } : a))
-      
+
       // Trigger approval confirmation email
       if (aff && aff.email && aff.email !== 'N/A') {
         fetch('/api/admin/trigger-email', {
@@ -940,7 +1351,7 @@ export default function AdminPage() {
       alert('Failed: ' + error.message)
     } else {
       setAffiliates(affiliates.map(a => a.id === id ? { ...a, commissionRate: newRate } : a))
-      
+
       // Trigger commission update email
       if (aff.email && aff.email !== 'N/A') {
         fetch('/api/admin/trigger-email', {
@@ -957,7 +1368,7 @@ export default function AdminPage() {
           })
         }).catch(err => console.error('Failed to trigger affiliate email:', err))
       }
-      
+
       alert('Affiliate commission rate updated successfully!')
     }
   }
@@ -1026,7 +1437,7 @@ export default function AdminPage() {
     }
     const updated = [...customersList, newCust]
     saveCustomersToStorage(updated)
-    
+
     // Reset form
     setNewCustName('')
     setNewCustEmail('')
@@ -1046,7 +1457,7 @@ export default function AdminPage() {
     const productsText = customer.purchasedProducts && customer.purchasedProducts.length > 0
       ? customer.purchasedProducts.join(', ')
       : 'UFO supplements'
-      
+
     if (templateKey === 'win-back') {
       setEmailSubject(`We miss you, ${customer.name}! Get 15% off your next UFO order`)
       setCustomEmailBody(`Hi ${customer.name},\n\nIt's been a while since your last purchase of ${productsText} with us. We noticed you haven't restocked yet!\n\nTo help you fuel your training and stretch your limits, we've loaded a custom 15% discount code into your account: COMEBACK15.\n\nClaim it here: ufolabz.ch/shop\n\nBest,\nThe UFO LABZ Team`)
@@ -1174,15 +1585,15 @@ export default function AdminPage() {
     const isActive = activeTab === tab
     return cn(
       "flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-sans tracking-normal transition-all duration-300 whitespace-nowrap lg:w-full border",
-      isActive 
-        ? "bg-gradient-to-r from-alien-green to-emerald-500 text-space-950 font-bold shadow-glow-green border-alien-green/20 scale-[1.02]" 
+      isActive
+        ? "bg-gradient-to-r from-alien-green to-emerald-500 text-space-950 font-bold shadow-glow-green border-alien-green/20 scale-[1.02]"
         : "text-gray-400 border-transparent hover:text-white hover:bg-white/[0.04] hover:border-white/[0.05]"
     )
   }
 
   return (
     <div className="min-h-screen bg-space-950 text-white selection:bg-alien-green selection:text-space-950 pb-20 font-sans text-left">
-      
+
       {/* ─── SYSTEM HEADER ─── */}
       <header className="border-b border-white/5 bg-space-950/80 backdrop-blur-xl sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -1220,10 +1631,10 @@ export default function AdminPage() {
       {/* ─── MAIN LAYOUT ─── */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          
+
           {/* ─── SIDEBAR DIRECTORY navigation (3 cols) ─── */}
           <aside className="lg:col-span-3 card-glass bg-space-900/60 p-4 border border-white/[0.06] rounded-3xl backdrop-blur-sm space-y-2 overflow-x-auto lg:overflow-x-visible no-scrollbar flex lg:flex-col gap-1 lg:gap-0">
-            
+
             <div className="hidden lg:flex items-center gap-3 pb-4 mb-4 border-b border-white/[0.06]">
               <div className="w-10 h-10 rounded-full bg-alien-green/10 border border-alien-green/20 flex items-center justify-center text-lg">
                 ⚙️
@@ -1234,7 +1645,7 @@ export default function AdminPage() {
               </div>
             </div>
 
-            <button 
+            <button
               onClick={() => setActiveTab('dashboard')}
               className={getSidebarBtnClass('dashboard')}
             >
@@ -1242,7 +1653,7 @@ export default function AdminPage() {
               <span>Exec Dashboard</span>
             </button>
 
-            <button 
+            <button
               onClick={() => setActiveTab('products')}
               className={getSidebarBtnClass('products')}
             >
@@ -1250,7 +1661,7 @@ export default function AdminPage() {
               <span>Product Builder</span>
             </button>
 
-            <button 
+            <button
               onClick={() => setActiveTab('orders')}
               className={getSidebarBtnClass('orders')}
             >
@@ -1258,7 +1669,7 @@ export default function AdminPage() {
               <span>Sales & Orders</span>
             </button>
 
-            <button 
+            <button
               onClick={() => setActiveTab('inventory')}
               className={getSidebarBtnClass('inventory')}
             >
@@ -1266,7 +1677,7 @@ export default function AdminPage() {
               <span>Sourcing & Warehousing</span>
             </button>
 
-            <button 
+            <button
               onClick={() => setActiveTab('pricing')}
               className={getSidebarBtnClass('pricing')}
             >
@@ -1274,7 +1685,7 @@ export default function AdminPage() {
               <span>Dynamic Pricing Rules</span>
             </button>
 
-            <button 
+            <button
               onClick={() => setActiveTab('customers')}
               className={getSidebarBtnClass('customers')}
             >
@@ -1282,7 +1693,7 @@ export default function AdminPage() {
               <span>Customer CRM</span>
             </button>
 
-            <button 
+            <button
               onClick={() => setActiveTab('affiliates')}
               className={getSidebarBtnClass('affiliates')}
             >
@@ -1290,7 +1701,7 @@ export default function AdminPage() {
               <span>Affiliate Approvals</span>
             </button>
 
-            <button 
+            <button
               onClick={() => setActiveTab('marketing')}
               className={getSidebarBtnClass('marketing')}
             >
@@ -1298,7 +1709,7 @@ export default function AdminPage() {
               <span>Ad Campaigns</span>
             </button>
 
-            <button 
+            <button
               onClick={() => setActiveTab('reviews')}
               className={getSidebarBtnClass('reviews')}
             >
@@ -1306,7 +1717,7 @@ export default function AdminPage() {
               <span>Reviews Moderation</span>
             </button>
 
-            <button 
+            <button
               onClick={() => setActiveTab('automations')}
               className={getSidebarBtnClass('automations')}
             >
@@ -1323,7 +1734,7 @@ export default function AdminPage() {
             </div>
 
             <div className="relative z-10 w-full">
-              
+
               {/* 📊 TAB 1: EXECUTIVE DASHBOARD */}
               {activeTab === 'dashboard' && (
                 <div className="space-y-6 animate-fade-in text-left">
@@ -1391,7 +1802,7 @@ export default function AdminPage() {
                     {/* Sourcing & Pack Status */}
                     <div className="bg-space-950/60 border border-white/5 p-5 rounded-2xl space-y-4">
                       <h3 className="text-xs font-sans font-bold text-white uppercase tracking-wider border-b border-white/5 pb-2">📦 Logistics Fulfilment Ledger</h3>
-                      
+
                       <div className="grid grid-cols-2 gap-4">
                         <div className="bg-space-900 border border-white/5 p-4 rounded-xl text-center">
                           <span className="text-[10px] text-gray-400 block uppercase">Need to Pack</span>
@@ -1409,7 +1820,7 @@ export default function AdminPage() {
                     {/* Sales by Canton / City */}
                     <div className="bg-space-950/60 border border-white/5 p-5 rounded-2xl space-y-3">
                       <h3 className="text-xs font-sans font-bold text-white uppercase tracking-wider border-b border-white/5 pb-2">🇨🇭 Sales Demographics (City Share)</h3>
-                      
+
                       <div className="space-y-2.5 font-sans text-xs">
                         {swissCities.map((city, idx) => {
                           const revenue = cityRevenues[city] || 0
@@ -1439,7 +1850,7 @@ export default function AdminPage() {
                         <span className="font-sans font-bold text-white uppercase tracking-wider">Top Selling Stacks</span>
                         <span className="text-[10px] text-gray-400 font-sans">By gross volume</span>
                       </div>
-                      
+
                       <div className="space-y-3 font-sans">
                         {sortedTopProducts.map((p, idx) => {
                           const colors = ['bg-alien-green', 'bg-blue-400', 'bg-purple-400']
@@ -1480,13 +1891,13 @@ export default function AdminPage() {
                               <div className="text-[10px] text-gray-400 mt-0.5">{order.customerName} • {order.channel}</div>
                             </div>
                             <div className="flex items-center gap-2">
-                              <select 
+                              <select
                                 value={order.status}
                                 onChange={(e) => {
                                   const nextStatus = e.target.value as any
                                   // 1. Update in local state
                                   setOrdersList(ordersList.map(o => o.id === order.id ? { ...o, status: nextStatus } : o))
-                                  
+
                                   // 2. Map status to db format
                                   let dbStatus = 'confirmed'
                                   if (nextStatus === 'Pending') dbStatus = 'confirmed'
@@ -1560,7 +1971,7 @@ export default function AdminPage() {
                           <div className="font-bold text-white mt-1">New Affiliate Registration request received</div>
                           <p className="text-[10px] text-gray-400">Beat Keller (Fitness Zurich) requested referral code `BEATFIT10` in Canton Zurich.</p>
                         </div>
-                        <button 
+                        <button
                           onClick={() => setActiveTab('affiliates')}
                           className="bg-white/5 border border-white/10 hover:bg-white/10 text-white font-sans text-[9px] px-3 py-1.5 rounded-lg shrink-0"
                         >
@@ -1575,7 +1986,7 @@ export default function AdminPage() {
                           <div className="font-bold text-white mt-1">Unapproved product review submitted</div>
                           <p className="text-[10px] text-gray-400">Elena S. rated Astro Creatine 5 stars: "mixes instantly in coffee..."</p>
                         </div>
-                        <button 
+                        <button
                           onClick={() => setActiveTab('reviews')}
                           className="bg-white/5 border border-white/10 hover:bg-white/10 text-white font-sans text-[9px] px-3 py-1.5 rounded-lg shrink-0"
                         >
@@ -1590,7 +2001,7 @@ export default function AdminPage() {
                           <div className="font-bold text-white mt-1">Pending blog comment submitted</div>
                           <p className="text-[10px] text-gray-400">Markus K. commented on "Post-workout windows": "super useful tips, ordered creatine..."</p>
                         </div>
-                        <button 
+                        <button
                           onClick={() => alert('Blog comments ledger loaded! Comment approved.')}
                           className="bg-white/5 border border-white/10 hover:bg-white/10 text-white font-sans text-[9px] px-3 py-1.5 rounded-lg shrink-0"
                         >
@@ -1605,7 +2016,7 @@ export default function AdminPage() {
                           <div className="font-bold text-white mt-1">Critical stock depletion threshold detected</div>
                           <p className="text-[10px] text-red-300">Omega Matrix Fish Oil has dropped below Reorder Level (15 units remaining in main warehouse Depot).</p>
                         </div>
-                        <button 
+                        <button
                           onClick={() => setActiveTab('inventory')}
                           className="bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 text-red-400 font-sans text-[9px] px-3 py-1.5 rounded-lg shrink-0"
                         >
@@ -1621,211 +2032,721 @@ export default function AdminPage() {
               {/* 📦 TAB 2: PRODUCT BUILDER */}
               {activeTab === 'products' && (
                 <div className="space-y-8 animate-fade-in">
-                  
-                  {/* Clean Redesigned Product Creator Form */}
-                  <div className="max-w-3xl mx-auto bg-space-950/85 border border-white/5 p-6 sm:p-8 rounded-3xl space-y-8 shadow-2xl">
-                    <div className="flex justify-between items-center border-b border-white/5 pb-4">
+
+                  {/* Sub-tab Bar */}
+                  <div className="flex gap-2 border-b border-white/5 pb-4 max-w-3xl mx-auto">
+                    <button
+                      onClick={() => setProductSubTab('builder')}
+                      className={cn(
+                        "px-4 py-2 rounded-xl text-xs font-mono font-medium transition-all",
+                        productSubTab === 'builder'
+                          ? "bg-alien-green text-space-950 font-bold shadow-glow-green"
+                          : "text-gray-400 hover:text-white hover:bg-white/5"
+                      )}
+                    >
+                      Supplement Builder
+                    </button>
+                    <button
+                      onClick={() => setProductSubTab('flavors')}
+                      className={cn(
+                        "px-4 py-2 rounded-xl text-xs font-mono font-medium transition-all",
+                        productSubTab === 'flavors'
+                          ? "bg-alien-green text-space-950 font-bold shadow-glow-green"
+                          : "text-gray-400 hover:text-white hover:bg-white/5"
+                      )}
+                    >
+                      Flavors & Categories Manager
+                    </button>
+                  </div>
+
+                  {productSubTab === 'flavors' ? (
+                    <div className="max-w-3xl mx-auto bg-space-950/85 border border-white/5 p-6 sm:p-8 rounded-3xl space-y-8 shadow-2xl text-left">
                       <div>
                         <h3 className="font-display text-xl uppercase tracking-wider text-white">
-                          {editingProduct ? '✏️ Edit Supplement Product' : '📦 Supplement Product Creator'}
+                          🏷️ Flavors & Categories Manager
                         </h3>
                         <p className="text-xs text-gray-400 mt-1">
-                          {editingProduct ? `Modify catalog parameters for "${editingProduct.title}".` : 'Register a new active offering into the live UFO Labz product catalog.'}
+                          Create and delete supplement flavors and category nodes. These will populate dropdown selections in the Supplement Builder.
                         </p>
                       </div>
-                      {editingProduct && (
-                        <button 
-                          type="button"
-                          onClick={handleCancelEditing}
-                          className="bg-red-500/10 border border-red-500/20 text-red-400 hover:text-white hover:bg-red-500 px-4 py-1.5 rounded-xl text-xs font-mono transition-all"
-                        >
-                          Cancel Editing
-                        </button>
-                      )}
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
+                        {/* Categories Manager Column */}
+                        <div className="space-y-4">
+                          <h4 className="text-xs font-mono font-bold tracking-widest text-alien-green uppercase">Manage Categories</h4>
+
+                          <form onSubmit={handleCreateCategory} className="space-y-3 bg-space-900 border border-white/5 p-4 rounded-2xl">
+                            <div>
+                              <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Category Name</label>
+                              <input
+                                type="text"
+                                required
+                                value={newCategoryName}
+                                onChange={(e) => setNewCategoryName(e.target.value)}
+                                placeholder="e.g. Pre-Workout"
+                                className="input bg-space-950 border-white/5 text-white"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Category Slug</label>
+                              <input
+                                type="text"
+                                required
+                                value={newCategorySlug}
+                                onChange={(e) => setNewCategorySlug(e.target.value)}
+                                placeholder="e.g. pre-workout"
+                                className="input bg-space-950 border-white/5 text-white"
+                              />
+                            </div>
+                            <button type="submit" className="w-full bg-white text-space-950 font-bold font-mono h-9 rounded-xl text-[10px]">
+                              Add Category
+                            </button>
+                          </form>
+
+                          <div className="bg-space-900 border border-white/5 rounded-2xl overflow-hidden max-h-[220px] overflow-y-auto custom-scrollbar">
+                            {dbCategories.length === 0 ? (
+                              <div className="p-4 text-center text-gray-500 italic text-[10px]">No categories found.</div>
+                            ) : (
+                              <table className="w-full text-left text-[10px] border-collapse">
+                                <thead className="bg-white/5 text-gray-400 font-mono">
+                                  <tr>
+                                    <th className="p-2.5">Name</th>
+                                    <th className="p-2.5">Slug</th>
+                                    <th className="p-2.5 text-right">Action</th>
+                                  </tr>
+                                </thead>
+                                <tbody className="divide-y divide-white/5 text-white">
+                                  {dbCategories.map(cat => (
+                                    <tr key={cat.id}>
+                                      <td className="p-2.5 font-bold">{cat.name?.en || cat.name}</td>
+                                      <td className="p-2.5 text-gray-400">{cat.slug}</td>
+                                      <td className="p-2.5 text-right">
+                                        <button
+                                          onClick={() => handleDeleteCategory(cat.id)}
+                                          className="text-red-400 hover:text-red-500 font-sans"
+                                        >
+                                          Delete
+                                        </button>
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Flavors Manager Column */}
+                        <div className="space-y-4">
+                          <h4 className="text-xs font-mono font-bold tracking-widest text-alien-green uppercase">Manage Flavors</h4>
+
+                          <form onSubmit={handleCreateFlavor} className="space-y-3 bg-space-900 border border-white/5 p-4 rounded-2xl">
+                            <div>
+                              <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Flavor Name</label>
+                              <input
+                                type="text"
+                                required
+                                value={newFlavorName}
+                                onChange={(e) => setNewFlavorName(e.target.value)}
+                                placeholder="e.g. Cosmic Blue Raspberry"
+                                className="input bg-space-950 border-white/5 text-white"
+                              />
+                            </div>
+                            <div className="pt-5">
+                              {/* Spacer to align buttons */}
+                            </div>
+                            <button type="submit" className="w-full bg-white text-space-950 font-bold font-mono h-9 rounded-xl text-[10px]">
+                              Add Flavor
+                            </button>
+                          </form>
+
+                          <div className="bg-space-900 border border-white/5 rounded-2xl overflow-hidden max-h-[220px] overflow-y-auto custom-scrollbar">
+                            {dbFlavors.length === 0 ? (
+                              <div className="p-4 text-center text-gray-500 italic text-[10px]">No flavors found. Run SQL DDL first.</div>
+                            ) : (
+                              <table className="w-full text-left text-[10px] border-collapse">
+                                <thead className="bg-white/5 text-gray-400 font-mono">
+                                  <tr>
+                                    <th className="p-2.5">Flavor Name</th>
+                                    <th className="p-2.5">Slug</th>
+                                    <th className="p-2.5 text-right">Action</th>
+                                  </tr>
+                                </thead>
+                                <tbody className="divide-y divide-white/5 text-white">
+                                  {dbFlavors.map(flav => (
+                                    <tr key={flav.id}>
+                                      <td className="p-2.5 font-bold">{flav.name}</td>
+                                      <td className="p-2.5 text-gray-400">{flav.slug}</td>
+                                      <td className="p-2.5 text-right">
+                                        <button
+                                          onClick={() => handleDeleteFlavor(flav.id)}
+                                          className="text-red-400 hover:text-red-500 font-sans"
+                                        >
+                                          Delete
+                                        </button>
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            )}
+                          </div>
+                        </div>
+                      </div>
                     </div>
-
-                    <form onSubmit={handleCreateManualProduct} className="space-y-6 text-xs text-left">
-                      {/* Section 1: Basic Parameters */}
-                      <div className="space-y-4">
-                        <h4 className="text-[10px] font-mono tracking-widest text-alien-green uppercase font-semibold">1. Basic Parameters</h4>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                          <div className="md:col-span-2">
-                            <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Product Title *</label>
-                            <input 
-                              type="text" 
-                              required
-                              value={manualTitle}
-                              onChange={(e) => setManualTitle(e.target.value)}
-                              placeholder="e.g. Astro Creatine Monohydrate Pure"
-                              className="input bg-space-900 border-white/5 text-white"
-                            />
-                          </div>
-                          <div>
-                            <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Category Type</label>
-                            <select 
-                              value={manualCategory}
-                              onChange={(e) => setManualCategory(e.target.value)}
-                              className="input focus:outline-none bg-space-900 border-white/5 text-white"
-                            >
-                              <option value="variable">Variable formulation</option>
-                              <option value="bundle">Product Bundle Stack</option>
-                              <option value="subscription">Recurring Subscription</option>
-                              <option value="digital">Digital Guides / E-Books</option>
-                            </select>
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-3 gap-5">
-                          <div>
-                            <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Sale Price (CHF) *</label>
-                            <input 
-                              type="number" 
-                              required
-                              value={manualPrice}
-                              onChange={(e) => setManualPrice(parseFloat(e.target.value) || 0)}
-                              className="input bg-space-900 border-white/5 text-white"
-                            />
-                          </div>
-                          <div>
-                            <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Actual Price (Compare At) *</label>
-                            <input 
-                              type="number" 
-                              required
-                              value={manualBasePrice}
-                              onChange={(e) => setManualBasePrice(parseFloat(e.target.value) || 0)}
-                              className="input bg-space-900 border-white/5 text-white"
-                            />
-                          </div>
-                          <div>
-                            <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Initial Stock Units *</label>
-                            <input 
-                              type="number" 
-                              required
-                              value={manualStock}
-                              onChange={(e) => setManualStock(parseInt(e.target.value) || 0)}
-                              className="input bg-space-900 border-white/5 text-white"
-                            />
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Section 2: Visual Assets & Branding */}
-                      <div className="space-y-4 pt-4 border-t border-white/5">
-                        <h4 className="text-[10px] font-mono tracking-widest text-alien-green uppercase font-semibold">2. Branding & Media</h4>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                          <div className="md:col-span-2">
-                            <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Featured Image URL</label>
-                            <input 
-                              type="text" 
-                              value={manualFeaturedImage}
-                              onChange={(e) => setManualFeaturedImage(e.target.value)}
-                              placeholder="e.g. https://res.cloudinary.com/..."
-                              className="input bg-space-900 border-white/5 text-white"
-                            />
-                          </div>
-                          <div>
-                            <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Brand Color Hex Code</label>
-                            <input 
-                              type="text" 
-                              value={manualColorCode}
-                              onChange={(e) => setManualColorCode(e.target.value)}
-                              placeholder="e.g. #00FF88"
-                              className="input bg-space-900 border-white/5 text-white"
-                            />
-                          </div>
-                        </div>
-
+                  ) : (
+                    <div className="max-w-3xl mx-auto bg-space-950/85 border border-white/5 p-6 sm:p-8 rounded-3xl space-y-8 shadow-2xl">
+                      <div className="flex justify-between items-center border-b border-white/5 pb-4">
                         <div>
-                          <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Image Gallery (Comma-separated URLs)</label>
-                          <input 
-                            type="text" 
-                            value={manualImageGallery}
-                            onChange={(e) => setManualImageGallery(e.target.value)}
-                            placeholder="url1, url2, url3"
-                            className="input bg-space-900 border-white/5 text-white"
-                          />
+                          <h3 className="font-display text-xl uppercase tracking-wider text-white">
+                            {editingProduct ? '✏️ Edit Supplement Product' : '📦 Supplement Product Creator'}
+                          </h3>
+                          <p className="text-xs text-gray-400 mt-1">
+                            {editingProduct ? `Modify catalog parameters for "${editingProduct.title}".` : 'Register a new active offering into the live UFO Labz product catalog.'}
+                          </p>
                         </div>
-                      </div>
-
-                      {/* Section 3: Extra Product Specs */}
-                      <div className="space-y-4 pt-4 border-t border-white/5">
-                        <h4 className="text-[10px] font-mono tracking-widest text-alien-green uppercase font-semibold">3. Additional Specifications</h4>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                          <div>
-                            <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Key Benefits (Comma-separated)</label>
-                            <input 
-                              type="text" 
-                              value={manualKeyBenefits}
-                              onChange={(e) => setManualKeyBenefits(e.target.value)}
-                              placeholder="e.g. Tested In Swiss Labs, GMP Certified, 100% Vegan"
-                              className="input bg-space-900 border-white/5 text-white"
-                            />
-                          </div>
-                          <div>
-                            <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Ingredients Matrix</label>
-                            <input 
-                              type="text" 
-                              value={manualIngredients}
-                              onChange={(e) => setManualIngredients(e.target.value)}
-                              placeholder="e.g. Pure Micronized Beta-Alanine, Stevia Extract"
-                              className="input bg-space-900 border-white/5 text-white"
-                            />
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Section 4: Descriptions */}
-                      <div className="space-y-4 pt-4 border-t border-white/5">
-                        <h4 className="text-[10px] font-mono tracking-widest text-alien-green uppercase font-semibold">4. Description Logs</h4>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                          <div>
-                            <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Short Tagline Description *</label>
-                            <textarea 
-                              required
-                              value={manualDesc}
-                              onChange={(e) => setManualDesc(e.target.value)}
-                              placeholder="Brief product summary displayed under the title..."
-                              rows={3}
-                              className="input bg-space-900 border-white/5 text-white h-20 py-2"
-                            />
-                          </div>
-                          <div>
-                            <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Long Details Description</label>
-                            <textarea 
-                              value={manualLongDesc}
-                              onChange={(e) => setManualLongDesc(e.target.value)}
-                              placeholder="Detailed usage directions, dosage instructions, and specifications..."
-                              rows={3}
-                              className="input bg-space-900 border-white/5 text-white h-20 py-2"
-                            />
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Form Actions */}
-                      <div className="flex gap-4 pt-6 border-t border-white/5">
                         {editingProduct && (
-                          <button 
+                          <button
                             type="button"
                             onClick={handleCancelEditing}
-                            className="w-1/3 bg-white/5 border border-white/10 text-white font-bold h-11 rounded-xl flex items-center justify-center gap-1.5 hover:bg-white/10 transition-colors text-xs font-mono"
+                            className="bg-red-500/10 border border-red-500/20 text-red-400 hover:text-white hover:bg-red-500 px-4 py-1.5 rounded-xl text-xs font-mono transition-all"
                           >
-                            <span>Cancel</span>
+                            Cancel Editing
                           </button>
                         )}
-                        <button 
-                          type="submit"
-                          className={cn(
-                            "font-bold h-11 rounded-xl flex items-center justify-center gap-1.5 transition-all text-xs font-mono",
-                            editingProduct ? "w-2/3 bg-alien-green text-space-950 hover:shadow-glow-green" : "w-full bg-white text-space-950 hover:bg-gray-100"
-                          )}
-                        >
-                          {editingProduct ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-                          <span>{editingProduct ? 'Update Product Details' : 'Publish Product to Live Catalog'}</span>
-                        </button>
                       </div>
-                    </form>
-                  </div>
+
+                      <form onSubmit={handleCreateManualProduct} className="space-y-6 text-xs text-left">
+                        {/* Section 1: Basic Parameters */}
+                        <div className="space-y-4">
+                          <h4 className="text-[10px] font-mono tracking-widest text-alien-green uppercase font-semibold">1. Basic Parameters</h4>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                            <div className="md:col-span-2">
+                              <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Product Name *</label>
+                              <input
+                                type="text"
+                                required
+                                value={manualTitle}
+                                onChange={(e) => setManualTitle(e.target.value)}
+                                placeholder="e.g. Astro Creatine Monohydrate Pure"
+                                className="input bg-space-900 border-white/5 text-white"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">SKU Code</label>
+                              <input
+                                type="text"
+                                value={manualSKU}
+                                onChange={(e) => setManualSKU(e.target.value)}
+                                placeholder="e.g. ASTRO-500G"
+                                className="input bg-space-900 border-white/5 text-white"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
+                            <div>
+                              <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Category</label>
+                              <select
+                                value={manualCategory}
+                                onChange={(e) => setManualCategory(e.target.value)}
+                                className="input focus:outline-none bg-space-900 border-white/5 text-white"
+                              >
+                                <option value="">Select Category</option>
+                                {dbCategories.map((cat: any) => (
+                                  <option key={cat.id} value={cat.id}>{cat.name?.en || cat.name}</option>
+                                ))}
+                              </select>
+                            </div>
+                            <div>
+                              <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Flavor</label>
+                              <select
+                                value={manualFlavorId}
+                                onChange={(e) => setManualFlavorId(e.target.value)}
+                                className="input focus:outline-none bg-space-900 border-white/5 text-white"
+                              >
+                                <option value="">Select Flavor</option>
+                                {dbFlavors.map((flav: any) => (
+                                  <option key={flav.id} value={flav.id}>{flav.name}</option>
+                                ))}
+                              </select>
+                            </div>
+                            <div>
+                              <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Size / Weight Label</label>
+                              <input
+                                type="text"
+                                value={manualSize}
+                                onChange={(e) => setManualSize(e.target.value)}
+                                placeholder="e.g. 500g / 100 Servings"
+                                className="input bg-space-900 border-white/5 text-white"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">GTIN / Barcode</label>
+                              <input
+                                type="text"
+                                value={manualBarcode}
+                                onChange={(e) => setManualBarcode(e.target.value)}
+                                placeholder="e.g. 764000999000"
+                                className="input bg-space-900 border-white/5 text-white"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-3 gap-5">
+                            <div>
+                              <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Sale Price (CHF) *</label>
+                              <input
+                                type="number"
+                                required
+                                value={manualPrice}
+                                onChange={(e) => setManualPrice(parseFloat(e.target.value) || 0)}
+                                className="input bg-space-900 border-white/5 text-white"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Regular Price (Compare At) *</label>
+                              <input
+                                type="number"
+                                required
+                                value={manualBasePrice}
+                                onChange={(e) => setManualBasePrice(parseFloat(e.target.value) || 0)}
+                                className="input bg-space-900 border-white/5 text-white"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Initial Stock Units *</label>
+                              <input
+                                type="number"
+                                required
+                                value={manualStock}
+                                onChange={(e) => setManualStock(parseInt(e.target.value) || 0)}
+                                className="input bg-space-900 border-white/5 text-white"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Section 2: Branding & Media */}
+                        <div className="space-y-4 pt-4 border-t border-white/5">
+                          <h4 className="text-[10px] font-mono tracking-widest text-alien-green uppercase font-semibold">2. Branding & Media</h4>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                            <div className="md:col-span-2">
+                              <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Product Featured Image Link</label>
+                              <input
+                                type="text"
+                                value={manualFeaturedImage}
+                                onChange={(e) => setManualFeaturedImage(e.target.value)}
+                                placeholder="e.g. https://res.cloudinary.com/..."
+                                className="input bg-space-900 border-white/5 text-white"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Brand Color Hex Code</label>
+                              <input
+                                type="text"
+                                value={manualColorCode}
+                                onChange={(e) => setManualColorCode(e.target.value)}
+                                placeholder="e.g. #00FF88"
+                                className="input bg-space-900 border-white/5 text-white"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div>
+                              <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Gallery Images (Comma-separated links)</label>
+                              <input
+                                type="text"
+                                value={manualImageGallery}
+                                onChange={(e) => setManualImageGallery(e.target.value)}
+                                placeholder="url1, url2, url3"
+                                className="input bg-space-900 border-white/5 text-white"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Product Video Link</label>
+                              <input
+                                type="text"
+                                value={manualVideo}
+                                onChange={(e) => setManualVideo(e.target.value)}
+                                placeholder="e.g. https://www.youtube.com/watch?v=..."
+                                className="input bg-space-900 border-white/5 text-white"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Section 3: Key Descriptions */}
+                        <div className="space-y-4 pt-4 border-t border-white/5">
+                          <h4 className="text-[10px] font-mono tracking-widest text-alien-green uppercase font-semibold">3. Key Descriptions</h4>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div>
+                              <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Short Tagline Description *</label>
+                              <textarea
+                                required
+                                value={manualDesc}
+                                onChange={(e) => setManualDesc(e.target.value)}
+                                placeholder="Brief product summary displayed under the title..."
+                                rows={3}
+                                className="input bg-space-900 border-white/5 text-white h-20 py-2"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Full Description Details</label>
+                              <textarea
+                                value={manualLongDesc}
+                                onChange={(e) => setManualLongDesc(e.target.value)}
+                                placeholder="Detailed usage directions, dosage instructions, and specifications..."
+                                rows={3}
+                                className="input bg-space-900 border-white/5 text-white h-20 py-2"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div>
+                              <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Key Benefits (Comma-separated)</label>
+                              <input
+                                type="text"
+                                value={manualKeyBenefits}
+                                onChange={(e) => setManualKeyBenefits(e.target.value)}
+                                placeholder="e.g. Tested In Swiss Labs, GMP Certified, 100% Vegan"
+                                className="input bg-space-900 border-white/5 text-white"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Ingredients</label>
+                              <input
+                                type="text"
+                                value={manualIngredients}
+                                onChange={(e) => setManualIngredients(e.target.value)}
+                                placeholder="e.g. Pure Micronized Beta-Alanine, Stevia Extract"
+                                className="input bg-space-900 border-white/5 text-white"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Section 4: Supplement Facts (nutrition_facts) */}
+                        <div className="space-y-4 pt-4 border-t border-white/5">
+                          <h4 className="text-[10px] font-mono tracking-widest text-alien-green uppercase font-semibold">4. Supplement Facts Panel</h4>
+                          <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
+                            <div className="col-span-2">
+                              <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Serving Size</label>
+                              <input
+                                type="text"
+                                value={manualServingSize}
+                                onChange={(e) => setManualServingSize(e.target.value)}
+                                placeholder="e.g. 5g (1 Scoop)"
+                                className="input bg-space-900 border-white/5 text-white"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Servings</label>
+                              <input
+                                type="number"
+                                value={manualServings}
+                                onChange={(e) => setManualServings(parseInt(e.target.value) || 0)}
+                                className="input bg-space-900 border-white/5 text-white"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Calories</label>
+                              <input
+                                type="number"
+                                value={manualCalories}
+                                onChange={(e) => setManualCalories(parseInt(e.target.value) || 0)}
+                                className="input bg-space-900 border-white/5 text-white"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Protein (g)</label>
+                              <input
+                                type="number"
+                                value={manualProtein}
+                                onChange={(e) => setManualProtein(parseInt(e.target.value) || 0)}
+                                className="input bg-space-900 border-white/5 text-white"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Carbs (g)</label>
+                              <input
+                                type="number"
+                                value={manualCarbs}
+                                onChange={(e) => setManualCarbs(parseInt(e.target.value) || 0)}
+                                className="input bg-space-900 border-white/5 text-white"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Section 5: Usage & Instructions */}
+                        <div className="space-y-4 pt-4 border-t border-white/5">
+                          <h4 className="text-[10px] font-mono tracking-widest text-alien-green uppercase font-semibold">5. How to Use & Precautions</h4>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                            <div>
+                              <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">How to Use Instructions</label>
+                              <textarea
+                                value={manualHowToUse}
+                                onChange={(e) => setManualHowToUse(e.target.value)}
+                                placeholder="Mix 1 scoop in 300ml cold water..."
+                                rows={2}
+                                className="input bg-space-900 border-white/5 text-white h-16 py-2"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Warnings / Cautions</label>
+                              <textarea
+                                value={manualWarnings}
+                                onChange={(e) => setManualWarnings(e.target.value)}
+                                placeholder="Do not exceed recommended dose. Keep away from children..."
+                                rows={2}
+                                className="input bg-space-900 border-white/5 text-white h-16 py-2"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Storage Instructions</label>
+                              <textarea
+                                value={manualStorage}
+                                onChange={(e) => setManualStorage(e.target.value)}
+                                placeholder="Store in a cool dry place, out of direct sunlight..."
+                                rows={2}
+                                className="input bg-space-900 border-white/5 text-white h-16 py-2"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Section 6: FAQ Accordion builder */}
+                        <div className="space-y-4 pt-4 border-t border-white/5">
+                          <h4 className="text-[10px] font-mono tracking-widest text-alien-green uppercase font-semibold">6. Product FAQ List</h4>
+                          <div className="space-y-3">
+                            <div className="flex justify-between items-center">
+                              <span className="text-[10px] font-sans text-gray-400">Add common customer questions for product detail pages</span>
+                              <button
+                                type="button"
+                                onClick={() => setManualFaqs([...manualFaqs, { question: '', answer: '' }])}
+                                className="bg-white/5 hover:bg-white/10 text-white font-mono text-[9px] px-2.5 py-1 rounded-lg border border-white/10"
+                              >
+                                + Add FAQ Item
+                              </button>
+                            </div>
+                            {manualFaqs.map((faq, index) => (
+                              <div key={index} className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-white/[0.02] border border-white/5 rounded-xl">
+                                <div>
+                                  <input
+                                    type="text"
+                                    placeholder="Question"
+                                    value={faq.question}
+                                    onChange={(e) => {
+                                      const newFaqs = [...manualFaqs]
+                                      newFaqs[index].question = e.target.value
+                                      setManualFaqs(newFaqs)
+                                    }}
+                                    className="input bg-space-900 border-white/5 text-white py-1.5 h-8 text-[10px]"
+                                  />
+                                </div>
+                                <div className="flex gap-2 items-center">
+                                  <input
+                                    type="text"
+                                    placeholder="Answer"
+                                    value={faq.answer}
+                                    onChange={(e) => {
+                                      const newFaqs = [...manualFaqs]
+                                      newFaqs[index].answer = e.target.value
+                                      setManualFaqs(newFaqs)
+                                    }}
+                                    className="input bg-space-900 border-white/5 text-white py-1.5 h-8 text-[10px] grow"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => setManualFaqs(manualFaqs.filter((_, idx) => idx !== index))}
+                                    className="text-red-400 hover:text-red-500 font-sans font-bold px-1"
+                                  >
+                                    ✕
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Section 7: SEO Settings */}
+                        <div className="space-y-4 pt-4 border-t border-white/5">
+                          <h4 className="text-[10px] font-mono tracking-widest text-alien-green uppercase font-semibold">7. Search Engine Optimization (SEO)</h4>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                            <div>
+                              <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">SEO Meta Title</label>
+                              <input
+                                type="text"
+                                value={manualSeoTitle}
+                                onChange={(e) => setManualSeoTitle(e.target.value)}
+                                placeholder="SEO Title tag (defaults to product name)"
+                                className="input bg-space-900 border-white/5 text-white"
+                              />
+                            </div>
+                            <div className="md:col-span-2">
+                              <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">SEO Meta Description</label>
+                              <input
+                                type="text"
+                                value={manualSeoDesc}
+                                onChange={(e) => setManualSeoDesc(e.target.value)}
+                                placeholder="SEO Description tag (defaults to short description)"
+                                className="input bg-space-900 border-white/5 text-white"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Section 8: Related Offerings */}
+                        <div className="space-y-4 pt-4 border-t border-white/5">
+                          <h4 className="text-[10px] font-mono tracking-widest text-alien-green uppercase font-semibold">8. Related Offerings (Slugs)</h4>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                            <div>
+                              <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Related Products (Comma-separated slugs)</label>
+                              <input
+                                type="text"
+                                value={manualRelated}
+                                onChange={(e) => setManualRelated(e.target.value)}
+                                placeholder="e.g. astro-creatine, amino-fuel-mango"
+                                className="input bg-space-900 border-white/5 text-white"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Cross-sell Offerings (Slugs)</label>
+                              <input
+                                type="text"
+                                value={manualCrossSells}
+                                onChange={(e) => setManualCrossSells(e.target.value)}
+                                placeholder="e.g. shaker-bottle, wrist-wraps"
+                                className="input bg-space-900 border-white/5 text-white"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Upsell Offerings (Slugs)</label>
+                              <input
+                                type="text"
+                                value={manualUpsells}
+                                onChange={(e) => setManualUpsells(e.target.value)}
+                                placeholder="e.g. triple-stack-bundle"
+                                className="input bg-space-900 border-white/5 text-white"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Section 9: Shipping Parameters */}
+                        <div className="space-y-4 pt-4 border-t border-white/5">
+                          <h4 className="text-[10px] font-mono tracking-widest text-alien-green uppercase font-semibold">9. Shipping Weight & Dimensions</h4>
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+                            <div>
+                              <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Shipping Weight (grams)</label>
+                              <input
+                                type="number"
+                                value={manualWeight}
+                                onChange={(e) => setManualWeight(parseInt(e.target.value) || 0)}
+                                className="input bg-space-900 border-white/5 text-white"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Width (cm)</label>
+                              <input
+                                type="number"
+                                value={manualWidth}
+                                onChange={(e) => setManualWidth(parseInt(e.target.value) || 0)}
+                                className="input bg-space-900 border-white/5 text-white"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Height (cm)</label>
+                              <input
+                                type="number"
+                                value={manualHeight}
+                                onChange={(e) => setManualHeight(parseInt(e.target.value) || 0)}
+                                className="input bg-space-900 border-white/5 text-white"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Depth (cm)</label>
+                              <input
+                                type="number"
+                                value={manualDepth}
+                                onChange={(e) => setManualDepth(parseInt(e.target.value) || 0)}
+                                className="input bg-space-900 border-white/5 text-white"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Section 10: Reviews Injection */}
+                        {!editingProduct && (
+                          <div className="space-y-4 pt-4 border-t border-white/5">
+                            <h4 className="text-[10px] font-mono tracking-widest text-alien-green uppercase font-semibold">10. Launch Review (Optional)</h4>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                              <div>
+                                <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Reviewer Name</label>
+                                <input
+                                  type="text"
+                                  value={manualReviewAuthor}
+                                  onChange={(e) => setManualReviewAuthor(e.target.value)}
+                                  placeholder="e.g. John Doe"
+                                  className="input bg-space-900 border-white/5 text-white"
+                                />
+                              </div>
+                              <div>
+                                <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Rating Score</label>
+                                <select
+                                  value={manualReviewRating}
+                                  onChange={(e) => setManualReviewRating(parseInt(e.target.value) || 5)}
+                                  className="input focus:outline-none bg-space-900 border-white/5 text-white"
+                                >
+                                  <option value={5}>5 Stars</option>
+                                  <option value={4}>4 Stars</option>
+                                  <option value={3}>3 Stars</option>
+                                  <option value={2}>2 Stars</option>
+                                  <option value={1}>1 Star</option>
+                                </select>
+                              </div>
+                              <div className="md:col-span-3">
+                                <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Review Body Text</label>
+                                <textarea
+                                  value={manualReviewBody}
+                                  onChange={(e) => setManualReviewBody(e.target.value)}
+                                  placeholder="Excellent solubility, taste is amazing! Recommending..."
+                                  rows={2}
+                                  className="input bg-space-900 border-white/5 text-white h-16 py-2"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Form Actions */}
+                        <div className="flex gap-4 pt-6 border-t border-white/5">
+                          {editingProduct && (
+                            <button
+                              type="button"
+                              onClick={handleCancelEditing}
+                              className="w-1/3 bg-white/5 border border-white/10 text-white font-bold h-11 rounded-xl flex items-center justify-center gap-1.5 hover:bg-white/10 transition-colors text-xs font-mono"
+                            >
+                              <span>Cancel</span>
+                            </button>
+                          )}
+                          <button
+                            type="submit"
+                            className={cn(
+                              "font-bold h-11 rounded-xl flex items-center justify-center gap-1.5 transition-all text-xs font-mono",
+                              editingProduct ? "w-2/3 bg-alien-green text-space-950 hover:shadow-glow-green" : "w-full bg-white text-space-950 hover:bg-gray-100"
+                            )}
+                          >
+                            {editingProduct ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                            <span>{editingProduct ? 'Update Product Details' : 'Publish Product to Live Catalog'}</span>
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  )}
 
                   {/* Live Catalog Table */}
                   <div className="bg-space-950 border border-white/5 rounded-3xl overflow-hidden text-xs">
@@ -1851,9 +2772,9 @@ export default function AdminPage() {
                           <tr key={p.id}>
                             <td className="p-3">
                               <div className="w-10 h-10 rounded-lg bg-space-900 border border-white/5 overflow-hidden flex items-center justify-center relative flex-shrink-0">
-                                <img 
-                                  src={p.featuredImage || 'https://images.unsplash.com/photo-1579758629938-03607ccdbaba?w=100'} 
-                                  alt="" 
+                                <img
+                                  src={p.featuredImage || 'https://images.unsplash.com/photo-1579758629938-03607ccdbaba?w=100'}
+                                  alt=""
                                   className="object-contain w-full h-full p-1"
                                 />
                               </div>
@@ -1872,7 +2793,7 @@ export default function AdminPage() {
                             <td className="p-3 font-sans font-bold text-alien-green">CHF {p.price.toFixed(2)}</td>
                             <td className="p-3 font-sans">
                               <div className="flex items-center gap-1.5 font-sans">
-                                <button 
+                                <button
                                   onClick={() => handleUpdateStockInline(p.id, p.stock - 10)}
                                   className="w-5 h-5 bg-white/5 border border-white/10 rounded flex items-center justify-center text-[10px] text-gray-400 hover:bg-white/10 hover:text-white"
                                   title="-10 units"
@@ -1883,7 +2804,7 @@ export default function AdminPage() {
                                   "font-bold min-w-[65px] text-center",
                                   p.stock < 50 ? "text-red-400" : "text-alien-green"
                                 )}>{p.stock} units</span>
-                                <button 
+                                <button
                                   onClick={() => handleUpdateStockInline(p.id, p.stock + 10)}
                                   className="w-5 h-5 bg-white/5 border border-white/10 rounded flex items-center justify-center text-[10px] text-gray-400 hover:bg-white/10 hover:text-white"
                                   title="+10 units"
@@ -1894,14 +2815,14 @@ export default function AdminPage() {
                             </td>
                             <td className="p-3 text-right">
                               <div className="flex items-center gap-2 justify-end">
-                                <button 
+                                <button
                                   onClick={() => handleLoadProductForEditing(p)}
                                   className="text-alien-green hover:text-white font-sans text-[10px] flex items-center gap-1 hover:bg-alien-green/10 px-2 py-1 rounded border border-alien-green/20 transition-all"
                                 >
                                   <Edit className="w-3.5 h-3.5" />
                                   <span>Edit</span>
                                 </button>
-                                <button 
+                                <button
                                   onClick={() => handleDeleteProduct(p.id)}
                                   className="text-red-400 hover:text-red-500 font-sans text-[10px] flex items-center gap-1.5 hover:bg-red-500/5 px-2 py-1 rounded transition-all"
                                 >
@@ -1930,7 +2851,7 @@ export default function AdminPage() {
                   {/* Filter Toolbar */}
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-space-950/40 p-4 border border-white/[0.06] rounded-2xl">
                     <div className="flex flex-wrap gap-2 text-xs">
-                      <button 
+                      <button
                         onClick={() => setOrderFilter('All')}
                         className={cn(
                           "px-3 py-1.5 rounded-lg border font-medium transition-all",
@@ -1939,7 +2860,7 @@ export default function AdminPage() {
                       >
                         All Channels
                       </button>
-                      <button 
+                      <button
                         onClick={() => setOrderFilter('Online')}
                         className={cn(
                           "px-3 py-1.5 rounded-lg border font-medium transition-all",
@@ -1948,7 +2869,7 @@ export default function AdminPage() {
                       >
                         Online Store
                       </button>
-                      <button 
+                      <button
                         onClick={() => setOrderFilter('POS Terminal')}
                         className={cn(
                           "px-3 py-1.5 rounded-lg border font-medium transition-all",
@@ -1961,7 +2882,7 @@ export default function AdminPage() {
 
                     <div className="flex items-center gap-2 text-xs">
                       <span className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold">Status:</span>
-                      <select 
+                      <select
                         value={orderStatusFilter}
                         onChange={(e) => setOrderStatusFilter(e.target.value as any)}
                         className="bg-space-900 border border-white/10 text-white rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-alien-green/50 text-xs"
@@ -1977,7 +2898,7 @@ export default function AdminPage() {
 
                   {/* Two-Column split */}
                   <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                    
+
                     {/* Left: Orders Ledger Table */}
                     <div className="lg:col-span-7 bg-space-950/60 border border-white/5 rounded-3xl overflow-hidden">
                       <div className="p-4 border-b border-white/5 bg-white/5">
@@ -2000,7 +2921,7 @@ export default function AdminPage() {
                               .filter(o => orderFilter === 'All' || o.channel === orderFilter)
                               .filter(o => orderStatusFilter === 'All' || o.status === orderStatusFilter)
                               .map((ord) => (
-                                <tr 
+                                <tr
                                   key={ord.id}
                                   onClick={() => setSelectedOrderId(ord.id)}
                                   className={cn(
@@ -2092,7 +3013,7 @@ export default function AdminPage() {
                             {/* Products Details List */}
                             <div className="space-y-3">
                               <span className="text-[9px] text-gray-400 uppercase tracking-wider font-semibold">Purchased Formula Stacks</span>
-                              
+
                               <div className="divide-y divide-white/5 space-y-2.5">
                                 {order.products.map((item, idx) => (
                                   <div key={idx} className="flex justify-between items-center text-xs pt-2">
@@ -2132,13 +3053,13 @@ export default function AdminPage() {
                             <div className="border-t border-white/5 pt-4 space-y-3 text-xs">
                               <div>
                                 <label className="text-[10px] text-gray-400 mb-1 block uppercase tracking-wider font-semibold">Update Shipment Status</label>
-                                <select 
+                                <select
                                   value={order.status}
                                   onChange={(e) => {
                                     const nextStatus = e.target.value as any
                                     // 1. Update in local state
                                     setOrdersList(ordersList.map(o => o.id === order.id ? { ...o, status: nextStatus } : o))
-                                    
+
                                     // 2. Map status to db format
                                     let dbStatus = 'confirmed'
                                     if (nextStatus === 'Pending') dbStatus = 'confirmed'
@@ -2186,7 +3107,7 @@ export default function AdminPage() {
                                 </select>
                               </div>
 
-                              <button 
+                              <button
                                 onClick={() => {
                                   // Mock Receipt Dispatcher / Print Trigger
                                   const win = window.open("", "_blank")
@@ -2311,10 +3232,10 @@ export default function AdminPage() {
                     {/* PO Generator Form */}
                     <form onSubmit={handleCreatePO} className="bg-space-950 border border-white/5 p-5 rounded-2xl space-y-3 text-xs">
                       <h3 className="font-bold text-white font-sans text-[10px] uppercase text-gray-400">3. Issue Purchase Order</h3>
-                      
+
                       <div>
                         <label className="text-[9px] font-sans text-gray-400 block mb-1">Target Supplier</label>
-                        <select 
+                        <select
                           value={poSupplier}
                           onChange={(e) => setPoSupplier(e.target.value)}
                           className="input focus:outline-none bg-space-900 border-white/5 py-1 text-xs"
@@ -2327,20 +3248,20 @@ export default function AdminPage() {
                       <div className="grid grid-cols-2 gap-3">
                         <div>
                           <label className="text-[9px] font-sans text-gray-400 block mb-1">Raw Ingredient</label>
-                          <input 
-                            type="text" 
-                            value={poItem} 
+                          <input
+                            type="text"
+                            value={poItem}
                             onChange={(e) => setPoItem(e.target.value)}
-                            className="input py-1 text-xs" 
+                            className="input py-1 text-xs"
                           />
                         </div>
                         <div>
                           <label className="text-[9px] font-sans text-gray-400 block mb-1">Quantity (kg/units)</label>
-                          <input 
-                            type="number" 
-                            value={poQty} 
+                          <input
+                            type="number"
+                            value={poQty}
                             onChange={(e) => setPoQty(parseInt(e.target.value) || 0)}
-                            className="input py-1 text-xs" 
+                            className="input py-1 text-xs"
                           />
                         </div>
                       </div>
@@ -2402,7 +3323,7 @@ export default function AdminPage() {
                   {/* Active pricing rules list */}
                   <div className="space-y-3">
                     <h3 className="text-xs font-sans font-bold tracking-widest text-muted text-gray-400 uppercase">1. Active Price Rule Matrices</h3>
-                    
+
                     <div className="space-y-3 text-xs">
                       {pricingRules.map((rule) => (
                         <div key={rule.id} className="bg-space-950 border border-white/5 p-4 rounded-xl flex items-center justify-between gap-4">
@@ -2417,7 +3338,7 @@ export default function AdminPage() {
                             <div className="text-gray-400 mt-1 font-sans">Condition: {rule.condition} · Action: <strong className="text-alien-green">{rule.action}</strong></div>
                           </div>
 
-                          <button 
+                          <button
                             onClick={() => togglePricingRule(rule.id)}
                             className="bg-white/5 hover:bg-white/10 text-white font-sans text-[10px] py-1.5 px-3 rounded-lg border border-white/5"
                           >
@@ -2431,12 +3352,12 @@ export default function AdminPage() {
                   {/* New Pricing Rule Form */}
                   <form onSubmit={handleCreatePricingRule} className="bg-space-950 border border-white/5 p-6 rounded-3xl space-y-4 text-xs">
                     <h3 className="text-xs font-sans font-bold tracking-widest text-muted text-gray-400 uppercase">2. Establish Pricing Rule Node</h3>
-                    
+
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div>
                         <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Trigger Event</label>
-                        <input 
-                          type="text" 
+                        <input
+                          type="text"
                           required
                           value={newRuleTrigger}
                           onChange={(e) => setNewRuleTrigger(e.target.value)}
@@ -2447,8 +3368,8 @@ export default function AdminPage() {
 
                       <div>
                         <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Condition Scope</label>
-                        <input 
-                          type="text" 
+                        <input
+                          type="text"
                           required
                           value={newRuleCond}
                           onChange={(e) => setNewRuleCond(e.target.value)}
@@ -2459,8 +3380,8 @@ export default function AdminPage() {
 
                       <div>
                         <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Adjustment Action</label>
-                        <input 
-                          type="text" 
+                        <input
+                          type="text"
                           required
                           value={newRuleAct}
                           onChange={(e) => setNewRuleAct(e.target.value)}
@@ -2470,8 +3391,8 @@ export default function AdminPage() {
                       </div>
                     </div>
 
-                    <button 
-                      type="submit" 
+                    <button
+                      type="submit"
                       className="bg-alien-green text-space-950 font-bold h-11 rounded-xl w-full text-xs uppercase"
                     >
                       Save Pricing Rule
@@ -2499,8 +3420,8 @@ export default function AdminPage() {
                       <form onSubmit={handleCreateCustomer} className="space-y-3 text-xs">
                         <div>
                           <label className="text-[9px] font-sans text-gray-400 mb-1 block">Full Name *</label>
-                          <input 
-                            type="text" 
+                          <input
+                            type="text"
                             required
                             value={newCustName}
                             onChange={(e) => setNewCustName(e.target.value)}
@@ -2511,8 +3432,8 @@ export default function AdminPage() {
 
                         <div>
                           <label className="text-[9px] font-sans text-gray-400 mb-1 block">Email Address *</label>
-                          <input 
-                            type="email" 
+                          <input
+                            type="email"
                             required
                             value={newCustEmail}
                             onChange={(e) => setNewCustEmail(e.target.value)}
@@ -2524,8 +3445,8 @@ export default function AdminPage() {
                         <div className="grid grid-cols-2 gap-2">
                           <div>
                             <label className="text-[9px] font-sans text-gray-400 mb-1 block">Spend (CHF)</label>
-                            <input 
-                              type="number" 
+                            <input
+                              type="number"
                               value={newCustSpend}
                               onChange={(e) => setNewCustSpend(parseFloat(e.target.value) || 0)}
                               className="input bg-space-900 border-white/5 py-1.5"
@@ -2533,8 +3454,8 @@ export default function AdminPage() {
                           </div>
                           <div>
                             <label className="text-[9px] font-sans text-gray-400 mb-1 block">LTV (CHF)</label>
-                            <input 
-                              type="number" 
+                            <input
+                              type="number"
                               value={newCustLtv}
                               onChange={(e) => setNewCustLtv(parseFloat(e.target.value) || 0)}
                               className="input bg-space-900 border-white/5 py-1.5"
@@ -2545,7 +3466,7 @@ export default function AdminPage() {
                         <div className="grid grid-cols-2 gap-2">
                           <div>
                             <label className="text-[9px] font-sans text-gray-400 mb-1 block">Status</label>
-                            <select 
+                            <select
                               value={newCustStatus}
                               onChange={(e) => setNewCustStatus(e.target.value as any)}
                               className="input bg-space-900 border-white/5 py-1.5 text-white"
@@ -2557,8 +3478,8 @@ export default function AdminPage() {
                           </div>
                           <div>
                             <label className="text-[9px] font-sans text-gray-400 mb-1 block">Frequency</label>
-                            <input 
-                              type="text" 
+                            <input
+                              type="text"
                               value={newCustFreq}
                               onChange={(e) => setNewCustFreq(e.target.value)}
                               placeholder="Every 30 Days"
@@ -2570,8 +3491,8 @@ export default function AdminPage() {
                         <div className="grid grid-cols-2 gap-2">
                           <div>
                             <label className="text-[9px] font-sans text-gray-400 mb-1 block">Orders Count</label>
-                            <input 
-                              type="number" 
+                            <input
+                              type="number"
                               value={newCustOrdersCount}
                               onChange={(e) => setNewCustOrdersCount(parseInt(e.target.value) || 1)}
                               className="input bg-space-900 border-white/5 py-1.5"
@@ -2579,8 +3500,8 @@ export default function AdminPage() {
                           </div>
                           <div>
                             <label className="text-[9px] font-sans text-gray-400 mb-1 block">Fitness Goal</label>
-                            <input 
-                              type="text" 
+                            <input
+                              type="text"
                               value={newCustGoal}
                               onChange={(e) => setNewCustGoal(e.target.value)}
                               placeholder="Fat Loss"
@@ -2591,8 +3512,8 @@ export default function AdminPage() {
 
                         <div>
                           <label className="text-[9px] font-sans text-gray-400 mb-1 block">Purchased Products (Comma-separated)</label>
-                          <input 
-                            type="text" 
+                          <input
+                            type="text"
                             value={newCustProducts}
                             onChange={(e) => setNewCustProducts(e.target.value)}
                             placeholder="ASTRO CREATINE (500G), BLAST PRE-WORKOUT (300G)"
@@ -2600,7 +3521,7 @@ export default function AdminPage() {
                           />
                         </div>
 
-                        <button 
+                        <button
                           type="submit"
                           className="w-full bg-white text-space-950 font-bold h-10 rounded-xl hover:bg-gray-100 mt-2"
                         >
@@ -2613,7 +3534,7 @@ export default function AdminPage() {
                     <div className="lg:col-span-8 space-y-3">
                       {customersList.map((c) => (
                         <div key={c.id} className="bg-space-950 border border-white/5 rounded-2xl overflow-hidden text-xs">
-                          <div 
+                          <div
                             onClick={() => setExpandedCustomer(expandedCustomer === c.id ? null : c.id)}
                             className="p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 cursor-pointer hover:bg-white/5 transition-all"
                           >
@@ -2624,7 +3545,7 @@ export default function AdminPage() {
                                   "px-1.5 py-0.5 rounded font-sans text-[8px] font-bold",
                                   c.status === 'VIP' ? "bg-alien-green/10 text-alien-green border border-alien-green/20" : "bg-blue-500/10 text-blue-400 border border-blue-500/20"
                                 )}>{c.status}</span>
-                                
+
                                 {c.ordersCount === 1 ? (
                                   <span className="px-1.5 py-0.5 rounded font-sans text-[8px] font-bold bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
                                     One-Time Buyer
@@ -2668,7 +3589,7 @@ export default function AdminPage() {
                                 </div>
                                 <div>
                                   <span className="text-[8px] text-gray-500 font-sans block uppercase">Quick Action</span>
-                                  <button 
+                                  <button
                                     onClick={async () => {
                                       const ptsInput = prompt("Enter loyalty points to reward:", "100")
                                       if (ptsInput === null) return
@@ -2681,14 +3602,14 @@ export default function AdminPage() {
                                       if (daysInput === null) return
                                       const days = parseInt(daysInput)
                                       const expiryDays = isNaN(days) ? 30 : days
-                                      
+
                                       const expiry = new Date()
                                       expiry.setDate(expiry.getDate() + expiryDays)
                                       const expiryStr = expiry.toISOString()
                                       const expiryLabel = expiry.toLocaleDateString()
 
                                       const supabase = createClient() as any
-                                      
+
                                       // 1. Fetch loyalty account
                                       const { data: accounts } = await supabase
                                         .from('loyalty_accounts')
@@ -2769,7 +3690,7 @@ export default function AdminPage() {
                                 <span className="text-[9px] text-gray-400 font-sans">Select a direct email template action:</span>
                                 <div className="flex gap-2">
                                   {c.ordersCount === 1 && (
-                                    <button 
+                                    <button
                                       onClick={() => handleOpenEmailModal(c, 'win-back')}
                                       className="bg-alien-green text-space-950 font-bold px-3 py-1.5 rounded-xl hover:shadow-glow-green text-[10px] uppercase font-sans flex items-center gap-1"
                                     >
@@ -2777,14 +3698,14 @@ export default function AdminPage() {
                                       <span>Send Win-Back Email</span>
                                     </button>
                                   )}
-                                  <button 
+                                  <button
                                     onClick={() => handleOpenEmailModal(c, 'welcome')}
                                     className="bg-white/5 border border-white/10 text-white px-3 py-1.5 rounded-xl hover:bg-white/10 text-[10px] uppercase font-sans flex items-center gap-1"
                                   >
                                     <Send className="w-3 h-3" />
                                     <span>Welcome discount</span>
                                   </button>
-                                  <button 
+                                  <button
                                     onClick={() => handleOpenEmailModal(c, 'feedback')}
                                     className="bg-white/5 border border-white/10 text-white px-3 py-1.5 rounded-xl hover:bg-white/10 text-[10px] uppercase font-sans flex items-center gap-1"
                                   >
@@ -2822,7 +3743,7 @@ export default function AdminPage() {
                       <div className="space-y-3 text-xs">
                         <div>
                           <label className="text-[10px] font-sans text-gray-400 mb-1 block">Explorer Tier Commission (%)</label>
-                          <input 
+                          <input
                             type="number"
                             value={explorerCommission}
                             onChange={(e) => setExplorerCommission(parseInt(e.target.value) || 0)}
@@ -2831,7 +3752,7 @@ export default function AdminPage() {
                         </div>
                         <div>
                           <label className="text-[10px] font-sans text-gray-400 mb-1 block">Astronaut Tier Commission (%)</label>
-                          <input 
+                          <input
                             type="number"
                             value={astronautCommission}
                             onChange={(e) => setAstronautCommission(parseInt(e.target.value) || 0)}
@@ -2840,14 +3761,14 @@ export default function AdminPage() {
                         </div>
                         <div>
                           <label className="text-[10px] font-sans text-gray-400 mb-1 block">Commander Tier Commission (%)</label>
-                          <input 
+                          <input
                             type="number"
                             value={commanderCommission}
                             onChange={(e) => setCommanderCommission(parseInt(e.target.value) || 0)}
                             className="input bg-space-900 border-white/5 py-1 text-xs"
                           />
                         </div>
-                        <button 
+                        <button
                           onClick={() => alert(`Global affiliate commission tiers successfully updated:\nExplorer: ${explorerCommission}%\nAstronaut: ${astronautCommission}%\nCommander: ${commanderCommission}%`)}
                           className="w-full bg-alien-green text-space-950 font-bold h-9 rounded-xl text-xs uppercase"
                         >
@@ -2859,7 +3780,7 @@ export default function AdminPage() {
                     {/* Requested Coupons moderation (2 cols) */}
                     <div className="lg:col-span-2 space-y-4 text-left">
                       <h3 className="text-xs font-sans font-bold tracking-widest text-gray-400 uppercase">1. Coupon Approvals Ledger</h3>
-                      
+
                       {coupons.map((c) => (
                         <div key={c.code} className="bg-space-950 border border-white/5 p-5 rounded-2xl space-y-4 text-xs">
                           <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-white/5 pb-3 gap-2">
@@ -2885,7 +3806,7 @@ export default function AdminPage() {
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 items-center">
                             <div>
                               <label className="text-[9px] font-sans text-gray-500 block mb-1">Customer Discount %</label>
-                              <input 
+                              <input
                                 type="number"
                                 value={c.discountPct}
                                 onChange={(e) => handleUpdateRates(c.code, parseInt(e.target.value) || 0, c.commissionPct)}
@@ -2895,7 +3816,7 @@ export default function AdminPage() {
 
                             <div>
                               <label className="text-[9px] font-sans text-gray-500 block mb-1">Affiliate Commission %</label>
-                              <input 
+                              <input
                                 type="number"
                                 value={c.commissionPct}
                                 onChange={(e) => handleUpdateRates(c.code, c.discountPct, parseInt(e.target.value) || 0)}
@@ -2910,7 +3831,7 @@ export default function AdminPage() {
 
                             <div className="text-right space-x-1.5">
                               {c.status !== 'APPROVED' && (
-                                <button 
+                                <button
                                   onClick={() => handleApproveCoupon(c.code)}
                                   className="bg-alien-green text-space-950 font-bold px-3 py-1.5 rounded-lg text-[10px]"
                                 >
@@ -2918,7 +3839,7 @@ export default function AdminPage() {
                                 </button>
                               )}
                               {c.status === 'APPROVED' && (
-                                <button 
+                                <button
                                   onClick={() => handleRejectCoupon(c.code)}
                                   className="bg-red-500/10 border border-red-500/20 text-red-500 px-3 py-1.5 rounded-lg text-[10px]"
                                 >
@@ -2951,7 +3872,7 @@ export default function AdminPage() {
                       <tbody className="divide-y divide-white/5">
                         {affiliates.map((aff) => (
                           <React.Fragment key={aff.id}>
-                            <tr 
+                            <tr
                               onClick={() => setExpandedAffiliate(expandedAffiliate === aff.id ? null : aff.id)}
                               className="cursor-pointer hover:bg-white/[0.02] transition-colors"
                             >
@@ -2964,10 +3885,10 @@ export default function AdminPage() {
                                 <span className="text-[10px] text-gray-400 font-sans">{aff.canton}</span>
                               </td>
                               <td className="p-3">
-                                <a 
-                                  href={`https://${aff.social}`} 
-                                  target="_blank" 
-                                  rel="noreferrer" 
+                                <a
+                                  href={`https://${aff.social}`}
+                                  target="_blank"
+                                  rel="noreferrer"
                                   className="text-alien-green hover:underline text-[10px]"
                                   onClick={(e) => e.stopPropagation()}
                                 >
@@ -2986,7 +3907,7 @@ export default function AdminPage() {
                               </td>
                               <td className="p-3 text-right space-x-1" onClick={(e) => e.stopPropagation()}>
                                 {aff.status !== 'APPROVED' && (
-                                  <button 
+                                  <button
                                     onClick={() => handleApproveAffiliate(aff.id)}
                                     className="bg-alien-green text-space-950 font-bold px-2 py-1 rounded text-[10px]"
                                   >
@@ -2994,7 +3915,7 @@ export default function AdminPage() {
                                   </button>
                                 )}
                                 {aff.status === 'APPROVED' && (
-                                  <button 
+                                  <button
                                     onClick={() => handleSuspendAffiliate(aff.id)}
                                     className="bg-red-500/10 border border-red-500/20 text-red-500 px-2 py-1 rounded text-[10px]"
                                   >
@@ -3019,14 +3940,14 @@ export default function AdminPage() {
                                       <div>
                                         <span className="text-[8px] text-gray-500 font-sans block uppercase">Configure Commission (%)</span>
                                         <div className="flex items-center gap-2 mt-1">
-                                          <input 
+                                          <input
                                             type="number"
                                             defaultValue={aff.commissionRate}
                                             id={`rate-${aff.id}`}
                                             className="input bg-space-950 border-white/10 text-white text-[10px] rounded px-1.5 py-0.5 focus:outline-none w-16"
                                             onClick={(e) => e.stopPropagation()}
                                           />
-                                          <button 
+                                          <button
                                             onClick={(e) => {
                                               e.stopPropagation()
                                               const newRate = parseInt((document.getElementById(`rate-${aff.id}`) as HTMLInputElement).value) || 0
@@ -3064,8 +3985,8 @@ export default function AdminPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Affiliate Referral Code</label>
-                        <input 
-                          type="text" 
+                        <input
+                          type="text"
                           required
                           value={adPromoCode}
                           onChange={(e) => setAdPromoCode(e.target.value.toUpperCase())}
@@ -3076,7 +3997,7 @@ export default function AdminPage() {
 
                       <div>
                         <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Target Marketing Channel</label>
-                        <select 
+                        <select
                           value={adChannel}
                           onChange={(e) => setAdChannel(e.target.value)}
                           className="input focus:outline-none bg-space-900 border-white/5 text-white font-sans"
@@ -3088,8 +4009,8 @@ export default function AdminPage() {
                       </div>
                     </div>
 
-                    <button 
-                      type="submit" 
+                    <button
+                      type="submit"
                       disabled={isGeneratingAd}
                       className="w-full bg-alien-green text-space-950 font-bold h-11 rounded-xl flex items-center justify-center gap-1.5 hover:shadow-glow-green"
                     >
@@ -3103,7 +4024,7 @@ export default function AdminPage() {
                     <div className="bg-space-950 border border-white/5 p-5 rounded-2xl text-xs space-y-3 animate-fade-in text-left">
                       <span className="font-sans text-alien-green uppercase font-bold text-[9px]">AI-Generated Copywriting</span>
                       <p className="text-gray-300 leading-relaxed font-sans bg-space-900 border border-white/5 p-4 rounded-xl whitespace-pre-wrap">{adOutput}</p>
-                      <button 
+                      <button
                         onClick={() => {
                           navigator.clipboard.writeText(adOutput)
                           alert('Copywriting copied to clipboard!')
@@ -3140,12 +4061,12 @@ export default function AdminPage() {
                             "bg-yellow-500/10 text-yellow-500"
                           )}>{r.status}</span>
                         </div>
-                        
+
                         <p className="text-gray-300 italic">"{r.comment}"</p>
 
                         <div className="flex justify-end gap-2">
                           {r.status !== 'APPROVED' && (
-                            <button 
+                            <button
                               onClick={() => handleReviewAction(r.id, 'APPROVED')}
                               className="bg-alien-green text-space-950 font-bold px-3 py-1.5 rounded text-[10px]"
                             >
@@ -3153,7 +4074,7 @@ export default function AdminPage() {
                             </button>
                           )}
                           {r.status !== 'SPAM' && (
-                            <button 
+                            <button
                               onClick={() => handleReviewAction(r.id, 'SPAM')}
                               className="bg-red-500/10 border border-red-500/20 text-red-500 px-3 py-1.5 rounded text-[10px]"
                             >
@@ -3187,21 +4108,21 @@ export default function AdminPage() {
                     </div>
 
                     <form onSubmit={handleSaveApiKey} className="flex flex-col sm:flex-row gap-3">
-                      <input 
+                      <input
                         type="password"
                         value={openAiApiKey}
                         onChange={(e) => setOpenAiApiKey(e.target.value)}
                         placeholder="sk-proj-..."
                         className="input bg-space-900 border-white/5 flex-grow font-sans text-[11px]"
                       />
-                      <button 
+                      <button
                         type="submit"
                         className="bg-alien-green text-space-950 font-bold px-5 h-10 rounded-xl hover:shadow-glow-green text-xs font-sans uppercase whitespace-nowrap"
                       >
                         Save API Key
                       </button>
                       {openAiApiKey && (
-                        <button 
+                        <button
                           type="button"
                           onClick={() => {
                             localStorage.removeItem('ufo_openai_api_key')
@@ -3225,7 +4146,7 @@ export default function AdminPage() {
                           <div className="text-gray-400 mt-1 font-sans">Action Node: <strong className="text-alien-green">{a.action}</strong></div>
                         </div>
 
-                        <button 
+                        <button
                           onClick={() => toggleAutomation(a.id)}
                           className={cn(
                             "py-1.5 px-4 rounded-xl border font-sans font-bold transition-all text-[10px] uppercase",
@@ -3252,7 +4173,7 @@ export default function AdminPage() {
           <div className="bg-space-900 border border-white/10 p-6 rounded-3xl max-w-lg w-full text-left space-y-4 animate-scale-up">
             <div className="flex justify-between items-center border-b border-white/5 pb-2">
               <h3 className="font-sans text-base font-bold tracking-tight text-white">Send CRM Email Template</h3>
-              <button 
+              <button
                 onClick={() => setEmailTargetCustomer(null)}
                 className="text-gray-400 hover:text-white font-sans text-sm p-1"
               >
@@ -3270,7 +4191,7 @@ export default function AdminPage() {
 
               <div>
                 <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Choose Email Template</label>
-                <select 
+                <select
                   value={selectedEmailTemplate}
                   onChange={(e) => handleTemplateChange(e.target.value, emailTargetCustomer)}
                   className="input bg-space-950 border-white/5 text-white"
@@ -3284,8 +4205,8 @@ export default function AdminPage() {
 
               <div>
                 <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Email Subject</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   required
                   value={emailSubject}
                   onChange={(e) => setEmailSubject(e.target.value)}
@@ -3295,7 +4216,7 @@ export default function AdminPage() {
 
               <div>
                 <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Email Body Message</label>
-                <textarea 
+                <textarea
                   required
                   value={customEmailBody}
                   onChange={(e) => setCustomEmailBody(e.target.value)}
@@ -3304,8 +4225,8 @@ export default function AdminPage() {
                 />
               </div>
 
-              <button 
-                type="submit" 
+              <button
+                type="submit"
                 className="w-full bg-alien-green text-space-950 font-bold h-11 rounded-xl flex items-center justify-center gap-1.5 hover:shadow-glow-green"
               >
                 <Send className="w-4 h-4" />

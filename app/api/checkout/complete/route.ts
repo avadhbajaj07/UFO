@@ -42,7 +42,71 @@ export async function POST(req: NextRequest) {
     // 1. Get authenticated user profile ID if logged in (supporting cookie vs payload)
     const supabaseUser = createClient();
     const { data: { user } } = await supabaseUser.auth.getUser();
-    const profileId = bodyProfileId || (user ? user.id : null);
+    let profileId = bodyProfileId || (user ? user.id : null);
+
+    // Validate profile existence and auto-create if missing
+    if (profileId) {
+      const { data: profExists } = await supabaseAdmin
+        .from('profiles')
+        .select('id')
+        .eq('id', profileId)
+        .maybeSingle();
+
+      if (!profExists) {
+        console.log(`[CHECKOUT API] Profile ID ${profileId} not found in profiles. Attempting auto-creation.`);
+        const { error: profInsertError } = await supabaseAdmin
+          .from('profiles')
+          .insert({
+            id: profileId,
+            email: email || user?.email || 'customer@ufolabz.ch',
+            full_name: fullName || 'UFO Athlete',
+            role: 'customer'
+          });
+
+        if (profInsertError) {
+          console.error(`[CHECKOUT API] Failed to auto-create profile:`, profInsertError);
+          console.log(`[CHECKOUT API] Falling back to guest checkout`);
+          profileId = null;
+        } else {
+          // Profile created successfully, now create wishlist and loyalty account if missing
+          try {
+            await supabaseAdmin.from('wishlists').insert({ profile_id: profileId });
+
+            // Get default loyalty tier
+            const { data: defaultTier } = await supabaseAdmin
+              .from('loyalty_tiers')
+              .select('id')
+              .order('sort_order', { ascending: true })
+              .limit(1)
+              .maybeSingle();
+
+            if (defaultTier) {
+              const { data: loyaltyAcc } = await supabaseAdmin
+                .from('loyalty_accounts')
+                .insert({
+                  profile_id: profileId,
+                  tier_id: defaultTier.id,
+                  points: 100,
+                  lifetime_points: 100
+                })
+                .select('id')
+                .maybeSingle();
+
+              if (loyaltyAcc) {
+                await supabaseAdmin.from('loyalty_transactions').insert({
+                  account_id: loyaltyAcc.id,
+                  event: 'signup',
+                  points: 100,
+                  description: 'Signup Bonus Points'
+                });
+              }
+            }
+          } catch (e) {
+            console.error('[CHECKOUT API] Error creating dependent loyalty tables:', e);
+          }
+        }
+      }
+    }
 
     // 2. Prevent duplicate insertions using supabaseAdmin to bypass guest RLS select constraints
     const { data: existingOrder } = await supabaseAdmin
