@@ -453,13 +453,14 @@ export default function AdminPage() {
       setLiveProducts(mappedProds)
 
       // 2. Fetch orders
-      const { data: ords } = await supabase
+      const { data: ords, error: ordsError } = await supabase
         .from('orders')
         .select(`
           *,
           items:order_items(*)
         `)
         .order('created_at', { ascending: false })
+      if (ordsError) console.error('Error fetching orders:', ordsError)
       
       const mappedOrds = ords ? ords.map((o: any) => ({
         dbId: o.id,
@@ -478,20 +479,21 @@ export default function AdminPage() {
         vat: Number(o.subtotal) * 0.081,
         total: Number(o.total),
         status: (o.status === 'confirmed' || o.status === 'pending' ? 'Pending' :
-                 o.status === 'packed' ? 'Packed' :
-                 o.status === 'ready_for_pickup' ? 'Ready for Pickup' :
-                 o.status === 'shipped' || o.status === 'completed' ? 'Completed' : 'Pending') as 'Pending' | 'Packed' | 'Ready for Pickup' | 'Completed',
+                 o.status === 'processing' ? 'Packed' :
+                 o.status === 'out_for_delivery' ? 'Ready for Pickup' :
+                 o.status === 'shipped' || o.status === 'delivered' || o.status === 'completed' ? 'Completed' : 'Pending') as 'Pending' | 'Packed' | 'Ready for Pickup' | 'Completed',
         paymentMethod: (o.payment_method === 'twint' ? 'Twint' : (o.payment_method === 'card' ? 'Credit Card' : 'Invoice')) as 'Credit Card' | 'Twint' | 'Cash' | 'Invoice'
       })) : []
       setOrdersList(mappedOrds)
 
       // 3. Fetch affiliates
-      const { data: affs } = await supabase
+      const { data: affs, error: affsError } = await supabase
         .from('affiliates')
         .select(`
           *,
-          profile:profiles(id, email, full_name, phone)
+          profile:profiles!profile_id(id, email, full_name, phone)
         `)
+      if (affsError) console.error('Error fetching affiliates:', affsError)
       
       const mappedAffs = affs ? affs.map((a: any) => ({
         id: a.id,
@@ -879,8 +881,12 @@ export default function AdminPage() {
       .from('affiliates')
       .update({ status: 'approved', approved_at: new Date().toISOString() })
       .eq('id', id)
-    if (error) alert('Failed: ' + error.message)
-    else setActiveTab('dashboard')
+    if (error) {
+      alert('Failed: ' + error.message)
+    } else {
+      setAffiliates(affiliates.map(a => a.id === id ? { ...a, status: 'APPROVED' } : a))
+      alert('Affiliate approved successfully!')
+    }
   }
 
   const handleSuspendAffiliate = async (id: string) => {
@@ -889,8 +895,12 @@ export default function AdminPage() {
       .from('affiliates')
       .update({ status: 'suspended' })
       .eq('id', id)
-    if (error) alert('Failed: ' + error.message)
-    else setActiveTab('dashboard')
+    if (error) {
+      alert('Failed: ' + error.message)
+    } else {
+      setAffiliates(affiliates.map(a => a.id === id ? { ...a, status: 'SUSPENDED' } : a))
+      alert('Affiliate suspended successfully!')
+    }
   }
 
   // Coupon Actions
@@ -900,8 +910,12 @@ export default function AdminPage() {
       .from('coupons')
       .update({ is_active: true })
       .eq('code', code)
-    if (error) alert('Failed: ' + error.message)
-    else setActiveTab('dashboard')
+    if (error) {
+      alert('Failed: ' + error.message)
+    } else {
+      setCoupons(coupons.map(c => c.code === code ? { ...c, status: 'APPROVED' } : c))
+      alert('Coupon approved successfully!')
+    }
   }
 
   const handleRejectCoupon = async (code: string) => {
@@ -910,8 +924,12 @@ export default function AdminPage() {
       .from('coupons')
       .update({ is_active: false })
       .eq('code', code)
-    if (error) alert('Failed: ' + error.message)
-    else setActiveTab('dashboard')
+    if (error) {
+      alert('Failed: ' + error.message)
+    } else {
+      setCoupons(coupons.map(c => c.code === code ? { ...c, status: 'REJECTED' } : c))
+      alert('Coupon code rejected successfully!')
+    }
   }
 
   const handleUpdateRates = async (code: string, discount: number, commission: number) => {
@@ -1413,8 +1431,8 @@ export default function AdminPage() {
                                   // 2. Map status to db format
                                   let dbStatus = 'confirmed'
                                   if (nextStatus === 'Pending') dbStatus = 'confirmed'
-                                  if (nextStatus === 'Packed') dbStatus = 'packed'
-                                  if (nextStatus === 'Ready for Pickup') dbStatus = 'ready_for_pickup'
+                                  if (nextStatus === 'Packed') dbStatus = 'processing'
+                                  if (nextStatus === 'Ready for Pickup') dbStatus = 'out_for_delivery'
                                   if (nextStatus === 'Completed') dbStatus = 'shipped'
 
                                   // 3. Update Supabase
@@ -2048,8 +2066,8 @@ export default function AdminPage() {
                                     // 2. Map status to db format
                                     let dbStatus = 'confirmed'
                                     if (nextStatus === 'Pending') dbStatus = 'confirmed'
-                                    if (nextStatus === 'Packed') dbStatus = 'packed'
-                                    if (nextStatus === 'Ready for Pickup') dbStatus = 'ready_for_pickup'
+                                    if (nextStatus === 'Packed') dbStatus = 'processing'
+                                    if (nextStatus === 'Ready for Pickup') dbStatus = 'out_for_delivery'
                                     if (nextStatus === 'Completed') dbStatus = 'shipped'
 
                                     // 3. Update Supabase

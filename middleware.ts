@@ -29,7 +29,30 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  await supabase.auth.getUser()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  // 1. Admin Panel Access Guard
+  if (request.nextUrl.pathname.startsWith('/admin')) {
+    if (!user) {
+      return NextResponse.redirect(new URL('/login?redirect=/admin', request.url))
+    }
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+
+    if (!profile || (profile.role !== 'admin' && profile.role !== 'super_admin')) {
+      return NextResponse.redirect(new URL('/', request.url))
+    }
+  }
+
+  // 2. Affiliate Portal Access Guard
+  if (request.nextUrl.pathname.startsWith('/affiliate')) {
+    if (!user) {
+      return NextResponse.redirect(new URL('/login?redirect=/affiliate', request.url))
+    }
+  }
 
   return response
 }

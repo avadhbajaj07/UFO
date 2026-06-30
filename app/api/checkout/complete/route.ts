@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { createClient } from '@/lib/supabase/server';
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { emailService } from '@/lib/email/email';
+
+const supabaseAdmin = createSupabaseClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 export async function POST(req: NextRequest) {
   try {
@@ -32,10 +38,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const supabase = createClient() as any;
+    // 1. Get authenticated user profile ID if logged in
+    const supabaseUser = createClient();
+    const { data: { user } } = await supabaseUser.auth.getUser();
+    const profileId = user ? user.id : null;
 
-    // 1. Prevent duplicate insertions - check if the order number already exists
-    const { data: existingOrder } = await supabase
+    // 2. Prevent duplicate insertions using supabaseAdmin to bypass guest RLS select constraints
+    const { data: existingOrder } = await supabaseAdmin
       .from('orders')
       .select('id, order_number')
       .eq('order_number', orderNumber)
@@ -51,10 +60,10 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // 2. Resolve coupon code if present
+    // 3. Resolve coupon code if present
     let couponId = null;
     if (couponCode) {
-      const { data: couponData } = await supabase
+      const { data: couponData } = await supabaseAdmin
         .from('coupons')
         .select('id')
         .eq('code', couponCode.trim().toUpperCase())
@@ -64,11 +73,49 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 3. Generate UUID for the order on the server side to bypass RLS select-returning constraint
-    const newOrderId = crypto.randomUUID();
+    // 4. Server-Side Price & Total Re-Validation
+    let validatedSubtotal = 0;
+    const orderItemsToInsert = [];
 
+    for (const item of items) {
+      const variantId = item.variantId || item.variant?.id;
+      if (!variantId) {
+        throw new Error('Product variant ID is missing.');
+      }
+
+      // Fetch the true price from the database
+      const { data: dbVariant, error: variantError } = await supabaseAdmin
+        .from('product_variants')
+        .select('price, sku, name, product_id')
+        .eq('id', variantId)
+        .single();
+
+      if (variantError || !dbVariant) {
+        throw new Error(`Invalid variant database lookup for ID: ${variantId}`);
+      }
+
+      const unitPrice = Number(dbVariant.price);
+      const quantity = Number(item.quantity || 1);
+      validatedSubtotal += unitPrice * quantity;
+
+      orderItemsToInsert.push({
+        product_id: dbVariant.product_id,
+        variant_id: variantId,
+        product_name: { en: item.name || 'UFO Supplement' },
+        variant_name: item.variantName || dbVariant.name || 'Standard size',
+        sku: dbVariant.sku || 'N/A',
+        quantity: quantity,
+        unit_price: unitPrice,
+        total: unitPrice * quantity,
+      });
+    }
+
+    // Apply shipping costs on server side (Free shipping threshold: 99 CHF)
+    const serverShippingAmount = validatedSubtotal >= 99 ? 0 : 9.00;
+    const serverTotal = Math.max(0, validatedSubtotal - Number(discountAmount || 0) + serverShippingAmount);
+
+    const newOrderId = crypto.randomUUID();
     const estimatedDeliveryDate = new Date();
-    // Default priority to 1 day delivery, standard to 3 days delivery
     estimatedDeliveryDate.setDate(
       estimatedDeliveryDate.getDate() + (shippingMethod === 'priority' ? 1 : 3)
     );
@@ -76,6 +123,7 @@ export async function POST(req: NextRequest) {
     const orderInsertData = {
       id: newOrderId,
       order_number: orderNumber,
+      profile_id: profileId, // Links order to authenticated dashboard history
       guest_email: email,
       status: 'confirmed',
       shipping_address: {
@@ -104,10 +152,10 @@ export async function POST(req: NextRequest) {
             zipCode: shippingAddress.zipCode || '',
             canton: shippingAddress.canton || '',
           },
-      subtotal: Number(subtotal),
-      discount_amount: Number(discountAmount),
-      shipping_amount: Number(shippingAmount),
-      total: Number(total),
+      subtotal: validatedSubtotal,
+      discount_amount: Number(discountAmount || 0),
+      shipping_amount: serverShippingAmount,
+      total: serverTotal,
       payment_method: paymentMethod || 'twint',
       paid_at: new Date().toISOString(),
       coupon_id: couponId,
@@ -118,8 +166,8 @@ export async function POST(req: NextRequest) {
       locale: 'en',
     };
 
-    // Run plain insert without .select() or .single() to avoid RLS select restrictions on anon client
-    const { error: orderError } = await supabase
+    // Insert order record
+    const { error: orderError } = await supabaseAdmin
       .from('orders')
       .insert(orderInsertData);
 
@@ -128,62 +176,41 @@ export async function POST(req: NextRequest) {
       throw new Error(`Database error saving order: ${orderError.message}`);
     }
 
-    // 4. Insert order items
-    const orderItemsToInsert = items.map((item: any) => ({
+    // Insert order items
+    const itemsToInsertWithOrderId = orderItemsToInsert.map((item) => ({
+      ...item,
       order_id: newOrderId,
-      product_id: item.productId || item.variant?.product_id || item.variant?.product?.id,
-      variant_id: item.variantId || item.variant?.id,
-      product_name: { en: item.name || item.variant?.product?.name?.en || 'UFO Supplement' },
-      variant_name: item.variantName || item.variant?.name || 'Standard size',
-      sku: item.sku || item.variant?.sku || 'N/A',
-      quantity: Number(item.quantity || 1),
-      unit_price: Number(item.price || item.variant?.price || 0),
-      total: Number((item.price || item.variant?.price || 0) * (item.quantity || 1)),
     }));
 
-    const { error: itemsError } = await supabase
+    const { error: itemsError } = await supabaseAdmin
       .from('order_items')
-      .insert(orderItemsToInsert);
+      .insert(itemsToInsertWithOrderId);
 
     if (itemsError) {
       console.error('❌ Error saving order items to Supabase:', itemsError);
-      // Delete the created order to maintain transactional integrity
-      await supabase.from('orders').delete().eq('id', newOrderId);
+      await supabaseAdmin.from('orders').delete().eq('id', newOrderId);
       throw new Error(`Database error saving order items: ${itemsError.message}`);
     }
 
     console.log(`[CHECKOUT API] Successfully persisted order: ${orderNumber} in database.`);
 
-    // Construct mock order object containing payload values to pass to emailService
     const emailOrderData = {
       ...orderInsertData,
       email: email,
       created_at: orderInsertData.paid_at,
     };
 
-    // 5. Send emails in parallel asynchronously
-    // Catch errors inside each to log them and not halt success response.
+    // Send emails in background
     const emailPromises = [
-      emailService.sendOrderConfirmation(emailOrderData, orderItemsToInsert).then((res) => {
-        if (!res.success) {
-          console.error(`[CHECKOUT API] Failed to send customer confirmation: ${res.error}`);
-        } else {
-          console.log(`[CHECKOUT API] Customer confirmation sent: ${res.id}`);
-        }
+      emailService.sendOrderConfirmation(emailOrderData, itemsToInsertWithOrderId).then((res) => {
+        if (!res.success) console.error(`[CHECKOUT API] Customer confirmation fail: ${res.error}`);
       }),
-      emailService.sendAdminNotification(emailOrderData, orderItemsToInsert).then((res) => {
-        if (!res.success) {
-          console.error(`[CHECKOUT API] Failed to send admin notification: ${res.error}`);
-        } else {
-          console.log(`[CHECKOUT API] Admin notification sent: ${res.id}`);
-        }
+      emailService.sendAdminNotification(emailOrderData, itemsToInsertWithOrderId).then((res) => {
+        if (!res.success) console.error(`[CHECKOUT API] Admin notification fail: ${res.error}`);
       }),
     ];
 
-    // Trigger sending immediately in the background without blocking the client response
-    Promise.allSettled(emailPromises).then(() => {
-      console.log(`[CHECKOUT API] All email triggers resolved.`);
-    });
+    Promise.allSettled(emailPromises);
 
     return NextResponse.json({
       success: true,
@@ -194,7 +221,7 @@ export async function POST(req: NextRequest) {
   } catch (err: any) {
     console.error('❌ Error in checkout API handler:', err);
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : 'Internal Server Error' },
+      { error: 'An error occurred during order validation.' },
       { status: 500 }
     );
   }

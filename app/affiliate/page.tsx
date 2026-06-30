@@ -110,6 +110,13 @@ export default function AffiliatePage() {
         setWalletBalance(Number(aff.balance))
         setCustomSlug(aff.code)
         
+        // Load stored details
+        if (aff.payout_method) setWithdrawalMethod(aff.payout_method)
+        if (aff.payout_details?.twint_phone) setTwintPhone(aff.payout_details.twint_phone)
+        if (aff.payout_details?.bank_iban) setBankIban(aff.payout_details.bank_iban)
+        if (aff.payout_details?.website) setWebsite(aff.payout_details.website)
+        if (aff.payout_details?.social_link) setSocialLink(aff.payout_details.social_link)
+        
         // Fetch commissions
         const { data: comms } = await supabase
           .from('affiliate_commissions')
@@ -145,7 +152,15 @@ export default function AffiliatePage() {
           .select('*')
           .eq('affiliate_id', aff.id)
         if (coups) {
-          setCouponsList(coups)
+          setCouponsList(coups.map((c: any) => ({
+            code: c.code,
+            affiliateId: c.affiliate_id,
+            discountPct: Number(c.value),
+            commissionPct: Number(aff.commission_rate),
+            status: c.is_active ? 'APPROVED' : 'PENDING',
+            salesCount: c.uses_count || 0,
+            totalCommission: Number(c.uses_count || 0) * (Number(aff.commission_rate) / 100) * 45 // dynamic mock sum
+          })))
         }
       } else {
         setAffiliateRecord(null)
@@ -186,7 +201,7 @@ export default function AffiliatePage() {
       .insert({
         profile_id: user.id,
         code: finalCode,
-        status: 'approved',
+        status: 'pending',
         payout_method: withdrawalMethod,
         payout_details: { bank_iban: bankIban, twint_phone: twintPhone, website, canton, social_link: socialLink },
         commission_rate: 10.00
@@ -198,7 +213,7 @@ export default function AffiliatePage() {
       alert('Failed to register as affiliate: ' + error.message)
     } else {
       setAffiliateRecord(data)
-      alert('Successfully registered as UFO LABZ Orbital Partner! Welcome aboard!')
+      alert('Your UFO LABZ affiliate application has been submitted successfully! It is now pending admin approval.')
     }
   }
 
@@ -253,11 +268,11 @@ export default function AffiliatePage() {
       .from('coupons')
       .insert({
         code,
-        discount_type: 'percentage',
-        discount_value: 10,
+        type: 'percentage',
+        value: 10,
         affiliate_id: affiliateRecord.id,
-        is_active: true,
-        description: `10% discount coupon requested by partner ${name}`
+        is_active: false, // requires admin approval to activate!
+        description: `10% discount coupon requested by partner ${profile?.full_name || user?.email?.split('@')[0]}`
       })
       .select()
       .single()
@@ -265,9 +280,18 @@ export default function AffiliatePage() {
     if (error) {
       alert('Failed to request coupon: ' + error.message)
     } else {
-      setCouponsList([...couponsList, data])
+      const mappedNewCoup = {
+        code: data.code,
+        affiliateId: data.affiliate_id,
+        discountPct: Number(data.value),
+        commissionPct: Number(affiliateRecord.commission_rate),
+        status: data.is_active ? 'APPROVED' : 'PENDING',
+        salesCount: data.uses_count || 0,
+        totalCommission: 0.00
+      }
+      setCouponsList([...couponsList, mappedNewCoup])
       setNewCouponCode('')
-      alert(`Promo code "${code}" has been successfully created and linked to your affiliate profile!`)
+      alert(`Promo code "${code}" has been requested successfully! It is now pending admin approval.`)
     }
   }
 
@@ -544,7 +568,52 @@ export default function AffiliatePage() {
               </button>
             </form>
           </section>
+        </div>
+      ) : affiliateRecord.status !== 'approved' ? (
+        
+        // ─── STATE 1.5: APPLICATION PENDING REVIEW ───
+        <div className="max-w-2xl mx-auto px-4 py-20 text-center space-y-8 animate-fade-in">
+          <div className="w-20 h-20 rounded-full bg-yellow-500/10 border border-yellow-500/30 flex items-center justify-center text-3xl mx-auto animate-pulse">
+            ⏳
+          </div>
+          
+          <div className="space-y-3">
+            <span className="text-xs text-yellow-400 font-mono uppercase tracking-widest bg-yellow-500/10 border border-yellow-500/20 px-3 py-1 rounded-full">
+              Status: Pending Approval
+            </span>
+            <h2 className="font-display text-4xl tracking-wider text-white uppercase mt-2">
+              APPLICATION UNDER REVIEW
+            </h2>
+            <p className="text-gray-300 text-sm leading-relaxed max-w-md mx-auto">
+              Welcome aboard, recruit! Your affiliate partner profile has been registered and is currently queueing for verification by the UFO command deck. We will notify you once your custom referral code and Tier permissions are activated.
+            </p>
+          </div>
 
+          <div className="bg-space-900 border border-white/5 p-6 rounded-2xl text-left space-y-4 max-w-md mx-auto text-xs">
+            <h4 className="font-mono text-white text-[10px] uppercase border-b border-white/5 pb-2 text-gray-400">Submitted Cargo Details</h4>
+            <div className="space-y-2 font-mono">
+              <div className="flex justify-between">
+                <span className="text-gray-500 font-sans">Canton Location:</span>
+                <span className="text-white font-bold">{affiliateRecord.payout_details?.canton || 'Zurich'}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500 font-sans">Withdrawal Method:</span>
+                <span className="text-white font-bold uppercase">{affiliateRecord.payout_method || 'TWINT'}</span>
+              </div>
+              {affiliateRecord.payout_details?.social_link && (
+                <div className="flex justify-between">
+                  <span className="text-gray-500 font-sans">Social Media:</span>
+                  <span className="text-white font-bold">{affiliateRecord.payout_details.social_link}</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="pt-4 flex gap-4 justify-center">
+            <Link href="/" className="bg-white/5 border border-white/10 hover:bg-white/10 text-white font-bold px-6 py-3 rounded-xl text-xs transition-colors">
+              Back to Store
+            </Link>
+          </div>
         </div>
       ) : (
         
@@ -559,8 +628,8 @@ export default function AffiliatePage() {
                   🤝
                 </div>
                 <div className="text-left text-xs">
-                  <div className="font-bold text-white max-w-[140px] truncate">{name || 'Maruti Partner'}</div>
-                  <span className="text-[10px] text-alien-green font-mono uppercase font-bold">GALAXY ELITE PARTNER</span>
+                  <div className="font-bold text-white max-w-[140px] truncate">{profile?.full_name || user?.email?.split('@')[0] || 'Partner'}</div>
+                  <span className="text-[10px] text-alien-green font-mono uppercase font-bold">{affiliateRecord?.commission_tier ? `${affiliateRecord.commission_tier.toUpperCase()} PARTNER` : 'STANDARD PARTNER'}</span>
                 </div>
               </div>
 
@@ -604,8 +673,7 @@ export default function AffiliatePage() {
                 {activeTab === 'dashboard' && (
                   <div className="space-y-6 animate-fade-in">
                     <div>
-                      <h2 className="font-display text-3xl tracking-wide uppercase text-white">CREW METRICS</h2>
-                      <p className="text-xs text-gray-400">Welcome, {name || 'Maruti Partner'}. Your referral parameters are active.</p>
+                                 <p className="text-xs text-gray-400">Welcome, {profile?.full_name || user?.email?.split('@')[0] || 'Partner'}. Your referral parameters are active.</p>
                     </div>
 
                     {/* Stats grid */}
@@ -613,7 +681,7 @@ export default function AffiliatePage() {
                       <div className="bg-space-950 border border-white/5 p-4 rounded-2xl">
                         <span className="text-[10px] font-mono text-gray-400 uppercase font-bold">Lifetime Earnings</span>
                         <div className="text-xl font-mono font-bold text-white mt-1">
-                          {formatPrice(commissionsList.reduce((acc, c) => acc + c.comm, 0) + 390.00)}
+                          {formatPrice(commissionsList.reduce((acc, c) => acc + c.comm, 0))}
                         </div>
                         <span className="text-[9px] text-gray-500">Paid + pending commissions</span>
                       </div>
@@ -626,13 +694,17 @@ export default function AffiliatePage() {
 
                       <div className="bg-space-950 border border-white/5 p-4 rounded-2xl">
                         <span className="text-[10px] font-mono text-gray-400 uppercase font-bold">Today's Clicks</span>
-                        <div className="text-xl font-mono font-bold text-white mt-1">142 Clicks</div>
+                        <div className="text-xl font-mono font-bold text-white mt-1">{affiliateRecord?.total_clicks || 0} Clicks</div>
                         <span className="text-[9px] text-gray-500">Click tracking index</span>
                       </div>
 
                       <div className="bg-space-950 border border-white/5 p-4 rounded-2xl">
                         <span className="text-[10px] font-mono text-gray-400 uppercase font-bold">Conversion Rate</span>
-                        <div className="text-xl font-mono font-bold text-white mt-1">4.8%</div>
+                        <div className="text-xl font-mono font-bold text-white mt-1">
+                          {affiliateRecord?.total_clicks && affiliateRecord.total_clicks > 0
+                            ? ((affiliateRecord.total_orders / affiliateRecord.total_clicks) * 100).toFixed(1)
+                            : '0.0'}%
+                        </div>
                         <span className="text-[9px] text-gray-500">Average sales conversion</span>
                       </div>
                     </div>
@@ -785,7 +857,7 @@ export default function AffiliatePage() {
                     {/* Coupons list */}
                     <div className="space-y-3">
                       <h4 className="text-xs font-mono font-bold tracking-widest text-muted text-gray-400 uppercase">My Coupons</h4>
-                      {couponsList.filter(c => c.affiliateId === 'aff-1').map((coup) => (
+                      {couponsList.map((coup) => (
                         <div key={coup.code} className="bg-space-950 border border-white/5 p-4 rounded-xl flex items-center justify-between text-xs font-mono">
                           <div>
                             <div className="font-bold text-sm text-white">{coup.code}</div>
@@ -898,19 +970,19 @@ export default function AffiliatePage() {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div className="bg-space-950 border border-white/5 p-4 rounded-2xl text-center">
                         <span className="text-[10px] font-mono text-gray-400 uppercase">Available Balance</span>
-                        <div className="text-3xl font-mono font-bold text-alien-green mt-1">CHF 850.00</div>
+                        <div className="text-3xl font-mono font-bold text-alien-green mt-1">{formatPrice(walletBalance)}</div>
                         <span className="text-[9px] text-gray-500">Eligible for payouts</span>
                       </div>
 
                       <div className="bg-space-950 border border-white/5 p-4 rounded-2xl text-center">
                         <span className="text-[10px] font-mono text-gray-400 uppercase">Pending Balance</span>
-                        <div className="text-3xl font-mono font-bold text-yellow-500 mt-1">CHF 17.25</div>
+                        <div className="text-3xl font-mono font-bold text-yellow-500 mt-1">{formatPrice(Number(affiliateRecord?.pending_commission || 0))}</div>
                         <span className="text-[9px] text-gray-500">Awaiting validation</span>
                       </div>
 
                       <div className="bg-space-950 border border-white/5 p-4 rounded-2xl text-center">
                         <span className="text-[10px] font-mono text-gray-400 uppercase">Lifetime Paid</span>
-                        <div className="text-3xl font-mono font-bold text-white mt-1">CHF 390.00</div>
+                        <div className="text-3xl font-mono font-bold text-white mt-1">{formatPrice(Number(affiliateRecord?.paid_commission || 0))}</div>
                         <span className="text-[9px] text-gray-500">Total payouts processed</span>
                       </div>
                     </div>
