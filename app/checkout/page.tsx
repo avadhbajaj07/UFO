@@ -12,6 +12,7 @@ import { useCart } from '@/hooks/useCart'
 import { formatPrice } from '@/lib/utils/pricing'
 import { getLocalizedField } from '@/types'
 import { cn } from '@/lib/utils'
+import { useAuthStore } from '@/store/auth'
 
 // Swiss Cantons for dropdown
 const CANTONS = [
@@ -24,10 +25,19 @@ const CANTONS = [
 export default function CheckoutPage() {
   const router = useRouter()
   const { items, breakdown, addItem, removeItem, updateQuantity, clearCart } = useCart()
+  const { user } = useAuthStore()
 
   // States
   const [email, setEmail] = useState('')
   const [fullName, setFullName] = useState('')
+
+  // Prefill details from auth if user is logged in
+  useEffect(() => {
+    if (user) {
+      if (!email) setEmail(user.email)
+      if (!fullName) setFullName(user.full_name || '')
+    }
+  }, [user])
   const [phone, setPhone] = useState('')
   const [address, setAddress] = useState('')
   const [address2, setAddress2] = useState('')
@@ -185,6 +195,7 @@ export default function CheckoutPage() {
 
     const orderPayload = {
       orderNumber: orderId,
+      profileId: user?.id || null, // send profile ID if logged in
       email,
       fullName,
       phone,

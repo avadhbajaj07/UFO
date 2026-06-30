@@ -15,6 +15,7 @@ export async function POST(req: NextRequest) {
 
     const {
       orderNumber,
+      profileId: bodyProfileId,
       email,
       fullName,
       phone,
@@ -38,10 +39,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 1. Get authenticated user profile ID if logged in
+    // 1. Get authenticated user profile ID if logged in (supporting cookie vs payload)
     const supabaseUser = createClient();
     const { data: { user } } = await supabaseUser.auth.getUser();
-    const profileId = user ? user.id : null;
+    const profileId = bodyProfileId || (user ? user.id : null);
 
     // 2. Prevent duplicate insertions using supabaseAdmin to bypass guest RLS select constraints
     const { data: existingOrder } = await supabaseAdmin

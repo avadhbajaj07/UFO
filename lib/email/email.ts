@@ -11,6 +11,12 @@ import {
   RefundProcessed,
   ReviewRequest,
   NewsletterWelcome,
+  AffiliateApproval,
+  OrderStatusChange,
+  LoyaltyReward,
+  AffiliateRateChange,
+  AbandonedCartEmail,
+  ReplenishmentEmail,
 } from '@/components/email/OtherTemplates';
 
 // Instantiate the Resend client with safe fallback for dev environments
@@ -428,6 +434,182 @@ export const emailService = {
       return { success: true, id: data?.id };
     } catch (err) {
       return logEmailError('sendNewsletterWelcome', err);
+    }
+  },
+
+  /**
+   * Affiliate Approval Notice
+   */
+  async sendAffiliateApproval(email: string, partnerName: string, referralCode: string, commissionRate: number): Promise<EmailSendResult> {
+    try {
+      if (!resend) {
+        console.log(`[MOCK EMAIL] sendAffiliateApproval to ${email} for partner ${partnerName}`);
+        return { success: true, id: 'mock-aff-approve-id' };
+      }
+
+      const { data, error } = await resend.emails.send({
+        from: FROM_EMAIL,
+        to: email,
+        replyTo: 'hello@ufolabz.com',
+        subject: 'Affiliate Program Approved 🤝',
+        react: React.createElement(AffiliateApproval, {
+          partnerName,
+          referralCode,
+          commissionRate,
+        }),
+      });
+
+      if (error) throw new Error(error.message);
+      return { success: true, id: data?.id };
+    } catch (err) {
+      return logEmailError('sendAffiliateApproval', err);
+    }
+  },
+
+  /**
+   * Order Status Update Notice
+   */
+  async sendOrderStatusChange(email: string, customerName: string, orderNumber: string, oldStatus: string, newStatus: string): Promise<EmailSendResult> {
+    try {
+      if (!resend) {
+        console.log(`[MOCK EMAIL] sendOrderStatusChange to ${email} for order #${orderNumber} (${oldStatus} -> ${newStatus})`);
+        return { success: true, id: 'mock-status-change-id' };
+      }
+
+      const { data, error } = await resend.emails.send({
+        from: FROM_EMAIL,
+        to: email,
+        replyTo: 'hello@ufolabz.com',
+        subject: `Order #${orderNumber} Status Update 🛰️`,
+        react: React.createElement(OrderStatusChange, {
+          orderNumber,
+          customerName,
+          oldStatus,
+          newStatus,
+        }),
+      });
+
+      if (error) throw new Error(error.message);
+      return { success: true, id: data?.id };
+    } catch (err) {
+      return logEmailError('sendOrderStatusChange', err);
+    }
+  },
+
+  /**
+   * Loyalty Points Reward Notice
+   */
+  async sendLoyaltyReward(email: string, customerName: string, points: number, expiryDate: string): Promise<EmailSendResult> {
+    try {
+      if (!resend) {
+        console.log(`[MOCK EMAIL] sendLoyaltyReward to ${email}: +${points} pts expiring ${expiryDate}`);
+        return { success: true, id: 'mock-loyalty-reward-id' };
+      }
+
+      const { data, error } = await resend.emails.send({
+        from: FROM_EMAIL,
+        to: email,
+        replyTo: 'hello@ufolabz.com',
+        subject: 'Loyalty Points Credited 🛸',
+        react: React.createElement(LoyaltyReward, {
+          customerName,
+          points,
+          expiryDate,
+        }),
+      });
+
+      if (error) throw new Error(error.message);
+      return { success: true, id: data?.id };
+    } catch (err) {
+      return logEmailError('sendLoyaltyReward', err);
+    }
+  },
+
+  /**
+   * Affiliate Commission Rate Changed Notice
+   */
+  async sendAffiliateRateChange(email: string, partnerName: string, oldRate: number, newRate: number): Promise<EmailSendResult> {
+    try {
+      if (!resend) {
+        console.log(`[MOCK EMAIL] sendAffiliateRateChange to ${email}: ${oldRate}% -> ${newRate}%`);
+        return { success: true, id: 'mock-aff-rate-change-id' };
+      }
+
+      const { data, error } = await resend.emails.send({
+        from: FROM_EMAIL,
+        to: email,
+        replyTo: 'hello@ufolabz.com',
+        subject: 'Commission Structure Changed 📈',
+        react: React.createElement(AffiliateRateChange, {
+          partnerName,
+          oldRate,
+          newRate,
+        }),
+      });
+
+      if (error) throw new Error(error.message);
+      return { success: true, id: data?.id };
+    } catch (err) {
+      return logEmailError('sendAffiliateRateChange', err);
+    }
+  },
+
+  /**
+   * Abandoned Cart Notification
+   */
+  async sendAbandonedCart(email: string, customerName: string, cartItems: any[], checkoutUrl: string, discountCode?: string): Promise<EmailSendResult> {
+    try {
+      if (!resend) {
+        console.log(`[MOCK EMAIL] sendAbandonedCart to ${email} for checkoutUrl ${checkoutUrl}`);
+        return { success: true, id: 'mock-abandoned-cart-id' };
+      }
+
+      const { data, error } = await resend.emails.send({
+        from: FROM_EMAIL,
+        to: email,
+        replyTo: 'hello@ufolabz.com',
+        subject: 'You left something behind at UFO LABZ 🛸',
+        react: React.createElement(AbandonedCartEmail, {
+          customerName,
+          cartItems,
+          checkoutUrl,
+          discountCode,
+        }),
+      });
+
+      if (error) throw new Error(error.message);
+      return { success: true, id: data?.id };
+    } catch (err) {
+      return logEmailError('sendAbandonedCart', err);
+    }
+  },
+
+  /**
+   * Post-Purchase Replenishment Notification
+   */
+  async sendReplenishment(email: string, customerName: string, productName: string, reorderUrl: string): Promise<EmailSendResult> {
+    try {
+      if (!resend) {
+        console.log(`[MOCK EMAIL] sendReplenishment to ${email} for product ${productName}`);
+        return { success: true, id: 'mock-replenish-id' };
+      }
+
+      const { data, error } = await resend.emails.send({
+        from: FROM_EMAIL,
+        to: email,
+        replyTo: 'hello@ufolabz.com',
+        subject: `Running low on ${productName}? 🚀`,
+        react: React.createElement(ReplenishmentEmail, {
+          customerName,
+          productName,
+          reorderUrl,
+        }),
+      });
+
+      if (error) throw new Error(error.message);
+      return { success: true, id: data?.id };
+    } catch (err) {
+      return logEmailError('sendReplenishment', err);
     }
   },
 };

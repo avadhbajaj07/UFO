@@ -24,7 +24,7 @@ function LoginForm() {
     setError(null)
     setMessage(null)
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    const { data: { user }, error } = await supabase.auth.signInWithPassword({ email, password })
 
     if (error) {
       setError(error.message === '{}' ? 'An unexpected authentication error occurred. Please try again.' : error.message)
@@ -32,8 +32,38 @@ function LoginForm() {
       return
     }
 
+    if (user) {
+      // Check if redirect search param is set and isn't just root
+      const hasCustomRedirect = searchParams.get('redirect') && searchParams.get('redirect') !== '/'
+      if (hasCustomRedirect) {
+        router.push(redirect)
+      } else {
+        // Query user parameters to route to correct dashboard
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .single() as any
+
+        const { data: affiliate } = await supabase
+          .from('affiliates')
+          .select('id')
+          .eq('profile_id', user.id)
+          .maybeSingle()
+
+        if (profile && (profile.role === 'admin' || profile.role === 'super_admin')) {
+          router.push('/admin')
+        } else if (affiliate) {
+          router.push('/affiliate')
+        } else {
+          router.push('/account')
+        }
+      }
+    } else {
+      router.push(redirect)
+    }
+
     setLoading(false)
-    router.push(redirect)
     router.refresh()
   }
 

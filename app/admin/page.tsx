@@ -1,6 +1,6 @@
 'use client'
 // app/admin/page.tsx
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { 
   Shield, User, Award, CheckCircle2, AlertCircle, XCircle, 
@@ -325,6 +325,7 @@ export default function AdminPage() {
 
   // Customer Expand state
   const [expandedCustomer, setExpandedCustomer] = useState<string | null>(null)
+  const [expandedAffiliate, setExpandedAffiliate] = useState<string | null>(null)
 
   // CRM state
   const [customersList, setCustomersList] = useState<CustomerProfile[]>([])
@@ -505,7 +506,9 @@ export default function AdminPage() {
         social: a.payout_details?.social_link || 'N/A',
         status: a.status.toUpperCase(),
         joinedDate: a.created_at.split('T')[0],
-        salesCount: a.total_orders
+        salesCount: a.total_orders,
+        code: a.code || 'N/A',
+        commissionRate: Number(a.commission_rate || 10),
       })) : []
       setAffiliates(mappedAffs)
 
@@ -530,7 +533,10 @@ export default function AdminPage() {
       // 5. Fetch customers (profiles)
       const { data: custs } = await supabase
         .from('profiles')
-        .select('*')
+        .select(`
+          *,
+          loyalty:loyalty_accounts(points)
+        `)
         .order('created_at', { ascending: false })
       
       const mappedCusts = custs ? custs.map((c: any) => ({
@@ -539,7 +545,7 @@ export default function AdminPage() {
         email: c.email,
         spending: Number(c.total_spent),
         ltv: Number(c.total_spent),
-        points: 100,
+        points: c.loyalty ? (Array.isArray(c.loyalty) ? (c.loyalty[0]?.points || 0) : (c.loyalty as any).points || 0) : 0,
         goals: c.notes || 'Peak Performance',
         status: (c.role === 'admin' ? 'VIP' : 'Regular') as 'VIP' | 'Regular' | 'New',
         purchaseFreq: 'Every 30 Days',
@@ -876,6 +882,7 @@ export default function AdminPage() {
 
   // Affiliate Actions
   const handleApproveAffiliate = async (id: string) => {
+    const aff = affiliates.find(a => a.id === id)
     const supabase = createClient() as any
     const { error } = await supabase
       .from('affiliates')
@@ -885,6 +892,24 @@ export default function AdminPage() {
       alert('Failed: ' + error.message)
     } else {
       setAffiliates(affiliates.map(a => a.id === id ? { ...a, status: 'APPROVED' } : a))
+      
+      // Trigger approval confirmation email
+      if (aff && aff.email && aff.email !== 'N/A') {
+        fetch('/api/admin/trigger-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'affiliate_approval',
+            payload: {
+              email: aff.email,
+              partnerName: aff.name,
+              referralCode: aff.code,
+              commissionRate: aff.commissionRate
+            }
+          })
+        }).catch(err => console.error('Failed to trigger affiliate email:', err))
+      }
+
       alert('Affiliate approved successfully!')
     }
   }
@@ -900,6 +925,40 @@ export default function AdminPage() {
     } else {
       setAffiliates(affiliates.map(a => a.id === id ? { ...a, status: 'SUSPENDED' } : a))
       alert('Affiliate suspended successfully!')
+    }
+  }
+
+  const handleUpdateAffiliateRate = async (id: string, newRate: number) => {
+    const aff = affiliates.find(a => a.id === id)
+    if (!aff) return
+    const supabase = createClient() as any
+    const { error } = await supabase
+      .from('affiliates')
+      .update({ commission_rate: newRate })
+      .eq('id', id)
+    if (error) {
+      alert('Failed: ' + error.message)
+    } else {
+      setAffiliates(affiliates.map(a => a.id === id ? { ...a, commissionRate: newRate } : a))
+      
+      // Trigger commission update email
+      if (aff.email && aff.email !== 'N/A') {
+        fetch('/api/admin/trigger-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'affiliate_rate_change',
+            payload: {
+              email: aff.email,
+              partnerName: aff.name,
+              oldRate: aff.commissionRate,
+              newRate: newRate
+            }
+          })
+        }).catch(err => console.error('Failed to trigger affiliate email:', err))
+      }
+      
+      alert('Affiliate commission rate updated successfully!')
     }
   }
 
@@ -1445,6 +1504,23 @@ export default function AdminPage() {
                                       if (error) {
                                         alert('Database sync failed: ' + error.message)
                                       } else {
+                                        // Trigger order status email notice
+                                        if (order.customerEmail && order.customerEmail !== 'N/A') {
+                                          fetch('/api/admin/trigger-email', {
+                                            method: 'POST',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify({
+                                              type: 'order_status_change',
+                                              payload: {
+                                                email: order.customerEmail,
+                                                customerName: order.customerName,
+                                                orderNumber: order.id,
+                                                oldStatus: order.status,
+                                                newStatus: nextStatus
+                                              }
+                                            })
+                                          }).catch(err => console.error('Failed to trigger order status email:', err))
+                                        }
                                         alert(`Order status updated successfully to: ${nextStatus}`)
                                       }
                                     })
@@ -2080,6 +2156,23 @@ export default function AdminPage() {
                                         if (error) {
                                           alert('Database sync failed: ' + error.message)
                                         } else {
+                                          // Trigger order status email notice
+                                          if (order.customerEmail && order.customerEmail !== 'N/A') {
+                                            fetch('/api/admin/trigger-email', {
+                                              method: 'POST',
+                                              headers: { 'Content-Type': 'application/json' },
+                                              body: JSON.stringify({
+                                                type: 'order_status_change',
+                                                payload: {
+                                                  email: order.customerEmail,
+                                                  customerName: order.customerName,
+                                                  orderNumber: order.id,
+                                                  oldStatus: order.status,
+                                                  newStatus: nextStatus
+                                                }
+                                              })
+                                            }).catch(err => console.error('Failed to trigger order status email:', err))
+                                          }
                                           alert(`Order status updated successfully to: ${nextStatus}`)
                                         }
                                       })
@@ -2576,14 +2669,83 @@ export default function AdminPage() {
                                 <div>
                                   <span className="text-[8px] text-gray-500 font-sans block uppercase">Quick Action</span>
                                   <button 
-                                    onClick={() => {
-                                      const updated = customersList.map(item => item.id === c.id ? { ...item, points: item.points + 100 } : item)
-                                      saveCustomersToStorage(updated)
-                                      alert(`Rewarded 100 Loyalty Points to ${c.name}!`)
+                                    onClick={async () => {
+                                      const ptsInput = prompt("Enter loyalty points to reward:", "100")
+                                      if (ptsInput === null) return
+                                      const pts = parseInt(ptsInput)
+                                      if (isNaN(pts) || pts <= 0) {
+                                        alert("Invalid points amount.")
+                                        return
+                                      }
+                                      const daysInput = prompt("Enter validity in days from today (default 30):", "30")
+                                      if (daysInput === null) return
+                                      const days = parseInt(daysInput)
+                                      const expiryDays = isNaN(days) ? 30 : days
+                                      
+                                      const expiry = new Date()
+                                      expiry.setDate(expiry.getDate() + expiryDays)
+                                      const expiryStr = expiry.toISOString()
+                                      const expiryLabel = expiry.toLocaleDateString()
+
+                                      const supabase = createClient() as any
+                                      
+                                      // 1. Fetch loyalty account
+                                      const { data: accounts } = await supabase
+                                        .from('loyalty_accounts')
+                                        .select('id, points')
+                                        .eq('profile_id', c.id)
+
+                                      const account = accounts?.[0]
+                                      if (!account) {
+                                        alert("No loyalty account found for this customer.")
+                                        return
+                                      }
+
+                                      // 2. Increment points in DB
+                                      const { error } = await supabase
+                                        .from('loyalty_accounts')
+                                        .update({ points: account.points + pts })
+                                        .eq('id', account.id)
+
+                                      if (error) {
+                                        alert("Failed to reward points in DB: " + error.message)
+                                        return
+                                      }
+
+                                      // 3. Log loyalty transaction
+                                      await supabase
+                                        .from('loyalty_transactions')
+                                        .insert({
+                                          account_id: account.id,
+                                          event: 'adjustment',
+                                          points: pts,
+                                          description: 'Special Admin Bonus',
+                                          expires_at: expiryStr
+                                        })
+
+                                      // 4. Update UI state
+                                      setCustomersList(customersList.map(item => item.id === c.id ? { ...item, points: item.points + pts } : item))
+
+                                      // 5. Trigger reward notification email
+                                      fetch('/api/admin/trigger-email', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({
+                                          type: 'loyalty_reward',
+                                          payload: {
+                                            email: c.email,
+                                            customerName: c.name,
+                                            points: pts,
+                                            expiryDate: expiryLabel
+                                          }
+                                        })
+                                      }).catch(err => console.error('Failed to trigger loyalty reward email:', err))
+
+                                      alert(`Successfully rewarded ${pts} loyalty points to ${c.name} (valid until ${expiryLabel})!`)
                                     }}
                                     className="text-[10px] text-alien-green underline block mt-1 hover:text-white"
                                   >
-                                    Reward 100 Points
+                                    Reward Custom Points
                                   </button>
                                 </div>
                               </div>
@@ -2788,49 +2950,100 @@ export default function AdminPage() {
                       </thead>
                       <tbody className="divide-y divide-white/5">
                         {affiliates.map((aff) => (
-                          <tr key={aff.id}>
-                            <td className="p-3">
-                              <div className="font-bold text-white">{aff.name}</div>
-                              <span className="text-[9px] text-gray-500 font-sans">Joined: {aff.joinedDate}</span>
-                            </td>
-                            <td className="p-3">
-                              <div>{aff.email}</div>
-                              <span className="text-[10px] text-gray-400 font-sans">{aff.canton}</span>
-                            </td>
-                            <td className="p-3">
-                              <a href={`https://${aff.social}`} target="_blank" rel="noreferrer" className="text-alien-green hover:underline">
-                                {aff.social}
-                              </a>
-                            </td>
-                            <td className="p-3">
-                              <span className={cn(
-                                "px-2 py-0.5 rounded font-sans text-[8px] font-bold",
-                                aff.status === 'APPROVED' ? "bg-alien-green/10 text-alien-green border border-alien-green/20" :
-                                aff.status === 'SUSPENDED' ? "bg-red-500/10 text-red-500 border border-red-500/20" :
-                                "bg-yellow-500/10 text-yellow-500 border border-yellow-500/20"
-                              )}>
-                                {aff.status}
-                              </span>
-                            </td>
-                            <td className="p-3 text-right space-x-1">
-                              {aff.status !== 'APPROVED' && (
-                                <button 
-                                  onClick={() => handleApproveAffiliate(aff.id)}
-                                  className="bg-alien-green text-space-950 font-bold px-2 py-1 rounded text-[10px]"
+                          <React.Fragment key={aff.id}>
+                            <tr 
+                              onClick={() => setExpandedAffiliate(expandedAffiliate === aff.id ? null : aff.id)}
+                              className="cursor-pointer hover:bg-white/[0.02] transition-colors"
+                            >
+                              <td className="p-3">
+                                <div className="font-bold text-white">{aff.name}</div>
+                                <span className="text-[9px] text-gray-500 font-sans">Joined: {aff.joinedDate}</span>
+                              </td>
+                              <td className="p-3">
+                                <div>{aff.email}</div>
+                                <span className="text-[10px] text-gray-400 font-sans">{aff.canton}</span>
+                              </td>
+                              <td className="p-3">
+                                <a 
+                                  href={`https://${aff.social}`} 
+                                  target="_blank" 
+                                  rel="noreferrer" 
+                                  className="text-alien-green hover:underline text-[10px]"
+                                  onClick={(e) => e.stopPropagation()}
                                 >
-                                  Approve
-                                </button>
-                              )}
-                              {aff.status === 'APPROVED' && (
-                                <button 
-                                  onClick={() => handleSuspendAffiliate(aff.id)}
-                                  className="bg-red-500/10 border border-red-500/20 text-red-500 px-2 py-1 rounded text-[10px]"
-                                >
-                                  Suspend
-                                </button>
-                              )}
-                            </td>
-                          </tr>
+                                  {aff.social}
+                                </a>
+                              </td>
+                              <td className="p-3">
+                                <span className={cn(
+                                  "px-2 py-0.5 rounded font-sans text-[8px] font-bold",
+                                  aff.status === 'APPROVED' ? "bg-alien-green/10 text-alien-green border border-alien-green/20" :
+                                  aff.status === 'SUSPENDED' ? "bg-red-500/10 text-red-500 border border-red-500/20" :
+                                  "bg-yellow-500/10 text-yellow-500 border border-yellow-500/20"
+                                )}>
+                                  {aff.status}
+                                </span>
+                              </td>
+                              <td className="p-3 text-right space-x-1" onClick={(e) => e.stopPropagation()}>
+                                {aff.status !== 'APPROVED' && (
+                                  <button 
+                                    onClick={() => handleApproveAffiliate(aff.id)}
+                                    className="bg-alien-green text-space-950 font-bold px-2 py-1 rounded text-[10px]"
+                                  >
+                                    Approve
+                                  </button>
+                                )}
+                                {aff.status === 'APPROVED' && (
+                                  <button 
+                                    onClick={() => handleSuspendAffiliate(aff.id)}
+                                    className="bg-red-500/10 border border-red-500/20 text-red-500 px-2 py-1 rounded text-[10px]"
+                                  >
+                                    Suspend
+                                  </button>
+                                )}
+                              </td>
+                            </tr>
+                            {expandedAffiliate === aff.id && (
+                              <tr>
+                                <td colSpan={5} className="p-0 border-b border-white/5">
+                                  <div className="bg-space-900/60 p-4 space-y-4 animate-fade-in text-left">
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                      <div>
+                                        <span className="text-[8px] text-gray-500 font-sans block uppercase">Promo Code</span>
+                                        <span className="text-white font-bold font-sans mt-0.5 block">{aff.code}</span>
+                                      </div>
+                                      <div>
+                                        <span className="text-[8px] text-gray-500 font-sans block uppercase">Current Commission Rate</span>
+                                        <span className="text-white font-bold font-sans mt-0.5 block">{aff.commissionRate}%</span>
+                                      </div>
+                                      <div>
+                                        <span className="text-[8px] text-gray-500 font-sans block uppercase">Configure Commission (%)</span>
+                                        <div className="flex items-center gap-2 mt-1">
+                                          <input 
+                                            type="number"
+                                            defaultValue={aff.commissionRate}
+                                            id={`rate-${aff.id}`}
+                                            className="input bg-space-950 border-white/10 text-white text-[10px] rounded px-1.5 py-0.5 focus:outline-none w-16"
+                                            onClick={(e) => e.stopPropagation()}
+                                          />
+                                          <button 
+                                            onClick={(e) => {
+                                              e.stopPropagation()
+                                              const newRate = parseInt((document.getElementById(`rate-${aff.id}`) as HTMLInputElement).value) || 0
+                                              handleUpdateAffiliateRate(aff.id, newRate)
+                                            }}
+                                            className="text-[10px] text-alien-green underline block hover:text-white"
+                                          >
+                                            Update Rate
+                                          </button>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </td>
+                              </tr>
+                            )}
+                          </React.Fragment>
                         ))}
                       </tbody>
                     </table>

@@ -214,3 +214,175 @@ export function NewsletterWelcome({ email }: NewsletterProps) {
     </BaseLayout>
   );
 }
+
+// ─── 9. AFFILIATE APPROVAL ────────────────────────────────────
+interface AffiliateApprovalProps {
+  partnerName: string;
+  referralCode: string;
+  commissionRate: number;
+}
+export function AffiliateApproval({ partnerName, referralCode, commissionRate }: AffiliateApprovalProps) {
+  return (
+    <BaseLayout previewText="Welcome as a UFO LABZ partner!" headline="Affiliate Program Approved 🤝">
+      <Text style={{ fontSize: '15px', lineHeight: '1.6', color: '#d1d1d6', margin: '0 0 16px 0' }}>
+        Dear {partnerName},
+      </Text>
+      <Text style={{ fontSize: '15px', lineHeight: '1.6', color: '#d1d1d6', margin: '0 0 24px 0' }}>
+        Congratulations! Your application has been approved by the UFO LABZ command deck.
+        Your custom referral link and partner parameters are now active.
+      </Text>
+      <Section style={{ backgroundColor: '#0b0b0f', border: '1px solid #1e1e26', borderRadius: '16px', padding: '16px', margin: '0 0 24px 0' }}>
+        <Text style={{ margin: '0 0 4px 0', fontSize: '11px', color: '#66667a', textTransform: 'uppercase', fontFamily: 'monospace' }}>Your Custom Promo Code</Text>
+        <Text style={{ margin: '0 0 12px 0', fontSize: '16px', fontWeight: '700', color: '#00ff88', fontFamily: 'monospace' }}>{referralCode}</Text>
+        
+        <Text style={{ margin: '0 0 4px 0', fontSize: '11px', color: '#66667a', textTransform: 'uppercase', fontFamily: 'monospace' }}>Your Commission Rate</Text>
+        <Text style={{ margin: '0', fontSize: '16px', fontWeight: '700', color: '#ffffff' }}>{commissionRate}% per Sale</Text>
+      </Section>
+    </BaseLayout>
+  );
+}
+
+// ─── 10. ORDER STATUS CHANGE ──────────────────────────────────
+interface OrderStatusProps {
+  orderNumber: string;
+  customerName: string;
+  oldStatus: string;
+  newStatus: string;
+}
+export function OrderStatusChange({ orderNumber, customerName, oldStatus, newStatus }: OrderStatusProps) {
+  return (
+    <BaseLayout previewText={`Order #${orderNumber} status update`} headline="Order Status Update 🛰️">
+      <Text style={{ fontSize: '15px', lineHeight: '1.6', color: '#d1d1d6', margin: '0 0 16px 0' }}>
+        Dear {customerName},
+      </Text>
+      <Text style={{ fontSize: '15px', lineHeight: '1.6', color: '#d1d1d6', margin: '0 0 24px 0' }}>
+        Your order **#{orderNumber}** has been updated to the following stage:
+      </Text>
+      <Section style={{ backgroundColor: '#0b0b0f', border: '1px solid #1e1e26', borderRadius: '16px', padding: '16px', margin: '0 0 24px 0' }}>
+        <Text style={{ margin: '0 0 4px 0', fontSize: '11px', color: '#66667a', textTransform: 'uppercase', fontFamily: 'monospace' }}>Current Stage</Text>
+        <Text style={{ margin: '0', fontSize: '16px', fontWeight: '700', color: '#00ff88', textTransform: 'uppercase' }}>{newStatus}</Text>
+      </Section>
+    </BaseLayout>
+  );
+}
+
+// ─── 11. LOYALTY REWARD ───────────────────────────────────────
+interface LoyaltyRewardProps {
+  customerName: string;
+  points: number;
+  expiryDate: string;
+}
+export function LoyaltyReward({ customerName, points, expiryDate }: LoyaltyRewardProps) {
+  return (
+    <BaseLayout previewText="You have received UFO LABZ Reward Points!" headline="Loyalty Points Awarded 🛸">
+      <Text style={{ fontSize: '15px', lineHeight: '1.6', color: '#d1d1d6', margin: '0 0 16px 0' }}>
+        Dear {customerName},
+      </Text>
+      <Text style={{ fontSize: '15px', lineHeight: '1.6', color: '#d1d1d6', margin: '0 0 24px 0' }}>
+        We have added a custom reward of **{points.toLocaleString()} Loyalty Points** to your Swiss client profile!
+      </Text>
+      <Section style={{ backgroundColor: '#0b0b0f', border: '1px solid #1e1e26', borderRadius: '16px', padding: '16px', margin: '0 0 24px 0' }}>
+        <Text style={{ margin: '0 0 4px 0', fontSize: '11px', color: '#66667a', textTransform: 'uppercase', fontFamily: 'monospace' }}>Points Added</Text>
+        <Text style={{ margin: '0 0 12px 0', fontSize: '16px', fontWeight: '700', color: '#00ff88', fontFamily: 'monospace' }}>+{points} pts</Text>
+        
+        <Text style={{ margin: '0 0 4px 0', fontSize: '11px', color: '#66667a', textTransform: 'uppercase', fontFamily: 'monospace' }}>Expiration Date</Text>
+        <Text style={{ margin: '0', fontSize: '14px', fontWeight: '700', color: '#ffffff' }}>{expiryDate}</Text>
+      </Section>
+    </BaseLayout>
+  );
+}
+
+// ─── 12. AFFILIATE RATE CHANGE ────────────────────────────────
+interface AffiliateRateProps {
+  partnerName: string;
+  oldRate: number;
+  newRate: number;
+}
+export function AffiliateRateChange({ partnerName, oldRate, newRate }: AffiliateRateProps) {
+  return (
+    <BaseLayout previewText="UFO LABZ Affiliate Commission Update" headline="Commission Structure Changed 📈">
+      <Text style={{ fontSize: '15px', lineHeight: '1.6', color: '#d1d1d6', margin: '0 0 16px 0' }}>
+        Dear {partnerName},
+      </Text>
+      <Text style={{ fontSize: '15px', lineHeight: '1.6', color: '#d1d1d6', margin: '0 0 24px 0' }}>
+        Your personal affiliate commission structure has been updated on the command deck.
+      </Text>
+      <Section style={{ backgroundColor: '#0b0b0f', border: '1px solid #1e1e26', borderRadius: '16px', padding: '16px', margin: '0 0 24px 0' }}>
+        <Text style={{ margin: '0 0 4px 0', fontSize: '11px', color: '#66667a', textTransform: 'uppercase', fontFamily: 'monospace' }}>Previous Rate</Text>
+        <Text style={{ margin: '0 0 12px 0', fontSize: '14px', fontWeight: '700', color: '#66667a', textDecoration: 'line-through' }}>{oldRate}%</Text>
+        
+        <Text style={{ margin: '0 0 4px 0', fontSize: '11px', color: '#66667a', textTransform: 'uppercase', fontFamily: 'monospace' }}>New Commission Level</Text>
+        <Text style={{ margin: '0', fontSize: '16px', fontWeight: '700', color: '#00ff88' }}>{newRate}% per Sale</Text>
+      </Section>
+    </BaseLayout>
+  );
+}
+
+// ─── 13. ABANDONED CART ────────────────────────────────────────
+interface AbandonedCartProps {
+  customerName: string;
+  cartItems: Array<{ name: string; variantName: string; price: number; quantity: number; imageUrl?: string }>;
+  checkoutUrl: string;
+  discountCode?: string;
+}
+export function AbandonedCartEmail({ customerName, cartItems, checkoutUrl, discountCode }: AbandonedCartProps) {
+  return (
+    <BaseLayout previewText="You left premium supplements behind..." headline="Complete Your Stacks 🛸">
+      <Text style={{ fontSize: '15px', lineHeight: '1.6', color: '#d1d1d6', margin: '0 0 16px 0' }}>
+        Dear {customerName || 'Athlete'},
+      </Text>
+      <Text style={{ fontSize: '15px', lineHeight: '1.6', color: '#d1d1d6', margin: '0 0 24px 0' }}>
+        Your flight settings are locked, but your capsule payload is still waiting on the pad. 
+        We have reserved your premium Swiss formulas. Complete your purchase in one click:
+      </Text>
+      
+      <Section style={{ backgroundColor: '#0b0b0f', border: '1px solid #1e1e26', borderRadius: '16px', padding: '16px', margin: '0 0 24px 0' }}>
+        <Text style={{ margin: '0 0 12px 0', fontSize: '11px', color: '#66667a', textTransform: 'uppercase', fontFamily: 'monospace' }}>Your Cart Items</Text>
+        {cartItems.map((item, idx) => (
+          <div key={idx} style={{ borderBottom: '1px solid #1e1e26', paddingBottom: '8px', marginBottom: '8px' }}>
+            <Text style={{ margin: '0', fontSize: '13px', fontWeight: '700', color: '#ffffff' }}>{item.name}</Text>
+            <Text style={{ margin: '2px 0 0 0', fontSize: '10px', color: '#66667a' }}>{item.variantName} x {item.quantity} — CHF {item.price.toFixed(2)}</Text>
+          </div>
+        ))}
+      </Section>
+
+      {discountCode && (
+        <Section style={{ backgroundColor: 'rgba(0,255,136,0.05)', border: '1px dashed #00ff88', borderRadius: '12px', padding: '12px', textAlign: 'center', margin: '0 0 24px 0' }}>
+          <Text style={{ margin: '0', fontSize: '11px', color: '#00ff88', textTransform: 'uppercase', fontFamily: 'monospace' }}>Limited Time Discount Added</Text>
+          <Text style={{ margin: '4px 0 0 0', fontSize: '16px', fontWeight: '700', color: '#ffffff' }}>Use code <span style={{ color: '#00ff88' }}>{discountCode}</span> for 10% Off</Text>
+        </Section>
+      )}
+
+      <Section style={{ textAlign: 'center', margin: '24px 0' }}>
+        <Link href={checkoutUrl} className="btn-primary">
+          Complete Transmission
+        </Link>
+      </Section>
+    </BaseLayout>
+  );
+}
+
+// ─── 14. POST-PURCHASE REPLENISHMENT ──────────────────────────
+interface ReplenishmentProps {
+  customerName: string;
+  productName: string;
+  reorderUrl: string;
+}
+export function ReplenishmentEmail({ customerName, productName, reorderUrl }: ReplenishmentProps) {
+  return (
+    <BaseLayout previewText={`Running low on ${productName}?`} headline="Replenish Formula 🚀">
+      <Text style={{ fontSize: '15px', lineHeight: '1.6', color: '#d1d1d6', margin: '0 0 16px 0' }}>
+        Hello {customerName || 'Athlete'},
+      </Text>
+      <Text style={{ fontSize: '15px', lineHeight: '1.6', color: '#d1d1d6', margin: '0 0 24px 0' }}>
+        According to our telemetry logs, you should be approaching the end of your recent **{productName}** supplies.
+        Don't let your performance levels drop. Reorder your fresh batch in a single click:
+      </Text>
+      <Section style={{ textAlign: 'center', margin: '24px 0' }}>
+        <Link href={reorderUrl} className="btn-primary">
+          Fast Reorder Batch
+        </Link>
+      </Section>
+    </BaseLayout>
+  );
+}
