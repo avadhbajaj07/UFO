@@ -86,7 +86,7 @@ export default function SearchClient({ initialProducts }: Props) {
                       src={image.url}
                       alt={name}
                       fill
-                      className="object-contain p-1.5 sm:p-3 scale-110 group-hover:scale-[1.16] transition-transform duration-500"
+                      className="object-contain p-0 sm:p-2 md:p-3 scale-[1.24] sm:scale-[1.16] md:scale-110 group-hover:scale-[1.3] sm:group-hover:scale-[1.22] md:group-hover:scale-[1.16] transition-transform duration-500"
                       sizes="(max-width: 640px) 50vw, 33vw"
                     />
                   ) : (

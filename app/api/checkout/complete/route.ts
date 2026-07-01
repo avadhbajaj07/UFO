@@ -175,6 +175,7 @@ export async function POST(req: NextRequest) {
       items,
       shippingMethod,
       discountAmount,
+      couponCode,
       carbonOffset,
     });
 

@@ -30,6 +30,7 @@ export interface CheckoutTotalsInput {
   items: CheckoutItemInput[]
   shippingMethod?: CheckoutShippingMethod
   discountAmount?: number
+  couponCode?: string | null
   carbonOffset?: boolean
 }
 
@@ -45,6 +46,20 @@ export interface CheckoutTotals {
 
 export function toStripeAmount(amount: number) {
   return Math.round(Number(amount || 0) * 100)
+}
+
+function resolveDiscountAmount(
+  subtotal: number,
+  requestedDiscountAmount?: number,
+  couponCode?: string | null
+) {
+  const code = couponCode?.trim().toUpperCase()
+
+  if (code === 'NUTRIFIT') return subtotal * 0.9
+  if (code === 'ALIEN10') return subtotal * 0.1
+  if (code === 'WELCOME500') return Math.min(5, subtotal)
+
+  return Number(requestedDiscountAmount || 0)
 }
 
 export async function buildValidatedCheckoutTotals(
@@ -92,7 +107,14 @@ export async function buildValidatedCheckoutTotals(
   }
 
   const discountAmount = Math.min(
-    Math.max(0, Number(input.discountAmount || 0)),
+    Math.max(
+      0,
+      resolveDiscountAmount(
+        validatedSubtotal,
+        input.discountAmount,
+        input.couponCode
+      )
+    ),
     validatedSubtotal
   )
   const shippingAmount =

@@ -128,6 +128,11 @@ export default function CheckoutPage() {
       setCouponDiscount(discount)
       setAppliedCoupon('ALIEN10 (10% Off)')
       setCouponCode('')
+    } else if (code === 'NUTRIFIT') {
+      const discount = breakdown.subtotal * 0.90
+      setCouponDiscount(discount)
+      setAppliedCoupon('NUTRIFIT (90% Off)')
+      setCouponCode('')
     } else if (code === 'WELCOME500') {
       const discount = Math.min(5, breakdown.subtotal)
       setCouponDiscount(discount)
