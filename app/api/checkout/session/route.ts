@@ -21,6 +21,8 @@ function getBaseUrl(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  let requestedPaymentMethod: string | null = null
+
   try {
     if (!isStripeConfigured()) {
       return NextResponse.json(
@@ -41,6 +43,7 @@ export async function POST(req: NextRequest) {
       carbonOffset,
       couponCode,
     } = body
+    requestedPaymentMethod = paymentMethod
 
     if (!orderNumber || !email || !items?.length) {
       return NextResponse.json(
@@ -107,6 +110,22 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ url: session.url })
   } catch (err: any) {
     console.error('[STRIPE CHECKOUT] Failed to create session:', err)
+
+    const message = String(err?.message || '')
+    if (
+      requestedPaymentMethod === 'twint' &&
+      message.toLowerCase().includes('twint') &&
+      message.toLowerCase().includes('invalid')
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            'TWINT is not enabled for the Stripe key configured on this deployment. Enable TWINT in the matching Stripe Dashboard mode, or use a Swiss Stripe account/key that supports TWINT.',
+        },
+        { status: 400 }
+      )
+    }
+
     return NextResponse.json(
       { error: err?.message || 'Unable to start Stripe Checkout.' },
       { status: 500 }
