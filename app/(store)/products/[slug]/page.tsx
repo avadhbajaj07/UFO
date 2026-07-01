@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import { getLocalizedField } from '@/types'
 import ProductDetail from '@/components/product/ProductDetail'
 import type { Metadata } from 'next'
+import { isExcludedPublicProductSlug } from '@/lib/products/catalog'
 
 export const revalidate = 3600
 
@@ -12,6 +13,8 @@ interface Props {
 }
 
 async function getProduct(slug: string) {
+  if (isExcludedPublicProductSlug(slug)) return null
+
   const supabase = createClient()
   const { data } = await supabase
     .from('products')
@@ -61,7 +64,9 @@ import { createClient as createBrowserClient } from '@/lib/supabase/client'
 export async function generateStaticParams() {
   const supabase = createBrowserClient()
   const { data } = await supabase.from('products').select('slug').eq('status', 'active')
-  return (data as any[] ?? []).map((p) => ({ slug: p.slug }))
+  return (data as any[] ?? [])
+    .filter((p) => !isExcludedPublicProductSlug(p.slug))
+    .map((p) => ({ slug: p.slug }))
 }
 
 export default async function ProductPage({ params }: Props) {

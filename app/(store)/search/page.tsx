@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import SearchClient from '@/components/product/SearchClient'
 import type { Metadata } from 'next'
+import { sortPublicProducts } from '@/lib/products/catalog'
 
 export const metadata: Metadata = {
   title: 'Search | UFO LABZ',
@@ -21,7 +22,7 @@ async function getProducts() {
     .eq('status', 'active')
     .order('sort_order', { ascending: true })
 
-  return data ?? []
+  return sortPublicProducts(data ?? [])
 }
 
 export default async function SearchPage() {

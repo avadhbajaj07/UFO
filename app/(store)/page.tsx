@@ -6,6 +6,7 @@ import FeaturesSection from '@/components/home/FeaturesSection'
 import MarqueeBanner from '@/components/home/MarqueeBanner'
 import TestimonialsSection from '@/components/home/TestimonialsSection'
 import type { Metadata } from 'next'
+import { sortPublicProducts } from '@/lib/products/catalog'
 
 export const metadata: Metadata = {
   title: 'UFO LABZ — Alien Performance Technology',
@@ -29,7 +30,7 @@ async function getFeaturedProducts() {
     .eq('featured', true)
     .order('sort_order', { ascending: true })
 
-  return data ?? []
+  return sortPublicProducts(data ?? [])
 }
 
 export default async function HomePage() {

@@ -2,6 +2,7 @@
 import { createClient } from '@/lib/supabase/server'
 import ProductsClient from '@/components/product/ProductsClient'
 import type { Metadata } from 'next'
+import { sortPublicProducts } from '@/lib/products/catalog'
 
 export const metadata: Metadata = {
   title: 'Shop Supplements | UFO LABZ',
@@ -41,7 +42,9 @@ async function getProducts(searchParams: Record<string, string> = {}) {
   }
 
   const { data } = await query
-  return data ?? []
+  const products = (data ?? []) as any[]
+
+  return sortPublicProducts(products)
 }
 
 async function getCategories() {

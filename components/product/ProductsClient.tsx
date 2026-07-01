@@ -121,7 +121,7 @@ export default function ProductsClient({ products, categories, activeCategory, a
               <div className="relative">
                 <Link href={`/products/${product.slug}`} className="block aspect-square relative overflow-hidden bg-space-900">
                   {image?.url ? (
-                    <Image src={image.url} alt={name} fill className="object-contain p-4 sm:p-6 group-hover:scale-105 transition-transform duration-500" sizes="(max-width: 640px) 50vw, 33vw" />
+                    <Image src={image.url} alt={name} fill className="object-contain p-1.5 sm:p-3 scale-110 group-hover:scale-[1.16] transition-transform duration-500" sizes="(max-width: 640px) 50vw, 33vw" />
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center">
                       <div className="w-16 h-16 rounded-full opacity-20 animate-pulse" style={{ backgroundColor: color }} />

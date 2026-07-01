@@ -3,6 +3,9 @@ import crypto from 'crypto';
 import { createClient } from '@/lib/supabase/server';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { emailService } from '@/lib/email/email';
+import { buildValidatedCheckoutTotals, toStripeAmount } from '@/lib/checkout/amounts';
+import { isStripeConfigured, stripe } from '@/lib/stripe';
+import Stripe from 'stripe';
 
 const supabaseAdmin = createSupabaseClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -28,7 +31,9 @@ export async function POST(req: NextRequest) {
       discountAmount,
       shippingAmount,
       total,
+      carbonOffset,
       couponCode,
+      stripeSessionId,
     } = body;
 
     // Validate essential properties
@@ -158,45 +163,64 @@ export async function POST(req: NextRequest) {
     }
 
     // 4. Server-Side Price & Total Re-Validation
-    let validatedSubtotal = 0;
-    const orderItemsToInsert = [];
+    const {
+      validatedSubtotal,
+      discountAmount: serverDiscountAmount,
+      shippingAmount: serverShippingAmount,
+      carbonOffsetAmount,
+      total: serverTotal,
+      taxAmount: serverTaxAmount,
+      orderItemsToInsert,
+    } = await buildValidatedCheckoutTotals(supabaseAdmin, {
+      items,
+      shippingMethod,
+      discountAmount,
+      carbonOffset,
+    });
 
-    for (const item of items) {
-      const variantId = item.variantId || item.variant?.id;
-      if (!variantId) {
-        throw new Error('Product variant ID is missing.');
+    let stripePaymentIntentId: string | null = null;
+    let stripeChargeId: string | null = null;
+    let completedPaymentMethod = paymentMethod || 'twint';
+
+    if (['twint', 'card'].includes(completedPaymentMethod)) {
+      if (!stripeSessionId) {
+        return NextResponse.json(
+          { error: 'Stripe payment confirmation is required.' },
+          { status: 400 }
+        );
       }
 
-      // Fetch the true price from the database
-      const { data: dbVariant, error: variantError } = await supabaseAdmin
-        .from('product_variants')
-        .select('price, sku, name, product_id')
-        .eq('id', variantId)
-        .single();
-
-      if (variantError || !dbVariant) {
-        throw new Error(`Invalid variant database lookup for ID: ${variantId}`);
+      if (!isStripeConfigured()) {
+        return NextResponse.json(
+          { error: 'Stripe is not configured. Add STRIPE_SECRET_KEY to the environment.' },
+          { status: 500 }
+        );
       }
 
-      const unitPrice = Number(dbVariant.price);
-      const quantity = Number(item.quantity || 1);
-      validatedSubtotal += unitPrice * quantity;
-
-      orderItemsToInsert.push({
-        product_id: dbVariant.product_id,
-        variant_id: variantId,
-        product_name: { en: item.name || 'UFO Supplement' },
-        variant_name: item.variantName || dbVariant.name || 'Standard size',
-        sku: dbVariant.sku || 'N/A',
-        quantity: quantity,
-        unit_price: unitPrice,
-        total: unitPrice * quantity,
+      const session = await stripe.checkout.sessions.retrieve(stripeSessionId, {
+        expand: ['payment_intent', 'payment_intent.latest_charge'],
       });
-    }
 
-    // Apply shipping costs on server side (Free shipping threshold: 99 CHF)
-    const serverShippingAmount = validatedSubtotal >= 99 ? 0 : 9.00;
-    const serverTotal = Math.max(0, validatedSubtotal - Number(discountAmount || 0) + serverShippingAmount);
+      if (session.payment_status !== 'paid') {
+        return NextResponse.json(
+          { error: 'Stripe payment has not been completed.' },
+          { status: 400 }
+        );
+      }
+
+      if (session.currency !== 'chf' || session.amount_total !== toStripeAmount(serverTotal)) {
+        return NextResponse.json(
+          { error: 'Stripe payment total does not match this order.' },
+          { status: 400 }
+        );
+      }
+
+      const paymentIntent = session.payment_intent as Stripe.PaymentIntent | null;
+      stripePaymentIntentId = paymentIntent?.id || null;
+      const latestCharge = paymentIntent?.latest_charge;
+      stripeChargeId =
+        typeof latestCharge === 'string' ? latestCharge : latestCharge?.id || null;
+    }
 
     const newOrderId = crypto.randomUUID();
     const estimatedDeliveryDate = new Date();
@@ -237,16 +261,21 @@ export async function POST(req: NextRequest) {
             canton: shippingAddress.canton || '',
           },
       subtotal: validatedSubtotal,
-      discount_amount: Number(discountAmount || 0),
-      shipping_amount: serverShippingAmount,
+      discount_amount: serverDiscountAmount,
+      shipping_amount: serverShippingAmount + carbonOffsetAmount,
+      tax_amount: serverTaxAmount,
       total: serverTotal,
-      payment_method: paymentMethod || 'twint',
-      paid_at: new Date().toISOString(),
+      stripe_payment_intent_id: stripePaymentIntentId,
+      stripe_charge_id: stripeChargeId,
+      payment_method: completedPaymentMethod,
+      paid_at: completedPaymentMethod === 'invoice' ? null : new Date().toISOString(),
       coupon_id: couponId,
       coupon_code: couponCode || null,
       affiliate_id: orderAffiliateId,
       shipping_method: shippingMethod || 'standard',
       estimated_delivery: estimatedDeliveryDate.toISOString().split('T')[0],
+      loyalty_points_earned: Math.round(serverTotal * 5),
+      internal_note: carbonOffsetAmount > 0 ? 'Carbon-neutral offset selected.' : null,
       currency: 'CHF',
       locale: 'en',
     };
@@ -258,6 +287,24 @@ export async function POST(req: NextRequest) {
 
     if (orderError) {
       console.error('❌ Error saving order to Supabase:', orderError);
+
+      if (orderError.code === '23505') {
+        const { data: duplicatedOrder } = await supabaseAdmin
+          .from('orders')
+          .select('id, order_number')
+          .eq('order_number', orderNumber)
+          .maybeSingle();
+
+        if (duplicatedOrder) {
+          return NextResponse.json({
+            success: true,
+            orderId: duplicatedOrder.id,
+            orderNumber: duplicatedOrder.order_number,
+            message: 'Order already processed.',
+          });
+        }
+      }
+
       throw new Error(`Database error saving order: ${orderError.message}`);
     }
 
