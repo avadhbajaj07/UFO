@@ -54,6 +54,7 @@ drop table if exists
   products,
   tags,
   categories,
+  flavors,
   addresses,
   profiles
 cascade;
@@ -235,6 +236,14 @@ create table categories (
   created_at  timestamptz not null default now()
 );
 
+-- ─── FLAVORS ──────────────────────────────────────────────────
+create table flavors (
+  id          uuid primary key default uuid_generate_v4(),
+  name        text not null unique,
+  slug        text not null unique,
+  created_at  timestamptz not null default now()
+);
+
 -- ─── TAGS ─────────────────────────────────────────────────────
 create table tags (
   id    uuid primary key default uuid_generate_v4(),
@@ -282,6 +291,7 @@ create table products (
 create table product_variants (
   id              uuid primary key default uuid_generate_v4(),
   product_id      uuid not null references products(id) on delete cascade,
+  flavor_id       uuid references flavors(id) on delete set null,
   name            text not null,          -- "300g", "600g / 30 servings"
   sku             text not null unique,
   barcode         text,
@@ -1131,6 +1141,7 @@ create policy "loyalty_tiers: public read" on loyalty_tiers for select using (tr
 create policy "loyalty_tiers: admin write" on loyalty_tiers for all using (is_admin());
 
 create policy "loyalty_accounts: own read" on loyalty_accounts for select using (profile_id = auth.uid() or is_admin());
+create policy "loyalty_accounts: admin update" on loyalty_accounts for update using (is_admin());
 create policy "loyalty_transactions: own read" on loyalty_transactions for select using (
   exists(select 1 from loyalty_accounts la where la.id = account_id and (la.profile_id = auth.uid() or is_admin()))
 );

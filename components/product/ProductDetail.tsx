@@ -66,7 +66,7 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
 
   const [quantity, setQuantity] = useState(1)
   const [activeSlide, setActiveSlide] = useState(0) // 0: Presentation, 1: Ingredients, 2: Flavors
-  const [activeTab, setActiveTab] = useState<'benefits' | 'ingredients' | 'nutrition' | 'faqs' | 'shipping'>('benefits')
+  const [activeTab, setActiveTab] = useState<'benefits' | 'ingredients' | 'nutrition' | 'usage' | 'faqs' | 'shipping'>('benefits')
   const [openFaq, setOpenFaq] = useState<string | null>(null)
   const [isSubscribed, setIsSubscribed] = useState(false)
   const [frequency, setFrequency] = useState('monthly')
@@ -239,11 +239,21 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
 
   // Product Fields
   const color = product.product_color ?? '#00FF88'
-  const name = getLocalizedField(product.name)
-  const tagline = getLocalizedField(product.tagline)
-  const desc = getLocalizedField(product.description)
-  const shortDesc = getLocalizedField(product.short_description)
-  const keyBenefits = Array.isArray(product.schema_markup?.key_benefits)
+
+  const safeText = (field: any) => {
+    if (!field) return ''
+    if (typeof field === 'string') return field
+    if (typeof field === 'object') {
+      return field.en || field.de || Object.values(field)[0] || ''
+    }
+    return String(field)
+  }
+
+  const name = safeText(product.name)
+  const tagline = safeText(product.tagline)
+  const desc = safeText(product.description)
+  const shortDesc = safeText(product.short_description)
+  const keyBenefits = Array.isArray(product.schema_markup?.key_benefits) && product.schema_markup.key_benefits.length > 0
     ? product.schema_markup.key_benefits
     : [
         'Third-party purity tested in independent laboratories.',
@@ -809,6 +819,7 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
             { id: 'benefits', label: 'Key Benefits' },
             { id: 'ingredients', label: 'Ingredients matrix' },
             { id: 'nutrition', label: 'Nutrition Facts' },
+            { id: 'usage', label: 'Usage & Warnings' },
             { id: 'faqs', label: 'FAQs' },
             { id: 'shipping', label: 'Shipping & Returns' }
           ].map((tab) => (
@@ -850,109 +861,169 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
               <h3 className="text-xl font-bold mb-2 uppercase font-display tracking-wider">LAB PROFILE MATRIX</h3>
               <p className="text-xs text-gray-400 mb-4">Complete ingredient breakdowns per dosage.</p>
 
-              <div className="space-y-3">
-                {product.ingredients?.map((ing: any) => {
-                  const ingName = getLocalizedField(ing.ingredient?.name)
-                  const ingDesc = getLocalizedField(ing.ingredient?.description)
-                  return (
-                    <div key={ing.id} className="bg-space-900 border border-white/5 p-4 rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
-                      <div>
-                        <div className="font-bold text-white flex items-center gap-2">
-                          <span>{ingName}</span>
-                          {ing.is_key && <span className="text-[9px] bg-alien-green/10 text-alien-green border border-alien-green/20 px-1.5 py-0.5 rounded font-mono">KEY DRIVER</span>}
+              {product.schema_markup?.ingredients ? (
+                <div className="bg-space-900 border border-white/5 p-5 rounded-2xl">
+                  <p className="text-xs text-gray-300 leading-relaxed whitespace-pre-wrap">
+                    {product.schema_markup.ingredients}
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {product.ingredients && product.ingredients.length > 0 ? (
+                    product.ingredients.map((ing: any) => {
+                      const ingName = safeText(ing.ingredient?.name)
+                      const ingDesc = safeText(ing.ingredient?.description)
+                      return (
+                        <div key={ing.id} className="bg-space-900 border border-white/5 p-4 rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+                          <div>
+                            <div className="font-bold text-white flex items-center gap-2">
+                              <span>{ingName}</span>
+                              {ing.is_key && <span className="text-[9px] bg-alien-green/10 text-alien-green border border-alien-green/20 px-1.5 py-0.5 rounded font-mono">KEY DRIVER</span>}
+                            </div>
+                            <p className="text-xs text-gray-400 leading-normal mt-1">{ingDesc}</p>
+                          </div>
+                          <div className="text-right flex-shrink-0">
+                            <span className="text-lg font-mono font-bold text-alien-green" style={{ color }}>{ing.amount}</span>
+                          </div>
                         </div>
-                        <p className="text-xs text-gray-400 leading-normal mt-1">{ingDesc}</p>
-                      </div>
-                      <div className="text-right flex-shrink-0">
-                        <span className="text-lg font-mono font-bold text-alien-green" style={{ color }}>{ing.amount}</span>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
+                      )
+                    })
+                  ) : (
+                    <div className="text-center text-gray-500 italic text-xs py-4">No ingredients profile registered.</div>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
           {/* Nutrition Facts Label */}
-          {activeTab === 'nutrition' && (
-            <div className="animate-fade-in bg-white text-space-950 p-6 rounded-2xl border-4 border-space-950 max-w-md mx-auto shadow-2xl font-mono text-xs">
-              <div className="text-center pb-2 border-b-8 border-space-950">
-                <h3 className="font-black text-2xl font-sans tracking-tight">Nutrition Facts</h3>
-                <div className="flex justify-between text-[10px] mt-1">
-                  <span>Serving Size: {selectedVariant?.serving_size || '5g'}</span>
-                  <span>Servings Per Container: {selectedVariant?.servings || '40'}</span>
+          {activeTab === 'nutrition' && (() => {
+            const nutritionRaw = selectedVariant?.nutrition
+            const nutrition = Array.isArray(nutritionRaw) ? nutritionRaw[0] : (nutritionRaw || {})
+            return (
+              <div className="animate-fade-in bg-white text-space-950 p-6 rounded-2xl border-4 border-space-950 max-w-md mx-auto shadow-2xl font-mono text-xs">
+                <div className="text-center pb-2 border-b-8 border-space-950">
+                  <h3 className="font-black text-2xl font-sans tracking-tight">Nutrition Facts</h3>
+                  <div className="flex justify-between text-[10px] mt-1">
+                    <span>Serving Size: {selectedVariant?.serving_size || nutrition.serving_size || '5g'}</span>
+                    <span>Servings Per Container: {selectedVariant?.servings || nutrition.servings_per_container || '30'}</span>
+                  </div>
+                </div>
+
+                <div className="flex justify-between py-1 border-b border-space-950 font-bold">
+                  <span>Amount Per Serving</span>
+                </div>
+
+                <div className="flex justify-between py-1.5 border-b-4 border-space-950 font-bold text-sm">
+                  <span>Calories</span>
+                  <span>{nutrition.calories || '0'}</span>
+                </div>
+
+                <div className="flex justify-between py-1 border-b border-gray-300">
+                  <span>Total Fat {nutrition.total_fat ?? 0}g</span>
+                  <span className="font-bold">0%</span>
+                </div>
+
+                <div className="flex justify-between py-1 border-b border-gray-300">
+                  <span>Sodium {nutrition.sodium ?? 0}mg</span>
+                  <span className="font-bold">0%</span>
+                </div>
+
+                <div className="flex justify-between py-1 border-b border-gray-300">
+                  <span>Total Carbohydrate {nutrition.total_carbohydrate ?? 0}g</span>
+                  <span className="font-bold">0%</span>
+                </div>
+
+                <div className="flex justify-between py-1 border-b-4 border-space-950">
+                  <span>Protein {nutrition.protein || '0'}g</span>
+                  <span className="font-bold">0%</span>
+                </div>
+
+                <div className="py-2 border-b border-space-950 font-bold text-[10px]">
+                  Active Supplement Compounds
+                </div>
+
+                {product.ingredients && product.ingredients.length > 0 ? (
+                  product.ingredients.map((ing: any) => (
+                    <div key={ing.id} className="flex justify-between py-1 border-b border-gray-200">
+                      <span>{safeText(ing.ingredient?.name)}</span>
+                      <span className="font-bold">{ing.amount}</span>
+                    </div>
+                  ))
+                ) : product.schema_markup?.ingredients ? (
+                  <div className="py-2 text-[10px] text-gray-600 leading-normal">
+                    {product.schema_markup.ingredients}
+                  </div>
+                ) : (
+                  <div className="py-2 text-center text-gray-400 italic text-[10px]">
+                    No compounds list loaded.
+                  </div>
+                )}
+              </div>
+            )
+          })()}
+
+          {/* Usage & Warnings */}
+          {activeTab === 'usage' && (
+            <div className="space-y-6 animate-fade-in text-left">
+              <h3 className="text-xl font-bold mb-4 uppercase font-display tracking-wider">Usage & Safety Guidelines</h3>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-space-900 border border-white/5 p-5 rounded-2xl space-y-3">
+                  <div className="text-xs font-mono font-bold text-alien-green uppercase">Directions / How to Use</div>
+                  <p className="text-xs text-gray-300 leading-relaxed whitespace-pre-wrap">
+                    {product.schema_markup?.how_to_use || 'Mix 1 serving with cold water or beverage of choice.'}
+                  </p>
+                </div>
+
+                <div className="bg-space-900 border border-white/5 p-5 rounded-2xl space-y-3">
+                  <div className="text-xs font-mono font-bold text-red-400 uppercase">Warnings & Cautions</div>
+                  <p className="text-xs text-gray-300 leading-relaxed whitespace-pre-wrap text-red-200/90">
+                    {product.schema_markup?.warnings || 'Consult a healthcare professional prior to use if pregnant, nursing, or taking medications.'}
+                  </p>
+                </div>
+
+                <div className="bg-space-900 border border-white/5 p-5 rounded-2xl space-y-3">
+                  <div className="text-xs font-mono font-bold text-gray-400 uppercase">Storage Instructions</div>
+                  <p className="text-xs text-gray-300 leading-relaxed whitespace-pre-wrap">
+                    {product.schema_markup?.storage_instructions || 'Store in a cool, dry place. Keep out of reach of children.'}
+                  </p>
                 </div>
               </div>
-
-              <div className="flex justify-between py-1 border-b border-space-950 font-bold">
-                <span>Amount Per Serving</span>
-              </div>
-
-              <div className="flex justify-between py-1.5 border-b-4 border-space-950 font-bold text-sm">
-                <span>Calories</span>
-                <span>{selectedVariant?.nutrition?.calories || '0'}</span>
-              </div>
-
-              <div className="flex justify-between py-1 border-b border-gray-300">
-                <span>Total Fat {selectedVariant?.nutrition?.total_fat ?? 0}g</span>
-                <span className="font-bold">0%</span>
-              </div>
-
-              <div className="flex justify-between py-1 border-b border-gray-300">
-                <span>Sodium {selectedVariant?.nutrition?.sodium ?? 0}mg</span>
-                <span className="font-bold">0%</span>
-              </div>
-
-              <div className="flex justify-between py-1 border-b border-gray-300">
-                <span>Total Carbohydrate {selectedVariant?.nutrition?.total_carbohydrate ?? 0}g</span>
-                <span className="font-bold">0%</span>
-              </div>
-
-              <div className="flex justify-between py-1 border-b-4 border-space-950">
-                <span>Protein {selectedVariant?.nutrition?.protein || '0'}g</span>
-                <span className="font-bold">0%</span>
-              </div>
-
-              <div className="py-2 border-b border-space-950 font-bold text-[10px]">
-                Active Supplement Compounds
-              </div>
-
-              {(product.ingredients || []).map((ing: any) => (
-                <div key={ing.id} className="flex justify-between py-1 border-b border-gray-200">
-                  <span>{getLocalizedField(ing.ingredient?.name)}</span>
-                  <span className="font-bold">{ing.amount}</span>
-                </div>
-              ))}
             </div>
           )}
 
           {/* FAQs Accordion */}
           {activeTab === 'faqs' && (
-            <div className="space-y-3 animate-fade-in">
+            <div className="space-y-3 animate-fade-in text-left">
               <h3 className="text-xl font-bold mb-4 uppercase font-display tracking-wider">FREQUENTLY ASKED QUESTIONS</h3>
-              {product.faqs?.map((faq: any) => {
-                const q = getLocalizedField(faq.question)
-                const a = getLocalizedField(faq.answer)
-                return (
-                  <div key={faq.id} className="border border-white/5 bg-space-900 rounded-xl overflow-hidden">
-                    <button
-                      onClick={() => setOpenFaq(openFaq === faq.id ? null : faq.id)}
-                      className="w-full flex items-center justify-between p-4 text-left text-sm font-bold text-white hover:bg-white/5 transition-colors focus:outline-none"
-                    >
-                      <span>{q}</span>
-                      {openFaq === faq.id ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
-                    </button>
-                    {openFaq === faq.id && (
-                      <div className="px-4 pb-4 pt-2 text-xs text-gray-300 leading-relaxed border-t border-white/5 bg-space-950/40">
-                        {a}
-                      </div>
-                    )}
-                  </div>
-                )
-              })}
+              {product.faqs && product.faqs.length > 0 ? (
+                product.faqs.map((faq: any) => {
+                  const q = safeText(faq.question)
+                  const a = safeText(faq.answer)
+                  const toggleKey = faq.id || faq.question
+                  return (
+                    <div key={toggleKey} className="border border-white/5 bg-space-900 rounded-xl overflow-hidden">
+                      <button
+                        onClick={() => setOpenFaq(openFaq === toggleKey ? null : toggleKey)}
+                        className="w-full flex items-center justify-between p-4 text-left text-sm font-bold text-white hover:bg-white/5 transition-colors focus:outline-none"
+                      >
+                        <span>{q}</span>
+                        {openFaq === toggleKey ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
+                      </button>
+                      {openFaq === toggleKey && (
+                        <div className="px-4 pb-4 pt-2 text-xs text-gray-300 leading-relaxed border-t border-white/5 bg-space-950/40">
+                          {a}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })
+              ) : (
+                <div className="text-center text-gray-500 italic text-xs py-4">No FAQs registered for this supplement.</div>
+              )}
             </div>
           )}
-
           {/* Shipping & Returns */}
           {activeTab === 'shipping' && (
             <div className="space-y-4 animate-fade-in">

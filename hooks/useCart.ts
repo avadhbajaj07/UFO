@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useCartStore } from '@/store/cart'
 import { getPricedForQuantity } from '@/lib/utils/pricing'
 import { FREE_SHIPPING_THRESHOLD } from '@/config/client'
+import { isExcludedPublicProductSlug } from '@/lib/products/catalog'
 
 export function useCart() {
   const store = useCartStore()
@@ -13,7 +14,9 @@ export function useCart() {
     setIsHydrated(true)
   }, [])
 
-  const items = isHydrated ? store.items : []
+  const items = isHydrated
+    ? store.items.filter((item) => !isExcludedPublicProductSlug((item.variant as any)?.product?.slug || ''))
+    : []
 
   let subtotal = 0
   let originalSubtotal = 0

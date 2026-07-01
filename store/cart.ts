@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { PRODUCTS } from '@/lib/mock-data'
 import type { CartItem } from '@/types'
+import { isExcludedPublicProductSlug } from '@/lib/products/catalog'
 
 interface CartState {
   items: CartItem[]
@@ -131,5 +132,7 @@ export const useCartStore = create<CartState>()(
 // Derived selector for navbar badge to avoid unnecessary re-renders
 export const useCartCount = () => {
   const items = useCartStore((s) => s.items)
-  return items.reduce((total, item) => total + item.quantity, 0)
+  return items
+    .filter((item) => !isExcludedPublicProductSlug((item.variant as any)?.product?.slug || ''))
+    .reduce((total, item) => total + item.quantity, 0)
 }

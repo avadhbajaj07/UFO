@@ -1,5 +1,6 @@
 import { MetadataRoute } from 'next'
 import { createClient } from '@/lib/supabase/server'
+import { isExcludedPublicProductSlug } from '@/lib/products/catalog'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://ufolabz.com'
@@ -11,12 +12,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .select('slug, updated_at')
     .eq('status', 'active')
 
-  const productUrls = (products as any[] ?? []).map((product) => ({
-    url: `${baseUrl}/products/${product.slug}`,
-    lastModified: product.updated_at ? new Date(product.updated_at) : new Date(),
-    changeFrequency: 'weekly' as const,
-    priority: 0.8,
-  }))
+  const productUrls = (products as any[] ?? [])
+    .filter((product) => !isExcludedPublicProductSlug(product.slug))
+    .map((product) => ({
+      url: `${baseUrl}/products/${product.slug}`,
+      lastModified: product.updated_at ? new Date(product.updated_at) : new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.8,
+    }))
 
   const staticPages = [
     '',

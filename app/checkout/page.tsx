@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import {
   Shield, CheckCircle2, ChevronRight, Lock,
   HelpCircle, Trash2, ArrowLeft, Plus, Phone, AlertCircle
@@ -22,8 +21,9 @@ const CANTONS = [
   'Solothurn', 'St. Gallen', 'Thurgau', 'Ticino', 'Uri', 'Valais', 'Vaud', 'Zug', 'Zurich'
 ]
 
+const STRIPE_PENDING_ORDER_KEY = 'ufolabz_pending_stripe_order'
+
 export default function CheckoutPage() {
-  const router = useRouter()
   const { items, breakdown, addItem, removeItem, updateQuantity, clearCart } = useCart()
   const { user } = useAuthStore()
 
@@ -58,11 +58,6 @@ export default function CheckoutPage() {
   const [carbonOffset, setCarbonOffset] = useState(false)
   const [paymentMethod, setPaymentMethod] = useState<'twint' | 'card' | 'invoice'>('twint')
 
-  // Card Details
-  const [cardNumber, setCardNumber] = useState('')
-  const [expiry, setExpiry] = useState('')
-  const [cvc, setCvc] = useState('')
-
   // Coupon
   const [couponCode, setCouponCode] = useState('')
   const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null)
@@ -72,8 +67,8 @@ export default function CheckoutPage() {
   // UI state
   const [checkoutStep, setCheckoutStep] = useState<'info' | 'payment'>('info')
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [showTwintModal, setShowTwintModal] = useState(false)
-  const [twintTimer, setTwintTimer] = useState(60)
+  const [stripeError, setStripeError] = useState('')
+  const [hasHandledStripeReturn, setHasHandledStripeReturn] = useState(false)
   const [orderSuccess, setOrderSuccess] = useState(false)
   const [orderNumber, setOrderNumber] = useState('')
 
@@ -94,19 +89,6 @@ export default function CheckoutPage() {
     }, 1000)
     return () => clearInterval(timer)
   }, [minutesLeft, secondsLeft])
-
-  // TWINT QR scan countdown simulation
-  useEffect(() => {
-    let timer: any
-    if (showTwintModal && twintTimer > 0) {
-      timer = setInterval(() => {
-        setTwintTimer((t) => t - 1)
-      }, 1000)
-    } else if (twintTimer === 0) {
-      handleCompletePurchase()
-    }
-    return () => clearInterval(timer)
-  }, [showTwintModal, twintTimer])
 
   // Shipping rates calculations
   const shippingCost = shippingMethod === 'priority'
@@ -176,13 +158,7 @@ export default function CheckoutPage() {
     setCanton('Zurich')
   }
 
-  const handleCompletePurchase = async () => {
-    setIsSubmitting(true)
-
-    // 1. Generate unique order ID
-    const orderId = `UFO-CH-${Math.floor(100000 + Math.random() * 900000)}`
-
-    // 2. Prepare order data for database and Resend
+  const buildOrderPayload = (orderId: string) => {
     const mappedItems = items.map((item) => ({
       productId: item.variant?.product_id || (item.variant as any).product?.id,
       variantId: item.variant?.id,
@@ -193,7 +169,7 @@ export default function CheckoutPage() {
       quantity: item.quantity
     }))
 
-    const orderPayload = {
+    return {
       orderNumber: orderId,
       profileId: user?.id || null, // send profile ID if logged in
       email,
@@ -220,28 +196,33 @@ export default function CheckoutPage() {
       discountAmount: couponDiscount,
       shippingAmount: shippingCost,
       total: finalTotal,
+      carbonOffset,
       couponCode: appliedCoupon ? appliedCoupon.split(' ')[0] : null
     }
+  }
 
+  const completeOrder = async (orderPayload: any, stripeSessionId?: string) => {
     try {
       const response = await fetch('/api/checkout/complete', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(orderPayload),
+        body: JSON.stringify({
+          ...orderPayload,
+          stripeSessionId,
+        }),
       })
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
         console.error('[CHECKOUT API ERROR] Failed to save order on server:', errorData)
+        throw new Error(errorData.error || 'Unable to complete your order.')
       }
     } catch (err) {
       console.error('[CHECKOUT NETWORK ERROR] Failed to contact checkout complete route:', err)
+      throw err
     }
-
-    setIsSubmitting(false)
-    setShowTwintModal(false)
 
     // If affiliate coupon was applied, register affiliate commission locally (for frontend dashboard simulation)
     if (appliedCoupon) {
@@ -270,7 +251,7 @@ export default function CheckoutPage() {
           const storedCommStr = localStorage.getItem('ufo_affiliate_commissions')
           const currentComm = storedCommStr ? JSON.parse(storedCommStr) : []
           currentComm.unshift({
-            id: orderId,
+            id: orderPayload.orderNumber,
             name: matchedCoup.affiliateName,
             sale: breakdown.subtotal,
             comm: addedComm,
@@ -285,10 +266,93 @@ export default function CheckoutPage() {
       }
     }
 
-    setOrderNumber(orderId)
+    setOrderNumber(orderPayload.orderNumber)
     setOrderSuccess(true)
     clearCart()
   }
+
+  const handleInvoicePurchase = async () => {
+    setIsSubmitting(true)
+    setStripeError('')
+
+    try {
+      const orderPayload = buildOrderPayload(`UFO-CH-${Math.floor(100000 + Math.random() * 900000)}`)
+      await completeOrder(orderPayload)
+    } catch (err: any) {
+      setStripeError(err?.message || 'Unable to complete your order.')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleStripeCheckout = async () => {
+    setIsSubmitting(true)
+    setStripeError('')
+
+    try {
+      const orderPayload = buildOrderPayload(`UFO-CH-${Math.floor(100000 + Math.random() * 900000)}`)
+      localStorage.setItem(STRIPE_PENDING_ORDER_KEY, JSON.stringify(orderPayload))
+
+      const response = await fetch('/api/checkout/session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(orderPayload),
+      })
+
+      const data = await response.json().catch(() => ({}))
+      if (!response.ok || !data.url) {
+        throw new Error(data.error || 'Unable to start Stripe Checkout.')
+      }
+
+      window.location.href = data.url
+    } catch (err: any) {
+      localStorage.removeItem(STRIPE_PENDING_ORDER_KEY)
+      setStripeError(err?.message || 'Unable to start Stripe Checkout.')
+      setIsSubmitting(false)
+    }
+  }
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const stripeStatus = params.get('stripe_status')
+    const sessionId = params.get('session_id')
+
+    if (stripeStatus === 'cancelled') {
+      setStripeError('Payment was cancelled. Your cart is still here when you are ready.')
+      window.history.replaceState({}, '', '/checkout')
+      return
+    }
+
+    if (stripeStatus !== 'success' || !sessionId || hasHandledStripeReturn) {
+      return
+    }
+
+    const finalizeStripeOrder = async () => {
+      setHasHandledStripeReturn(true)
+      setIsSubmitting(true)
+      setStripeError('')
+
+      try {
+        const storedPayload = localStorage.getItem(STRIPE_PENDING_ORDER_KEY)
+        if (!storedPayload) {
+          throw new Error('We could not find the pending order details for this Stripe payment.')
+        }
+
+        const orderPayload = JSON.parse(storedPayload)
+        await completeOrder(orderPayload, sessionId)
+        localStorage.removeItem(STRIPE_PENDING_ORDER_KEY)
+        window.history.replaceState({}, '', '/checkout')
+      } catch (err: any) {
+        setStripeError(err?.message || 'Unable to verify the Stripe payment.')
+      } finally {
+        setIsSubmitting(false)
+      }
+    }
+
+    finalizeStripeOrder()
+  }, [hasHandledStripeReturn])
 
   const handleSubmitInfo = (e: React.FormEvent) => {
     e.preventDefault()
@@ -299,12 +363,12 @@ export default function CheckoutPage() {
 
   const handlePlaceOrderSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (paymentMethod === 'twint') {
-      setTwintTimer(10) // Simulate automatic scan success in 10 seconds
-      setShowTwintModal(true)
-    } else {
-      handleCompletePurchase()
+    if (paymentMethod === 'invoice') {
+      handleInvoicePurchase()
+      return
     }
+
+    handleStripeCheckout()
   }
 
   // If order is completed successfully, render thank you screen
@@ -725,42 +789,8 @@ export default function CheckoutPage() {
                       </div>
 
                       {paymentMethod === 'card' && (
-                        <div className="space-y-3 pt-3 border-t border-white/5 animate-fade-in" onClick={(e) => e.stopPropagation()}>
-                          <div>
-                            <label className="text-[10px] font-mono text-gray-400 mb-1 block">Card Number</label>
-                            <input
-                              type="text"
-                              required
-                              value={cardNumber}
-                              onChange={(e) => setCardNumber(e.target.value)}
-                              placeholder="4242 4242 4242 4242"
-                              className="input"
-                            />
-                          </div>
-                          <div className="grid grid-cols-2 gap-3">
-                            <div>
-                              <label className="text-[10px] font-mono text-gray-400 mb-1 block">Expiry</label>
-                              <input
-                                type="text"
-                                required
-                                value={expiry}
-                                onChange={(e) => setExpiry(e.target.value)}
-                                placeholder="MM/YY"
-                                className="input"
-                              />
-                            </div>
-                            <div>
-                              <label className="text-[10px] font-mono text-gray-400 mb-1 block">CVC</label>
-                              <input
-                                type="password"
-                                required
-                                value={cvc}
-                                onChange={(e) => setCvc(e.target.value)}
-                                placeholder="123"
-                                className="input"
-                              />
-                            </div>
-                          </div>
+                        <div className="pt-3 border-t border-white/5 text-xs text-gray-400 animate-fade-in" onClick={(e) => e.stopPropagation()}>
+                          Card details are collected by Stripe Checkout after you continue.
                         </div>
                       )}
                     </div>
@@ -810,6 +840,12 @@ export default function CheckoutPage() {
                     </label>
                   </div>
 
+                  {stripeError && (
+                    <div className="border border-red-500/20 bg-red-500/10 text-red-200 rounded-xl p-3 text-xs">
+                      {stripeError}
+                    </div>
+                  )}
+
                   {/* Secure Place Order Action Button */}
                   <button
                     type="submit"
@@ -817,7 +853,7 @@ export default function CheckoutPage() {
                     className="w-full h-14 bg-alien-green text-space-950 font-bold rounded-xl shadow-glow-green text-base flex items-center justify-center gap-2 hover:shadow-2xl active:scale-98 transition-all"
                   >
                     <Lock className="w-4 h-4" />
-                    <span>{isSubmitting ? 'SECUREING PAYMENTS...' : 'Complete Secure Checkout'}</span>
+                    <span>{isSubmitting ? 'Redirecting to Stripe...' : 'Complete Secure Checkout'}</span>
                   </button>
                 </form>
               )}
@@ -963,57 +999,6 @@ export default function CheckoutPage() {
         )}
 
       </div>
-
-      {/* ─── TWINT MODAL QR SCAN SIMULATION ─── */}
-      {showTwintModal && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-space-900 border border-white/10 p-6 rounded-3xl max-w-sm w-full text-center space-y-6 shadow-2xl relative">
-            <h3 className="font-display text-2xl tracking-wider text-white">PAY WITH TWINT</h3>
-
-            <p className="text-xs text-gray-400">
-              Open your **TWINT app** on your phone, scan the QR code below, and authorize the transaction of <strong className="text-white">{formatPrice(finalTotal)}</strong>.
-            </p>
-
-            {/* QR Mock */}
-            <div className="w-48 h-48 bg-white p-3 rounded-2xl mx-auto flex items-center justify-center shadow-lg relative">
-              <div className="w-full h-full border border-gray-100 relative">
-                {/* Simulated QR block layout */}
-                <div className="absolute inset-0 bg-[radial-gradient(#1e3a8a_2px,transparent_2px)] bg-[size:10px_10px]" />
-                <div className="absolute top-2 left-2 w-8 h-8 border-[4px] border-blue-900 bg-white" />
-                <div className="absolute top-2 right-2 w-8 h-8 border-[4px] border-blue-900 bg-white" />
-                <div className="absolute bottom-2 left-2 w-8 h-8 border-[4px] border-blue-900 bg-white" />
-                {/* TWINT center logo */}
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-blue-900 text-white font-bold text-[9px] px-2 py-0.5 rounded shadow">
-                  TWINT
-                </div>
-              </div>
-            </div>
-
-            <div className="text-xs font-mono space-y-1 text-gray-400">
-              <div className="flex items-center justify-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-blue-500 animate-pulse" />
-                <span>Simulating QR scan confirmation...</span>
-              </div>
-              <p>Simulating success in: <strong className="text-white">{twintTimer}s</strong></p>
-            </div>
-
-            <div className="flex gap-2">
-              <button
-                onClick={() => setShowTwintModal(false)}
-                className="btn-outline flex-1 py-2 text-xs"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleCompletePurchase}
-                className="btn-primary flex-1 py-2 bg-blue-600 text-white font-bold text-xs"
-              >
-                Skip Scan (Success)
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
     </div>
   )
