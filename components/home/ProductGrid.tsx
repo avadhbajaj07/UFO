@@ -194,25 +194,11 @@ export default function ProductGrid({ products }: ProductGridProps) {
         </p>
       </div>
 
-      {/* Grid: 4 in first row, 2 in second row centered on md+ screens */}
-      <div className="space-y-4 sm:space-y-6">
-        {/* Row 1: 4 products on desktop */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
-          {products.slice(0, 4).map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
-
-        {/* Row 2: 2 products centered on desktop */}
-        {products.length > 4 && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
-            <div className="hidden md:block" aria-hidden="true" />
-            {products.slice(4, 6).map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-            <div className="hidden md:block" aria-hidden="true" />
-          </div>
-        )}
+      {/* Grid: Responsive grid showing up to 12 products */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
+        {products.slice(0, 12).map((product) => (
+          <ProductCard key={product.id} product={product} />
+        ))}
       </div>
 
       {/* View all */}
