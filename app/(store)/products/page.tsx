@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   description: 'Power your workouts with premium Swiss-engineered sports supplements. Explore UFO LABZ Creatine, Pre-Workout, and Amino Acid formulas.',
 }
 
-export const revalidate = 3600
+export const revalidate = 0
 
 async function getProducts(searchParams: Record<string, string> = {}) {
   const supabase  = createClient()

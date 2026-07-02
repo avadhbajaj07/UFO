@@ -6,7 +6,7 @@ import ProductDetail from '@/components/product/ProductDetail'
 import type { Metadata } from 'next'
 import { isExcludedPublicProductSlug } from '@/lib/products/catalog'
 
-export const revalidate = 3600
+export const revalidate = 0
 
 interface Props {
   params: { slug: string }

@@ -14,7 +14,7 @@ const publicProductRank = new Map(
 )
 
 export function isExcludedPublicProductSlug(slug: string) {
-  return EXCLUDED_PUBLIC_PRODUCT_SLUGS.includes(slug) || !publicProductRank.has(slug)
+  return EXCLUDED_PUBLIC_PRODUCT_SLUGS.includes(slug)
 }
 
 export function sortPublicProducts<T extends { slug: string; sort_order?: number | null }>(
