@@ -59,42 +59,21 @@ export async function GET(req: NextRequest) {
     if (!hasServiceKey) {
       return NextResponse.json({
         error: 'SUPABASE_SERVICE_ROLE_KEY is not defined in this environment. Run this on production/Vercel.',
-        env: {
-          NODE_ENV: process.env.NODE_ENV,
-          url: process.env.NEXT_PUBLIC_SUPABASE_URL
-        }
       }, { status: 400 });
     }
 
-    // 1. Clean up existing nutrition facts urls
-    const urlsToClean = nutritionImages.map(img => img.url);
-    const { data: cleanedImgs, error: cleanError } = await supabaseAdmin
+    // 1. Delete ALL non-primary images for the target products to clean duplicates
+    const productIds = nutritionImages.map(img => img.product_id);
+    const { data: deleted, error: deleteError } = await supabaseAdmin
       .from('product_images')
       .delete()
-      .in('url', urlsToClean)
+      .in('product_id', productIds)
+      .eq('is_primary', false)
       .select();
 
-    if (cleanError) {
-      throw cleanError;
-    }
+    if (deleteError) throw deleteError;
 
-    // 2. Clean up duplicate non-primary collagen images
-    const { data: collagenDupes } = await supabaseAdmin
-      .from('product_images')
-      .select('id')
-      .eq('product_id', '850b8ebc-caf4-4a18-83e9-4a7f2d6a0412')
-      .eq('is_primary', false);
-
-    if (collagenDupes && collagenDupes.length > 0) {
-      const dupeIds = collagenDupes.map(d => d.id);
-      const { error: delError } = await supabaseAdmin
-        .from('product_images')
-        .delete()
-        .in('id', dupeIds);
-      if (delError) throw delError;
-    }
-
-    // 3. Insert nutrition facts images
+    // 2. Insert exactly 1 nutrition facts image per product
     const inserts = nutritionImages.map(img => ({
       product_id: img.product_id,
       url: img.url,
@@ -108,13 +87,11 @@ export async function GET(req: NextRequest) {
       .insert(inserts)
       .select();
 
-    if (insertError) {
-      throw insertError;
-    }
+    if (insertError) throw insertError;
 
     return NextResponse.json({
       success: true,
-      cleanedCount: cleanedImgs?.length || 0,
+      deletedDuplicates: deleted?.length || 0,
       insertedCount: inserted?.length || 0,
       inserted
     });

@@ -35,6 +35,7 @@ function ProductCard({ product }: { product: Product }) {
   const name     = getLocalizedField(product.name)
   const tagline  = getLocalizedField(product.tagline)
   const primary  = product.images?.find((i) => i.is_primary) ?? product.images?.[0]
+  const secondary = product.images?.find((i) => !i.is_primary && i.sort_order === 2)
   const variant  = product.variants?.find((v) => v.is_default) ?? product.variants?.[0]
   const price    = variant?.price ?? product.base_price
   const compare  = variant?.compare_at_price ?? product.compare_at_price
@@ -84,13 +85,29 @@ function ProductCard({ product }: { product: Product }) {
         className="block relative aspect-square bg-space-900/50 overflow-hidden shrink-0"
       >
         {primary?.url ? (
-          <Image
-            src={primary.url}
-            alt={name}
-            fill
-            className="object-contain p-0 sm:p-2 md:p-3 scale-[1.24] sm:scale-[1.16] md:scale-110 group-hover:scale-[1.3] sm:group-hover:scale-[1.22] md:group-hover:scale-[1.16] transition-transform duration-700"
-            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
-          />
+          <>
+            {/* Primary product image - visible by default, hidden on hover */}
+            <Image
+              src={primary.url}
+              alt={name}
+              fill
+              className={cn(
+                "object-contain p-0 sm:p-2 md:p-3 scale-[1.24] sm:scale-[1.16] md:scale-110 transition-all duration-500",
+                secondary?.url ? "group-hover:opacity-0 group-hover:scale-[1.16]" : "group-hover:scale-[1.3] sm:group-hover:scale-[1.22] md:group-hover:scale-[1.16]"
+              )}
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+            />
+            {/* Secondary nutrition facts image - hidden by default, shown on hover */}
+            {secondary?.url && (
+              <Image
+                src={secondary.url}
+                alt={`${name} - Nutrition Facts`}
+                fill
+                className="object-contain p-1 sm:p-2 opacity-0 group-hover:opacity-100 scale-95 group-hover:scale-100 transition-all duration-500"
+                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+              />
+            )}
+          </>
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
             <div
