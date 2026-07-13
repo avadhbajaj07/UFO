@@ -101,10 +101,6 @@ export async function POST(req: NextRequest) {
       },
     }
 
-    if (paymentMethod === 'twint') {
-      sessionParams.payment_method_types = ['twint', 'card']
-    }
-
     const session = await stripe.checkout.sessions.create(sessionParams)
 
     return NextResponse.json({ url: session.url })
