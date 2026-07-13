@@ -66,6 +66,19 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
 
   const [quantity, setQuantity] = useState(1)
   const [activeSlide, setActiveSlide] = useState(0) // 0: Presentation, 1: Ingredients, 2: Flavors
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0)
+
+  useEffect(() => {
+    if (product?.images?.length > 1) {
+      const secondaryIdx = product.images.findIndex((i: any) => !i.is_primary && i.sort_order === 2);
+      if (activeSlide === 1 && secondaryIdx !== -1) {
+        setSelectedImageIndex(secondaryIdx);
+      } else {
+        const primaryIdx = product.images.findIndex((i: any) => i.is_primary);
+        setSelectedImageIndex(primaryIdx !== -1 ? primaryIdx : 0);
+      }
+    }
+  }, [activeSlide, product])
   const [activeTab, setActiveTab] = useState<'benefits' | 'ingredients' | 'nutrition' | 'usage' | 'faqs' | 'shipping'>('benefits')
   const [openFaq, setOpenFaq] = useState<string | null>(null)
   const [isSubscribed, setIsSubscribed] = useState(false)
@@ -322,11 +335,8 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
     }
   }
 
-  // Get primary or active slide image url
-  const secondaryImage = product.images?.find((i: any) => !i.is_primary && i.sort_order === 2)?.url
-  const mainImageUrl = (activeSlide === 1 && secondaryImage)
-    ? secondaryImage
-    : (product.images?.find((i: any) => i.is_primary)?.url ?? product.images?.[0]?.url)
+  // Get active selected image url
+  const mainImageUrl = product.images?.[selectedImageIndex]?.url ?? product.images?.[0]?.url
 
   return (
     <div className="pt-16 min-h-screen bg-space-950 text-white selection:bg-alien-green selection:text-space-950 overflow-x-hidden">
@@ -538,7 +548,7 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
             </div>
 
             {/* Slide right column: Image Showcase (width: 5 cols) */}
-            <div className="lg:col-span-5 flex justify-center relative">
+            <div className="lg:col-span-5 flex flex-col items-center justify-center relative">
               <div className="relative w-80 h-80 md:w-96 md:h-96">
                 {/* Space portal circle behind the image */}
                 <div className="absolute inset-0 rounded-full border border-white/5 animate-spin-slow scale-110 pointer-events-none" />
@@ -585,6 +595,36 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
                   </div>
                 )}
               </div>
+
+              {/* Thumbnails */}
+              {product.images && product.images.length > 1 && (
+                <div className="flex gap-3 mt-6 z-10">
+                  {product.images.map((img: any, idx: number) => {
+                    const isSelected = idx === selectedImageIndex;
+                    return (
+                      <button
+                        key={img.id || idx}
+                        onClick={() => setSelectedImageIndex(idx)}
+                        className={cn(
+                          "relative w-16 h-16 rounded-xl overflow-hidden border-2 bg-space-900 transition-all duration-200",
+                          isSelected ? "scale-105" : "border-white/10 hover:border-white/20 hover:scale-102"
+                        )}
+                        style={{
+                          borderColor: isSelected ? color : 'transparent',
+                          boxShadow: isSelected ? `0 0 10px ${color}40` : 'none'
+                        }}
+                      >
+                        <Image
+                          src={img.url}
+                          alt={`${name} thumbnail ${idx + 1}`}
+                          fill
+                          className="object-contain p-1"
+                        />
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
           </div>
