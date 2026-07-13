@@ -322,8 +322,11 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
     }
   }
 
-  // Get primary image url
-  const mainImageUrl = product.images?.find((i: any) => i.is_primary)?.url ?? product.images?.[0]?.url
+  // Get primary or active slide image url
+  const secondaryImage = product.images?.find((i: any) => !i.is_primary && i.sort_order === 2)?.url
+  const mainImageUrl = (activeSlide === 1 && secondaryImage)
+    ? secondaryImage
+    : (product.images?.find((i: any) => i.is_primary)?.url ?? product.images?.[0]?.url)
 
   return (
     <div className="pt-16 min-h-screen bg-space-950 text-white selection:bg-alien-green selection:text-space-950 overflow-x-hidden">
