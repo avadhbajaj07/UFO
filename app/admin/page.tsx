@@ -13,33 +13,6 @@ import { formatPrice } from '@/lib/utils/pricing'
 import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
 
-// Types
-interface Supplier {
-  id: string
-  name: string
-  contact: string
-  rating: number
-  leadTime: string
-  terms: string
-}
-
-interface Warehouse {
-  name: string
-  manager: string
-  location: string
-  stockCount: number
-  occupancy: number
-}
-
-interface Batch {
-  batchNo: string
-  product: string
-  mfgDate: string
-  expiryDate: string
-  lotNo: string
-  status: 'SAFE' | 'EXPIRED' | 'CRITICAL'
-}
-
 interface PricingRule {
   id: string
   trigger: string
@@ -99,114 +72,6 @@ interface Order {
   status: 'Pending' | 'Packed' | 'Ready for Pickup' | 'Completed'
   paymentMethod: 'Credit Card' | 'Twint' | 'Cash' | 'Invoice'
 }
-
-// Initial Data Seeds
-const INITIAL_SUPPLIERS: Supplier[] = [
-  { id: 'sup-1', name: 'Alps Nutrition Gmbh', contact: 'Marc Weber (+41 44 888 12 12)', rating: 4.8, leadTime: '5 Working Days', terms: 'Net 30 Days' },
-  { id: 'sup-2', name: 'Bio-Formulations Basel', contact: 'Dr. Anna Keller (+41 61 777 90 00)', rating: 4.9, leadTime: '3 Working Days', terms: 'Net 14 Days' }
-]
-
-const INITIAL_WAREHOUSES: Warehouse[] = [
-  { name: 'Zurich Cargo Node (Main)', manager: 'Beat Meier', location: 'Industriestrasse 12, Zurich', stockCount: 14500, occupancy: 78 },
-  { name: 'Geneva Depot (West)', manager: 'Sophie Laurent', location: 'Rue du Rhone 45, Geneva', stockCount: 5200, occupancy: 42 }
-]
-
-const INITIAL_BATCHES: Batch[] = [
-  { batchNo: 'BATCH-AC-2026-09', product: 'Astro Creatine (500g)', mfgDate: '2026-03-10', expiryDate: '2027-09-10', lotNo: 'L-442-A', status: 'SAFE' },
-  { batchNo: 'BATCH-BP-2026-08', product: 'Blast Pre-Workout (300g)', mfgDate: '2026-02-15', expiryDate: '2027-08-15', lotNo: 'L-390-C', status: 'SAFE' }
-]
-
-const INITIAL_PRICING_RULES: PricingRule[] = [
-  { id: 'rule-1', trigger: 'Stock depletion alert', condition: 'Inventory < 10 units', action: 'Increase price by 5%', status: 'ACTIVE' },
-  { id: 'rule-2', trigger: 'Weekend schedule', condition: 'Day is Saturday or Sunday', action: 'Apply 10% auto-discount', status: 'ACTIVE' },
-  { id: 'rule-3', trigger: 'Customer loyalty matching', condition: 'Customer tag is VIP', action: 'Extra 10% discount', status: 'INACTIVE' }
-]
-
-const INITIAL_ORDERS: Order[] = [
-  {
-    id: 'INV-883492',
-    customerName: 'Shikha Swiss',
-    customerEmail: 'shikha@ufolabz.ch',
-    date: '2026-06-28 20:30',
-    channel: 'Online',
-    products: [
-      { name: 'Blast Pre-Workout (300g)', qty: 2, price: 59.00 },
-      { name: 'Astro Creatine (500g)', qty: 1, price: 39.00 }
-    ],
-    subtotal: 157.00,
-    discount: 38.00,
-    vat: 9.64,
-    total: 119.00,
-    status: 'Pending',
-    paymentMethod: 'Twint'
-  },
-  {
-    id: 'INV-883491',
-    customerName: 'Walk-in Guest',
-    customerEmail: 'pos@ufolabz.ch',
-    date: '2026-06-28 19:15',
-    channel: 'POS Terminal',
-    products: [
-      { name: 'Astro Creatine (500g)', qty: 1, price: 39.00 }
-    ],
-    subtotal: 39.00,
-    discount: 0.00,
-    vat: 3.16,
-    total: 39.00,
-    status: 'Completed',
-    paymentMethod: 'Cash'
-  },
-  {
-    id: 'INV-883490',
-    customerName: 'John Zurich',
-    customerEmail: 'john@zurich.ch',
-    date: '2026-06-28 15:40',
-    channel: 'Online',
-    products: [
-      { name: 'Amino Fuel Mango (300g)', qty: 1, price: 49.00 },
-      { name: 'Astro Creatine (500g)', qty: 2, price: 39.00 }
-    ],
-    subtotal: 127.00,
-    discount: 12.00,
-    vat: 9.32,
-    total: 149.00,
-    status: 'Ready for Pickup',
-    paymentMethod: 'Credit Card'
-  },
-  {
-    id: 'INV-883489',
-    customerName: 'Marc Bern',
-    customerEmail: 'marc@bern.ch',
-    date: '2026-06-27 10:20',
-    channel: 'Online',
-    products: [
-      { name: 'Blast Pre-Workout (300g)', qty: 1, price: 59.00 }
-    ],
-    subtotal: 59.00,
-    discount: 0.00,
-    vat: 4.78,
-    total: 59.00,
-    status: 'Completed',
-    paymentMethod: 'Invoice'
-  }
-]
-
-const INITIAL_CUSTOMERS: CustomerProfile[] = [
-  { id: 'cust-1', name: 'Shikha Swiss', email: 'shikha@ufolabz.ch', spending: 480.00, ltv: 950.00, points: 2400, goals: 'Muscle Gain & Tone', status: 'VIP', purchaseFreq: 'Every 20 Days', ordersCount: 5, purchasedProducts: ['ASTRO CREATINE (500G)', 'BLAST PRE-WORKOUT (300G)'] },
-  { id: 'cust-2', name: 'John Zurich', email: 'john@zurich.ch', spending: 119.00, ltv: 240.00, points: 595, goals: 'Fat Loss', status: 'Regular', purchaseFreq: 'Every 35 Days', ordersCount: 2, purchasedProducts: ['AMINO FUEL MANGO (300G)'] },
-  { id: 'cust-3', name: 'Marc Bern', email: 'marc@bern.ch', spending: 39.00, ltv: 39.00, points: 150, goals: 'Strength Training', status: 'New', purchaseFreq: 'One-Time', ordersCount: 1, purchasedProducts: ['ASTRO CREATINE (500G)'] }
-]
-
-const INITIAL_REVIEWS: Review[] = [
-  { id: 'rev-1', author: 'Markus K.', product: 'Blast Pre-Workout (300g)', rating: 5, comment: 'Phenomenal focus! Best preworkout in Switzerland.', status: 'PENDING' },
-  { id: 'rev-2', author: 'Elena S.', product: 'Astro Creatine (500g)', rating: 4, comment: 'Very fine powder, mixes instantly in coffee.', status: 'APPROVED' }
-]
-
-const INITIAL_AUTOMATION_FLOWS: AutomationFlow[] = [
-  { id: 'auto-1', trigger: 'Stock drops below Reorder Point', action: 'Draft Purchase Order & notify Supplier', enabled: true },
-  { id: 'auto-2', trigger: 'Abandon Cart detected (> 45 min)', action: 'Send recover sequence email with 5% discount code', enabled: true },
-  { id: 'auto-3', trigger: 'Order successfully delivered', action: 'Trigger review request email (+ 100 points)', enabled: false }
-]
 
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'products' | 'orders' | 'inventory' | 'pricing' | 'customers' | 'affiliates' | 'marketing' | 'reviews' | 'automations'>('dashboard')
@@ -279,9 +144,9 @@ export default function AdminPage() {
 
   // Operation rules states
   const [pricingRules, setPricingRules] = useState<PricingRule[]>([])
-  const [newRuleTrigger, setNewRuleTrigger] = useState('Stock drops < 5')
-  const [newRuleCond, setNewRuleCond] = useState('Stock is critically low')
-  const [newRuleAct, setNewRuleAct] = useState('Increase Price 10%')
+  const [newRuleTrigger, setNewRuleTrigger] = useState('')
+  const [newRuleCond, setNewRuleCond] = useState('')
+  const [newRuleAct, setNewRuleAct] = useState('')
 
   // AI Product builder states
   const [aiTitle, setAiTitle] = useState('')
@@ -290,15 +155,15 @@ export default function AdminPage() {
   const [aiResult, setAiResult] = useState<any | null>(null)
 
   // AI Ad copywriter states
-  const [adPromoCode, setAdPromoCode] = useState('MARUTI10')
+  const [adPromoCode, setAdPromoCode] = useState('')
   const [adChannel, setAdChannel] = useState('facebook')
   const [adOutput, setAdOutput] = useState('')
   const [isGeneratingAd, setIsGeneratingAd] = useState(false)
 
   // Sourcing PO states
-  const [poSupplier, setPoSupplier] = useState('Bio-Formulations Basel')
-  const [poItem, setPoItem] = useState('Pure Whey Isolate Raw')
-  const [poQty, setPoQty] = useState(100)
+  const [poSupplier, setPoSupplier] = useState('')
+  const [poItem, setPoItem] = useState('')
+  const [poQty, setPoQty] = useState(0)
   const [poList, setPoList] = useState<any[]>([])
 
   // Customer Expand state
@@ -311,13 +176,13 @@ export default function AdminPage() {
   // CRM Form state
   const [newCustName, setNewCustName] = useState('')
   const [newCustEmail, setNewCustEmail] = useState('')
-  const [newCustGoal, setNewCustGoal] = useState('Muscle Gain')
+  const [newCustGoal, setNewCustGoal] = useState('')
   const [newCustStatus, setNewCustStatus] = useState<'VIP' | 'Regular' | 'New'>('Regular')
-  const [newCustSpend, setNewCustSpend] = useState(100)
-  const [newCustLtv, setNewCustLtv] = useState(100)
-  const [newCustFreq, setNewCustFreq] = useState('Every 30 Days')
-  const [newCustOrdersCount, setNewCustOrdersCount] = useState(1)
-  const [newCustProducts, setNewCustProducts] = useState('ASTRO CREATINE (500G)')
+  const [newCustSpend, setNewCustSpend] = useState(0)
+  const [newCustLtv, setNewCustLtv] = useState(0)
+  const [newCustFreq, setNewCustFreq] = useState('')
+  const [newCustOrdersCount, setNewCustOrdersCount] = useState(0)
+  const [newCustProducts, setNewCustProducts] = useState('')
 
   // Email Template Manager states
   const [emailTargetCustomer, setEmailTargetCustomer] = useState<CustomerProfile | null>(null)
@@ -348,12 +213,12 @@ export default function AdminPage() {
   const liveOfflineSales = ordersList.filter(o => o.channel === 'POS Terminal').reduce((acc, order) => acc + (order.total || 0), 0)
   const liveOfflinePct = liveGrossRevenue > 0 ? Math.round((liveOfflineSales / liveGrossRevenue) * 100) : 0
 
-  const liveActiveUsers = customersList.length
+  const liveCustomerProfiles = customersList.length
   const liveAffiliatesJoined = affiliates.length
   const livePendingAffiliates = affiliates.filter(a => a.status === 'PENDING').length
 
-  const liveAffiliateCommission = coupons.reduce((acc, c) => acc + (c.totalCommission || 0), 0)
-  const liveDuePayout = 0.00 // fallback
+  const liveAffiliateCommission = affiliates.reduce((acc, affiliate) => acc + Number(affiliate.totalCommission || 0), 0)
+  const liveDuePayout = affiliates.reduce((acc, affiliate) => acc + Number(affiliate.pendingCommission || 0), 0)
 
   const liveInventoryAlertsCount = liveProducts.filter(p => p.stock <= 5).length
 
@@ -362,13 +227,12 @@ export default function AdminPage() {
   const liveReadyForPickup = ordersList.filter(o => o.status === 'Ready for Pickup').length
 
   // Demographics calculation
-  const swissCities = ['Zurich', 'Geneva', 'Basel', 'Bern']
-  const cityRevenues: Record<string, number> = { Zurich: 0, Geneva: 0, Basel: 0, Bern: 0 }
+  const cityRevenues: Record<string, number> = {}
   ordersList.forEach(o => {
-    const rawCity = (o as any).city || 'Zurich'
-    const city = swissCities.find(c => rawCity.toLowerCase().includes(c.toLowerCase())) || 'Zurich'
-    cityRevenues[city] += o.total || 0
+    const city = (o as any).city?.trim()
+    if (city) cityRevenues[city] = (cityRevenues[city] || 0) + (o.total || 0)
   })
+  const salesCities = Object.keys(cityRevenues).sort()
   const cityTotal = Object.values(cityRevenues).reduce((a, b) => a + b, 0)
 
   // Top Selling Products
@@ -422,10 +286,10 @@ export default function AdminPage() {
 
         return {
           id: p.id,
-          title: typeof p.name === 'object' ? (p.name.en || p.name.de || 'UFO Product').toUpperCase() : String(p.name).toUpperCase(),
+          title: typeof p.name === 'object' ? (p.name.en || p.name.de || '').toUpperCase() : String(p.name || '').toUpperCase(),
           slug: p.slug,
           category_id: p.category_id || '',
-          category: p.category_id ? 'PRE-WORKOUT' : 'SPECIAL-EDITION',
+          category: '',
           price: Number(p.base_price),
           base_price: Number(p.compare_at_price || p.base_price),
           stock: primaryVariant.stock ?? 0,
@@ -435,8 +299,8 @@ export default function AdminPage() {
           imageGallery: p.images?.map((img: any) => img.url) || [],
           keyBenefits: p.schema_markup?.key_benefits || [],
           ingredients: p.schema_markup?.ingredients || '',
-          product_color: p.product_color || '#00FF88',
-          color_name: p.color_name || 'Alien Green',
+          product_color: p.product_color || '',
+          color_name: p.color_name || '',
 
           // New fields mapped for edit loading
           sku: primaryVariant.sku || '',
@@ -448,15 +312,15 @@ export default function AdminPage() {
           warnings: p.schema_markup?.warnings || '',
           storage_instructions: p.schema_markup?.storage_instructions || '',
           serving_size: primaryVariant.serving_size || nutrition.serving_size || '',
-          servings: primaryVariant.servings || nutrition.servings_per_container || 30,
-          calories: nutrition.calories || 120,
-          protein: nutrition.protein || 25,
-          carbs: nutrition.total_carbohydrate || 3,
-          fat: nutrition.total_fat || 1.5,
-          weight: primaryVariant.weight_grams || 300,
-          width: p.schema_markup?.dimensions?.width || 10,
-          height: p.schema_markup?.dimensions?.height || 15,
-          depth: p.schema_markup?.dimensions?.depth || 10,
+          servings: primaryVariant.servings || nutrition.servings_per_container || 0,
+          calories: nutrition.calories || 0,
+          protein: nutrition.protein || 0,
+          carbs: nutrition.total_carbohydrate || 0,
+          fat: nutrition.total_fat || 0,
+          weight: primaryVariant.weight_grams || 0,
+          width: p.schema_markup?.dimensions?.width || 0,
+          height: p.schema_markup?.dimensions?.height || 0,
+          depth: p.schema_markup?.dimensions?.depth || 0,
           seo_title: p.seo_title?.en || '',
           seo_description: p.seo_description?.en || '',
           related_products: p.schema_markup?.related_products || [],
@@ -480,12 +344,13 @@ export default function AdminPage() {
       const mappedOrds = ords ? ords.map((o: any) => ({
         dbId: o.id,
         id: o.order_number || o.id.slice(0, 8),
-        customerName: o.shipping_address?.fullName || 'Guest Athlete',
+        customerName: o.shipping_address?.fullName || 'Guest',
         customerEmail: o.guest_email || 'N/A',
+        city: o.shipping_address?.city || '',
         date: new Date(o.created_at || o.paid_at).toLocaleString(),
         channel: (o.payment_method === 'cash' ? 'POS Terminal' : 'Online') as 'Online' | 'POS Terminal',
         products: o.items ? o.items.map((item: any) => ({
-          name: typeof item.product_name === 'object' ? (item.product_name.en || item.product_name.de || 'UFO Product') : item.product_name,
+          name: typeof item.product_name === 'object' ? (item.product_name.en || item.product_name.de || '') : (item.product_name || ''),
           qty: item.quantity,
           price: Number(item.unit_price)
         })) : [],
@@ -515,14 +380,16 @@ export default function AdminPage() {
         name: a.profile?.full_name || a.profile?.email?.split('@')[0] || 'Partner',
         email: a.profile?.email || 'N/A',
         phone: a.profile?.phone || 'N/A',
-        canton: a.payout_details?.canton || 'Zurich',
+        canton: a.payout_details?.canton || '',
         website: a.payout_details?.website || 'N/A',
         social: a.payout_details?.social_link || 'N/A',
         status: a.status.toUpperCase(),
         joinedDate: a.created_at.split('T')[0],
         salesCount: a.total_orders,
         code: a.code || 'N/A',
-        commissionRate: Number(a.commission_rate || 10),
+        commissionRate: Number(a.commission_rate || 0),
+        totalCommission: Number(a.total_commission || 0),
+        pendingCommission: Number(a.pending_commission || 0),
       })) : []
       setAffiliates(mappedAffs)
 
@@ -534,13 +401,13 @@ export default function AdminPage() {
       const mappedCoups = coups ? coups.map((c: any) => ({
         code: c.code,
         affiliateId: c.affiliate_id || 'N/A',
-        affiliateName: 'UFO Partner',
+        affiliateName: '',
         discountPct: Number(c.discount_value),
-        commissionPct: 10,
+        commissionPct: Number(c.commission_pct || 0),
         status: c.is_active ? 'APPROVED' : 'PENDING',
-        salesCount: 0,
-        totalRevenue: 0.00,
-        totalCommission: 0.00
+        salesCount: Number(c.sales_count || 0),
+        totalRevenue: Number(c.total_revenue || 0),
+        totalCommission: Number(c.total_commission || 0)
       })) : []
       setCoupons(mappedCoups)
 
@@ -560,9 +427,9 @@ export default function AdminPage() {
         spending: Number(c.total_spent),
         ltv: Number(c.total_spent),
         points: c.loyalty ? (Array.isArray(c.loyalty) ? (c.loyalty[0]?.points || 0) : (c.loyalty as any).points || 0) : 0,
-        goals: c.notes || 'Peak Performance',
+        goals: c.notes || '',
         status: (c.role === 'admin' ? 'VIP' : 'Regular') as 'VIP' | 'Regular' | 'New',
-        purchaseFreq: 'Every 30 Days',
+        purchaseFreq: '',
         ordersCount: c.total_orders,
         purchasedProducts: []
       })) : []
@@ -575,8 +442,8 @@ export default function AdminPage() {
 
       const mappedRevs = revs ? revs.map((r: any) => ({
         id: r.id,
-        author: r.author_name || 'Guest Athlete',
-        product: 'UFO Supplement',
+        author: r.author_name || 'Guest',
+        product: r.product_name || r.product_id || '',
         rating: r.rating,
         comment: r.body || '',
         status: (r.status.toUpperCase() === 'APPROVED' ? 'APPROVED' : (r.status.toUpperCase() === 'SPAM' ? 'SPAM' : 'PENDING')) as 'PENDING' | 'APPROVED' | 'SPAM'
@@ -1310,13 +1177,13 @@ export default function AdminPage() {
     // Reset form
     setNewCustName('')
     setNewCustEmail('')
-    setNewCustSpend(100)
-    setNewCustLtv(100)
-    setNewCustGoal('Muscle Gain')
+    setNewCustSpend(0)
+    setNewCustLtv(0)
+    setNewCustGoal('')
     setNewCustStatus('Regular')
-    setNewCustFreq('Every 30 Days')
-    setNewCustOrdersCount(1)
-    setNewCustProducts('ASTRO CREATINE (500G)')
+    setNewCustFreq('')
+    setNewCustOrdersCount(0)
+    setNewCustProducts('')
     alert(`Customer profile for ${newCustName} successfully created in CRM!`)
   }
 
@@ -1510,7 +1377,6 @@ export default function AdminPage() {
               </div>
               <div>
                 <div className="font-bold text-sm text-white font-sans font-semibold uppercase tracking-wide">Command Deck</div>
-                <span className="text-[9px] text-alien-green font-sans font-semibold uppercase tracking-wider block mt-0.5">Shopify Plus Engine</span>
               </div>
             </div>
 
@@ -1617,7 +1483,7 @@ export default function AdminPage() {
                     <div className="card-glass bg-space-950/40 border border-white/[0.06] p-4 rounded-2xl relative overflow-hidden shadow-inner hover:border-alien-green/20 hover:scale-[1.01] transition-all duration-300">
                       <span className="text-[10px] text-gray-400 font-bold block uppercase tracking-wider">Gross revenue</span>
                       <span className="text-2xl font-bold font-sans text-gradient-cosmic mt-1.5 block">{formatPrice(liveGrossRevenue)}</span>
-                      <span className="text-[9px] text-alien-green block mt-1">+0% from last month</span>
+                      <span className="text-[9px] text-gray-400 block mt-1">Calculated from recorded orders</span>
                     </div>
 
                     <div className="card-glass bg-space-950/40 border border-white/[0.06] p-4 rounded-2xl relative overflow-hidden shadow-inner hover:border-alien-green/20 hover:scale-[1.01] transition-all duration-300">
@@ -1642,9 +1508,9 @@ export default function AdminPage() {
                   {/* 2. Secondary telemetry parameters */}
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
                     <div className="card-glass bg-space-950/40 border border-white/[0.06] p-4 rounded-2xl shadow-inner hover:border-alien-green/10 transition-all duration-300">
-                      <span className="text-[10px] text-gray-400 font-bold block uppercase tracking-wider">Active users online</span>
-                      <span className="text-xl font-bold font-sans text-white mt-1 block">{liveActiveUsers} Active</span>
-                      <span className="text-[9px] text-alien-green block mt-1">Currently in checkout: 0</span>
+                      <span className="text-[10px] text-gray-400 font-bold block uppercase tracking-wider">Customer profiles</span>
+                      <span className="text-xl font-bold font-sans text-white mt-1 block">{liveCustomerProfiles}</span>
+                      <span className="text-[9px] text-gray-400 block mt-1">Registered customer records</span>
                     </div>
 
                     <div className="card-glass bg-space-950/40 border border-white/[0.06] p-4 rounded-2xl shadow-inner hover:border-alien-green/10 transition-all duration-300">
@@ -1681,7 +1547,7 @@ export default function AdminPage() {
                         <div className="bg-space-900 border border-white/5 p-4 rounded-xl text-center">
                           <span className="text-[10px] text-gray-400 block uppercase">Ready for Pickup</span>
                           <span className="text-3xl font-bold font-sans text-alien-green mt-1 block">{liveReadyForPickup}</span>
-                          <span className="text-[8px] text-alien-green block mt-1">Zurich Depot Cargo Node</span>
+                          <span className="text-[8px] text-alien-green block mt-1">Awaiting collection</span>
                         </div>
                       </div>
                     </div>
@@ -1691,7 +1557,7 @@ export default function AdminPage() {
                       <h3 className="text-xs font-sans font-bold text-white uppercase tracking-wider border-b border-white/5 pb-2">🇨🇭 Sales Demographics (City Share)</h3>
 
                       <div className="space-y-2.5 font-sans text-xs">
-                        {swissCities.map((city, idx) => {
+                        {salesCities.map((city, idx) => {
                           const revenue = cityRevenues[city] || 0
                           const sharePct = cityTotal > 0 ? Math.round((revenue / cityTotal) * 100) : 0
                           const colors = ['bg-alien-green', 'bg-blue-400', 'bg-purple-400', 'bg-gray-400']
@@ -1702,11 +1568,14 @@ export default function AdminPage() {
                                 <span className="font-semibold text-white">{sharePct}% ({formatPrice(revenue)})</span>
                               </div>
                               <div className="w-full bg-white/5 h-1 rounded-full overflow-hidden">
-                                <div className={cn("h-full rounded-full", colors[idx])} style={{ width: `${sharePct}%` }} />
+                                <div className={cn("h-full rounded-full", colors[idx % colors.length])} style={{ width: `${sharePct}%` }} />
                               </div>
                             </div>
                           )
                         })}
+                        {salesCities.length === 0 && (
+                          <div className="text-center py-8 text-gray-500">No city sales data recorded.</div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -1833,65 +1702,42 @@ export default function AdminPage() {
                     </div>
 
                     <div className="space-y-2 text-xs">
-                      {/* Affiliate alert */}
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3 rounded-xl bg-space-900 border border-white/5 gap-2 text-left">
-                        <div>
-                          <span className="px-1.5 py-0.5 rounded font-sans text-[8px] font-bold bg-purple-500/10 text-purple-400 border border-purple-500/20 uppercase">Affiliate Program</span>
-                          <div className="font-bold text-white mt-1">New Affiliate Registration request received</div>
-                          <p className="text-[10px] text-gray-400">Beat Keller (Fitness Zurich) requested referral code `BEATFIT10` in Canton Zurich.</p>
+                      {affiliates.filter(a => a.status === 'PENDING').slice(0, 3).map(affiliate => (
+                        <div key={affiliate.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 rounded-xl bg-space-900 border border-white/5 gap-2 text-left">
+                          <div>
+                            <span className="px-1.5 py-0.5 rounded font-sans text-[8px] font-bold bg-purple-500/10 text-purple-400 border border-purple-500/20 uppercase">Affiliate Program</span>
+                            <div className="font-bold text-white mt-1">New affiliate registration request</div>
+                            <p className="text-[10px] text-gray-400">{affiliate.name} · {affiliate.email}</p>
+                          </div>
+                          <button onClick={() => setActiveTab('affiliates')} className="bg-white/5 border border-white/10 hover:bg-white/10 text-white font-sans text-[9px] px-3 py-1.5 rounded-lg shrink-0">Moderate Affiliate</button>
                         </div>
-                        <button
-                          onClick={() => setActiveTab('affiliates')}
-                          className="bg-white/5 border border-white/10 hover:bg-white/10 text-white font-sans text-[9px] px-3 py-1.5 rounded-lg shrink-0"
-                        >
-                          Moderate Affiliate
-                        </button>
-                      </div>
+                      ))}
 
-                      {/* Product review alert */}
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3 rounded-xl bg-space-900 border border-white/5 gap-2 text-left">
-                        <div>
-                          <span className="px-1.5 py-0.5 rounded font-sans text-[8px] font-bold bg-alien-green/10 text-alien-green border border-alien-green/20 uppercase">Product Review</span>
-                          <div className="font-bold text-white mt-1">Unapproved product review submitted</div>
-                          <p className="text-[10px] text-gray-400">Elena S. rated Astro Creatine 5 stars: "mixes instantly in coffee..."</p>
+                      {reviews.filter(review => review.status === 'PENDING').slice(0, 3).map(review => (
+                        <div key={review.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 rounded-xl bg-space-900 border border-white/5 gap-2 text-left">
+                          <div>
+                            <span className="px-1.5 py-0.5 rounded font-sans text-[8px] font-bold bg-alien-green/10 text-alien-green border border-alien-green/20 uppercase">Product Review</span>
+                            <div className="font-bold text-white mt-1">Unapproved product review</div>
+                            <p className="text-[10px] text-gray-400">{review.author} rated {review.product} {review.rating} stars.</p>
+                          </div>
+                          <button onClick={() => setActiveTab('reviews')} className="bg-white/5 border border-white/10 hover:bg-white/10 text-white font-sans text-[9px] px-3 py-1.5 rounded-lg shrink-0">Moderate Review</button>
                         </div>
-                        <button
-                          onClick={() => setActiveTab('reviews')}
-                          className="bg-white/5 border border-white/10 hover:bg-white/10 text-white font-sans text-[9px] px-3 py-1.5 rounded-lg shrink-0"
-                        >
-                          Moderate Review
-                        </button>
-                      </div>
+                      ))}
 
-                      {/* Blog comment review alert */}
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3 rounded-xl bg-space-900 border border-white/5 gap-2 text-left">
-                        <div>
-                          <span className="px-1.5 py-0.5 rounded font-sans text-[8px] font-bold bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 uppercase">Blog Comment</span>
-                          <div className="font-bold text-white mt-1">Pending blog comment submitted</div>
-                          <p className="text-[10px] text-gray-400">Markus K. commented on "Post-workout windows": "super useful tips, ordered creatine..."</p>
+                      {liveProducts.filter(product => product.stock <= 5).slice(0, 3).map(product => (
+                        <div key={product.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 rounded-xl bg-space-900 border border-red-500/20 bg-red-500/[0.02] gap-2 text-left">
+                          <div>
+                            <span className="px-1.5 py-0.5 rounded font-sans text-[8px] font-bold bg-red-500/10 text-red-400 border border-red-500/20 uppercase">Inventory Alert</span>
+                            <div className="font-bold text-white mt-1">Critical stock level</div>
+                            <p className="text-[10px] text-red-300">{product.title}: {product.stock} units remaining.</p>
+                          </div>
+                          <button onClick={() => setActiveTab('inventory')} className="bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 text-red-400 font-sans text-[9px] px-3 py-1.5 rounded-lg shrink-0">Manage Stock</button>
                         </div>
-                        <button
-                          onClick={() => alert('Blog comments ledger loaded! Comment approved.')}
-                          className="bg-white/5 border border-white/10 hover:bg-white/10 text-white font-sans text-[9px] px-3 py-1.5 rounded-lg shrink-0"
-                        >
-                          Moderate Comment
-                        </button>
-                      </div>
+                      ))}
 
-                      {/* Inventory low stock alert */}
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3 rounded-xl bg-space-900 border border-red-500/20 bg-red-500/[0.02] gap-2 text-left">
-                        <div>
-                          <span className="px-1.5 py-0.5 rounded font-sans text-[8px] font-bold bg-red-500/10 text-red-400 border border-red-500/20 uppercase">Inventory Alert</span>
-                          <div className="font-bold text-white mt-1">Critical stock depletion threshold detected</div>
-                          <p className="text-[10px] text-red-300">Omega Matrix Fish Oil has dropped below Reorder Level (15 units remaining in main warehouse Depot).</p>
-                        </div>
-                        <button
-                          onClick={() => setActiveTab('inventory')}
-                          className="bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 text-red-400 font-sans text-[9px] px-3 py-1.5 rounded-lg shrink-0"
-                        >
-                          Manage Stock
-                        </button>
-                      </div>
+                      {livePendingAffiliates === 0 && reviews.every(review => review.status !== 'PENDING') && liveInventoryAlertsCount === 0 && (
+                        <div className="py-8 text-center text-gray-500">No actions currently require review.</div>
+                      )}
                     </div>
                   </div>
 
@@ -3059,24 +2905,8 @@ export default function AdminPage() {
                   {/* Warehouses lists */}
                   <div className="space-y-3">
                     <h3 className="text-xs font-sans font-bold tracking-widest text-muted text-gray-400 uppercase">1. Multi-Warehouse Allocations</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {INITIAL_WAREHOUSES.map((wh) => (
-                        <div key={wh.name} className="bg-space-950 border border-white/5 p-5 rounded-2xl space-y-3 text-xs">
-                          <div className="flex justify-between items-center">
-                            <span className="font-bold text-white">{wh.name}</span>
-                            <span className="text-[10px] font-sans text-alien-green">{wh.occupancy}% Cap.</span>
-                          </div>
-                          <div className="space-y-1 text-gray-400">
-                            <div>Manager: <strong className="text-white">{wh.manager}</strong></div>
-                            <div>Address: {wh.location}</div>
-                            <div>Live Stock Units: <strong className="text-white font-sans">{wh.stockCount.toLocaleString()} units</strong></div>
-                          </div>
-                          {/* Occupancy bar */}
-                          <div className="w-full bg-white/5 h-1.5 rounded-full overflow-hidden">
-                            <div className="bg-alien-green h-full rounded-full" style={{ width: `${wh.occupancy}%` }} />
-                          </div>
-                        </div>
-                      ))}
+                    <div className="bg-space-950 border border-white/5 p-8 rounded-2xl text-center text-xs text-gray-500">
+                      No warehouse records configured.
                     </div>
                   </div>
 
@@ -3085,17 +2915,7 @@ export default function AdminPage() {
                     {/* Suppliers List */}
                     <div className="bg-space-950 border border-white/5 p-5 rounded-2xl space-y-4 text-xs">
                       <h3 className="font-bold text-white font-sans text-[10px] uppercase text-gray-400">2. Active Raw Suppliers</h3>
-                      <div className="space-y-3">
-                        {INITIAL_SUPPLIERS.map((sup) => (
-                          <div key={sup.id} className="border-b border-white/5 pb-2">
-                            <div className="flex justify-between">
-                              <span className="font-bold text-white">{sup.name}</span>
-                              <span className="text-yellow-500 font-bold font-sans">★ {sup.rating}</span>
-                            </div>
-                            <div className="text-[10px] text-gray-400 mt-1">Lead Time: {sup.leadTime} · Terms: {sup.terms}</div>
-                          </div>
-                        ))}
-                      </div>
+                      <div className="py-6 text-center text-gray-500">No supplier records configured.</div>
                     </div>
 
                     {/* PO Generator Form */}
@@ -3104,14 +2924,13 @@ export default function AdminPage() {
 
                       <div>
                         <label className="text-[9px] font-sans text-gray-400 block mb-1">Target Supplier</label>
-                        <select
+                        <input
+                          type="text"
                           value={poSupplier}
                           onChange={(e) => setPoSupplier(e.target.value)}
+                          placeholder="Supplier name"
                           className="input focus:outline-none bg-space-900 border-white/5 py-1 text-xs"
-                        >
-                          <option value="Alps Nutrition Gmbh">Alps Nutrition Gmbh</option>
-                          <option value="Bio-Formulations Basel">Bio-Formulations Basel</option>
-                        </select>
+                        />
                       </div>
 
                       <div className="grid grid-cols-2 gap-3">
@@ -3121,6 +2940,7 @@ export default function AdminPage() {
                             type="text"
                             value={poItem}
                             onChange={(e) => setPoItem(e.target.value)}
+                            placeholder="Ingredient or item"
                             className="input py-1 text-xs"
                           />
                         </div>
@@ -3160,20 +2980,9 @@ export default function AdminPage() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-white/5">
-                        {INITIAL_BATCHES.map((b) => (
-                          <tr key={b.batchNo} className="font-sans">
-                            <td className="p-3 text-white">{b.batchNo}</td>
-                            <td className="p-3 font-sans font-bold text-white">{b.product}</td>
-                            <td className="p-3 text-gray-400">{b.mfgDate}</td>
-                            <td className="p-3 text-gray-400">{b.expiryDate}</td>
-                            <td className="p-3 text-white">{b.lotNo}</td>
-                            <td className="p-3">
-                              <span className="bg-alien-green/10 border border-alien-green/20 text-alien-green px-2 py-0.5 rounded text-[8px] font-bold">
-                                {b.status}
-                              </span>
-                            </td>
-                          </tr>
-                        ))}
+                        <tr>
+                          <td colSpan={6} className="p-8 text-center text-gray-500">No batch records configured.</td>
+                        </tr>
                       </tbody>
                     </table>
                   </div>
