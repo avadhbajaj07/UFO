@@ -5,9 +5,12 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
+const ADMIN_LOGIN_EMAIL = 'marco.scarpantoni@hotmail.com'
+
 function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const isAdminLogin = searchParams.get('admin') === '1'
   const requestedRedirect = searchParams.get('redirect')
   const redirect = requestedRedirect?.startsWith('/') && !requestedRedirect.startsWith('//')
     ? requestedRedirect
@@ -27,7 +30,10 @@ function LoginForm() {
     setError(null)
     setMessage(null)
 
-    const { data: { user }, error } = await supabase.auth.signInWithPassword({ email, password })
+    const { data: { user }, error } = await supabase.auth.signInWithPassword({
+      email: isAdminLogin ? ADMIN_LOGIN_EMAIL : email,
+      password,
+    })
 
     if (error) {
       setError(error.message === '{}' ? 'An unexpected authentication error occurred. Please try again.' : error.message)
@@ -109,7 +115,9 @@ function LoginForm() {
               className="w-20 h-20 object-contain rounded-2xl border border-white/10 shadow-lg mx-auto"
             />
           </Link>
-          <h1 className="font-display text-4xl tracking-wider text-white mb-2">SIGN IN</h1>
+          <h1 className="font-display text-4xl tracking-wider text-white mb-2">
+            {isAdminLogin ? 'ADMIN SIGN IN' : 'SIGN IN'}
+          </h1>
           <p className="text-sm text-muted">Welcome back, Commander</p>
         </div>
 
@@ -127,19 +135,20 @@ function LoginForm() {
           )}
 
           <form onSubmit={handleLogin} className="space-y-4">
-            {/* Email */}
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted pointer-events-none" />
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Email address"
-                required
-                className="input pl-10"
-                autoComplete="email"
-              />
-            </div>
+            {!isAdminLogin && (
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted pointer-events-none" />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Email address"
+                  required
+                  className="input pl-10"
+                  autoComplete="email"
+                />
+              </div>
+            )}
 
             {/* Password */}
             <div className="relative">
@@ -178,28 +187,34 @@ function LoginForm() {
             </button>
           </form>
 
-          <div className="relative flex items-center gap-3">
-            <div className="flex-1 h-px bg-muted/10" />
-            <span className="text-xs text-muted">or</span>
-            <div className="flex-1 h-px bg-muted/10" />
-          </div>
+          {!isAdminLogin && (
+            <>
+              <div className="relative flex items-center gap-3">
+                <div className="flex-1 h-px bg-muted/10" />
+                <span className="text-xs text-muted">or</span>
+                <div className="flex-1 h-px bg-muted/10" />
+              </div>
 
-          <button
-            type="button"
-            onClick={handleMagicLink}
-            disabled={loading}
-            className="btn-outline w-full justify-center py-3 text-sm"
-          >
-            Send magic link
-          </button>
+              <button
+                type="button"
+                onClick={handleMagicLink}
+                disabled={loading}
+                className="btn-outline w-full justify-center py-3 text-sm"
+              >
+                Send magic link
+              </button>
+            </>
+          )}
         </div>
 
-        <p className="text-center text-sm text-muted mt-6">
-          No account yet?{' '}
-          <Link href="/signup" className="text-alien-green hover:text-alien-green/80 font-medium transition-colors">
-            Create one
-          </Link>
-        </p>
+        {!isAdminLogin && (
+          <p className="text-center text-sm text-muted mt-6">
+            No account yet?{' '}
+            <Link href="/signup" className="text-alien-green hover:text-alien-green/80 font-medium transition-colors">
+              Create one
+            </Link>
+          </p>
+        )}
       </div>
     </div>
   )

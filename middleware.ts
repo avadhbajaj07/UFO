@@ -49,8 +49,9 @@ export async function middleware(request: NextRequest) {
   if (isAdminRequest) {
     if (!user) {
       const redirectPath = isAdminHost ? '/' : '/admin'
+      const adminLoginFlag = isAdminHost ? '&admin=1' : ''
       return NextResponse.redirect(
-        new URL(`/login?redirect=${encodeURIComponent(redirectPath)}`, request.url)
+        new URL(`/login?redirect=${encodeURIComponent(redirectPath)}${adminLoginFlag}`, request.url)
       )
     }
     const { data: profile } = await supabase
