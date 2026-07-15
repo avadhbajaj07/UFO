@@ -12,7 +12,6 @@ import {
 import { formatPrice } from '@/lib/utils/pricing'
 import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
-import { useAuthStore } from '@/store/auth'
 
 // Types
 interface Supplier {
@@ -210,66 +209,6 @@ const INITIAL_AUTOMATION_FLOWS: AutomationFlow[] = [
 ]
 
 export default function AdminPage() {
-  const { user, profile, isLoading } = useAuthStore()
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [passwordInput, setPasswordInput] = useState('')
-  const [authError, setAuthError] = useState('')
-
-  // Supabase auth credentials
-  const [emailInput, setEmailInput] = useState('')
-  const [supaPasswordInput, setSupaPasswordInput] = useState('')
-  const [isSigningIn, setIsSigningIn] = useState(false)
-
-  useEffect(() => {
-    if (sessionStorage.getItem('ufo_admin_authed') === 'true' && user && (profile?.role === 'admin' || profile?.role === 'super_admin')) {
-      setIsAuthenticated(true)
-    } else {
-      setIsAuthenticated(false)
-    }
-  }, [user, profile])
-
-  const handleAuthenticate = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    if (passwordInput !== 'UFOLabzAdmin2026!') {
-      setAuthError('INVALID ACCESS DECREE. ACCESS DENIED.')
-      return
-    }
-
-    setIsSigningIn(true)
-    setAuthError('')
-
-    const supabase = createClient() as any
-    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-      email: emailInput,
-      password: supaPasswordInput
-    })
-
-    if (authError) {
-      setAuthError('SUPABASE AUTH ERROR: ' + authError.message)
-      setIsSigningIn(false)
-      return
-    }
-
-    // Fetch profile to verify role
-    const { data: prof, error: profError } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', authData.user.id)
-      .single()
-
-    if (profError || !prof || (prof.role !== 'admin' && prof.role !== 'super_admin')) {
-      setAuthError('ACCESS RESTRICTED: Your account does not have administrator privileges.')
-      await supabase.auth.signOut()
-      setIsSigningIn(false)
-      return
-    }
-
-    setIsAuthenticated(true)
-    sessionStorage.setItem('ufo_admin_authed', 'true')
-    setIsSigningIn(false)
-  }
-
   const [activeTab, setActiveTab] = useState<'dashboard' | 'products' | 'orders' | 'inventory' | 'pricing' | 'customers' | 'affiliates' | 'marketing' | 'reviews' | 'automations'>('dashboard')
 
 
@@ -459,8 +398,6 @@ export default function AdminPage() {
   }, [])
 
   useEffect(() => {
-    if (!isAuthenticated) return
-
     const fetchData = async () => {
       const supabase = createClient() as any
 
@@ -668,75 +605,7 @@ export default function AdminPage() {
     }
 
     fetchData()
-  }, [isAuthenticated, activeTab])
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-space-950 text-white flex items-center justify-center font-mono text-xs">
-        ESTABLISHING CONTROL NODE HANDSHAKE...
-      </div>
-    )
-  }
-
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-space-950 text-white flex items-center justify-center font-mono text-xs px-4 selection:bg-electric-red selection:text-white">
-        <div className="bg-space-900 border border-electric-red/20 p-8 rounded-3xl max-w-sm w-full text-left space-y-6 shadow-glow-red relative overflow-hidden">
-          <div className="absolute inset-0 bg-electric-red/5 blur-[50px] pointer-events-none" />
-          <div className="w-16 h-16 rounded-full bg-electric-red/10 border border-electric-red/20 flex items-center justify-center mx-auto text-electric-red text-2xl relative z-10 animate-pulse">
-            🔒
-          </div>
-          <div className="relative z-10 text-center">
-            <h2 className="font-display text-2xl tracking-wider text-white uppercase">RESTRICTED ZONE</h2>
-            <p className="text-gray-400 mt-2 text-[10px] leading-relaxed">Admin access restricted to verified orbital commanders. Enter credentials and decryption password.</p>
-          </div>
-          <form onSubmit={handleAuthenticate} className="space-y-4 relative z-10">
-            <div>
-              <label className="text-[9px] text-gray-400 font-mono block mb-1">Commander Email</label>
-              <input
-                type="email"
-                required
-                value={emailInput}
-                onChange={(e) => setEmailInput(e.target.value)}
-                placeholder="email@ufolabz.ch"
-                className="w-full bg-space-950 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-electric-red/40 transition-colors"
-              />
-            </div>
-            <div>
-              <label className="text-[9px] text-gray-400 font-mono block mb-1">Orbital Password</label>
-              <input
-                type="password"
-                required
-                value={supaPasswordInput}
-                onChange={(e) => setSupaPasswordInput(e.target.value)}
-                placeholder="Supabase Auth Password"
-                className="w-full bg-space-950 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-electric-red/40 transition-colors"
-              />
-            </div>
-            <div>
-              <label className="text-[9px] text-gray-400 font-mono block mb-1">Decryption Code</label>
-              <input
-                type="password"
-                required
-                value={passwordInput}
-                onChange={(e) => setPasswordInput(e.target.value)}
-                placeholder="UFOLabzAdmin2026!"
-                className="w-full bg-space-950 border border-white/10 rounded-xl px-4 py-2.5 text-center text-white focus:outline-none focus:border-electric-red/40 transition-colors font-mono"
-              />
-            </div>
-            {authError && <div className="text-electric-red font-bold uppercase text-[9px] tracking-wider text-center animate-bounce">{authError}</div>}
-            <button
-              type="submit"
-              disabled={isSigningIn}
-              className="w-full bg-electric-red hover:bg-electric-red/80 text-white font-bold py-3 rounded-xl transition-all shadow-glow-red hover:scale-[1.02] transform duration-150 flex items-center justify-center gap-2"
-            >
-              <span>{isSigningIn ? 'DECRYPTING ORBITAL LINK...' : 'DECRYPT CONTROL PANEL'}</span>
-            </button>
-          </form>
-        </div>
-      </div>
-    )
-  }
+  }, [activeTab])
 
   // Save live products helper
   const saveProductsToStorage = (newProds: any[]) => {

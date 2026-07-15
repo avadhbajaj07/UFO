@@ -1,9 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { NextResponse } from 'next/server';
+import { createClient as createAdminClient } from '@supabase/supabase-js';
+import { createClient } from '@/lib/supabase/server';
 
 export const dynamic = 'force-dynamic';
 
-const supabaseAdmin = createClient(
+const supabaseAdmin = createAdminClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
@@ -46,13 +47,23 @@ const nutritionImages = [
   },
 ];
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
-    const { searchParams } = new URL(req.url);
-    const secret = searchParams.get('secret');
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
 
-    if (secret !== 'UFOLabzAdmin2026!') {
-      return NextResponse.json({ error: 'Unauthorized. Invalid secret key.' }, { status: 401 });
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 });
+    }
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single() as any;
+
+    if (!profile || (profile.role !== 'admin' && profile.role !== 'super_admin')) {
+      return NextResponse.json({ error: 'Admin permissions required.' }, { status: 403 });
     }
 
     const hasServiceKey = !!process.env.SUPABASE_SERVICE_ROLE_KEY;
