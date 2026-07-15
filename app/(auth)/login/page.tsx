@@ -8,7 +8,10 @@ import { createClient } from '@/lib/supabase/client'
 function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const redirect = searchParams.get('redirect') ?? '/'
+  const requestedRedirect = searchParams.get('redirect')
+  const redirect = requestedRedirect?.startsWith('/') && !requestedRedirect.startsWith('//')
+    ? requestedRedirect
+    : '/'
   const supabase = createClient()
 
   const [email, setEmail] = useState('')
@@ -34,7 +37,7 @@ function LoginForm() {
 
     if (user) {
       // Check if redirect search param is set and isn't just root
-      const hasCustomRedirect = searchParams.get('redirect') && searchParams.get('redirect') !== '/'
+      const hasCustomRedirect = redirect !== '/'
       if (hasCustomRedirect) {
         router.push(redirect)
       } else {

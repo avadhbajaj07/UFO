@@ -2,11 +2,23 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
-  let response = NextResponse.next({
-    request: {
-      headers: request.headers,
-    },
-  })
+  const forwardedHost = request.headers.get('x-forwarded-host')?.split(',')[0]?.trim()
+  const hostname = (forwardedHost || request.headers.get('host') || '').split(':')[0]
+  const isAdminHost = hostname === 'admin.ufolabz.com'
+  const isAdminRoot = isAdminHost && request.nextUrl.pathname === '/'
+
+  // Keep the clean subdomain URL visible while serving the existing admin route.
+  const createResponse = () => {
+    if (isAdminRoot) {
+      const adminUrl = request.nextUrl.clone()
+      adminUrl.pathname = '/admin'
+      return NextResponse.rewrite(adminUrl, { request: { headers: request.headers } })
+    }
+
+    return NextResponse.next({ request: { headers: request.headers } })
+  }
+
+  let response = createResponse()
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -18,9 +30,7 @@ export async function middleware(request: NextRequest) {
         },
         setAll(cookiesToSet: any) {
           cookiesToSet.forEach(({ name, value }: any) => request.cookies.set(name, value))
-          response = NextResponse.next({
-            request,
-          })
+          response = createResponse()
           cookiesToSet.forEach(({ name, value, options }: any) =>
             response.cookies.set(name, value, options)
           )
@@ -32,9 +42,16 @@ export async function middleware(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
 
   // 1. Admin Panel Access Guard
-  if (request.nextUrl.pathname.startsWith('/admin')) {
+  const isAdminPath = request.nextUrl.pathname === '/admin'
+    || request.nextUrl.pathname.startsWith('/admin/')
+  const isAdminRequest = isAdminRoot || isAdminPath
+
+  if (isAdminRequest) {
     if (!user) {
-      return NextResponse.redirect(new URL('/login?redirect=/admin', request.url))
+      const redirectPath = isAdminHost ? '/' : '/admin'
+      return NextResponse.redirect(
+        new URL(`/login?redirect=${encodeURIComponent(redirectPath)}`, request.url)
+      )
     }
     const { data: profile } = await supabase
       .from('profiles')
@@ -43,7 +60,9 @@ export async function middleware(request: NextRequest) {
       .single()
 
     if (!profile || (profile.role !== 'admin' && profile.role !== 'super_admin')) {
-      return NextResponse.redirect(new URL('/', request.url))
+      return NextResponse.redirect(
+        new URL('/', isAdminHost ? 'https://ufolabz.com' : request.url)
+      )
     }
   }
 
