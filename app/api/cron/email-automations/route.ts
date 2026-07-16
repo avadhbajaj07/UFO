@@ -1,14 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 import { emailService } from '@/lib/email/email';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 export const dynamic = 'force-dynamic';
-
-// Initialize Supabase admin client to bypass row level security for back-end queries
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
 
 export async function GET(req: NextRequest) {
   try {
@@ -20,6 +14,12 @@ export async function GET(req: NextRequest) {
     if (!isDev && authHeader !== `Bearer ${cronSecret}`) {
       return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 });
     }
+
+    if (!isDev && !process.env.CRON_SECRET) {
+      return NextResponse.json({ error: 'Cron is not configured.' }, { status: 503 });
+    }
+
+    const supabaseAdmin = createAdminClient();
 
     const report: any = {
       abandonedCartsSent: 0,

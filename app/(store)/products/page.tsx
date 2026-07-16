@@ -3,10 +3,12 @@ import { createClient } from '@/lib/supabase/server'
 import ProductsClient from '@/components/product/ProductsClient'
 import type { Metadata } from 'next'
 import { sortPublicProducts } from '@/lib/products/catalog'
+import { redirect } from 'next/navigation'
 
 export const metadata: Metadata = {
   title: 'Shop Supplements | UFO LABZ',
   description: 'Power your workouts with premium Swiss-engineered sports supplements. Explore UFO LABZ Creatine, Pre-Workout, and Amino Acid formulas.',
+  alternates: { canonical: 'https://ufolabz.com/products' },
 }
 
 export const revalidate = 0
@@ -63,6 +65,10 @@ export default async function ProductsPage({
   searchParams?: Record<string, string>
 }) {
   const params = searchParams || {}
+  if (params.category) {
+    const sort = params.sort ? `?sort=${encodeURIComponent(params.sort)}` : ''
+    redirect(`/products/category/${encodeURIComponent(params.category)}${sort}`)
+  }
   const [products, categories] = await Promise.all([
     getProducts(params),
     getCategories(),
@@ -75,6 +81,7 @@ export default async function ProductsPage({
         categories={categories as any}
         activeCategory={params.category}
         activeSort={params.sort}
+        intro="Science-backed creatine, pre-workout, amino acids, magnesium and recovery supplements with fast delivery across Switzerland."
       />
     </div>
   )

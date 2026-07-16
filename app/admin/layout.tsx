@@ -1,4 +1,6 @@
 import type { Metadata, Viewport } from 'next'
+import { redirect } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
 
 export const metadata: Metadata = {
   title: 'UFO LABZ Admin',
@@ -26,6 +28,19 @@ export const viewport: Viewport = {
   viewportFit: 'cover',
 }
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) redirect('/login?redirect=/admin')
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .maybeSingle() as any
+
+  if (!profile || !['admin', 'super_admin'].includes(profile.role)) redirect('/')
+
   return children
 }

@@ -1,6 +1,7 @@
 import { MetadataRoute } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { isExcludedPublicProductSlug } from '@/lib/products/catalog'
+import { CATEGORY_SEO } from '@/lib/seo/catalog'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://ufolabz.com'
@@ -21,6 +22,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     }))
 
+  const categoryUrls = Object.keys(CATEGORY_SEO).map((slug) => ({
+    url: `${baseUrl}/products/category/${slug}`,
+    changeFrequency: 'weekly' as const,
+    priority: 0.75,
+  }))
+
   const staticPages = [
     '',
     '/products',
@@ -39,5 +46,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: route === '' ? 1.0 : 0.6,
   }))
 
-  return [...staticPages, ...productUrls]
+  return [...staticPages, ...categoryUrls, ...productUrls]
 }

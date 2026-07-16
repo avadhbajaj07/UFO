@@ -19,17 +19,19 @@ import {
   ReplenishmentEmail,
 } from '@/components/email/OtherTemplates';
 
-// Instantiate the Resend client with safe fallback for dev environments
+let resendClient: Resend | null | undefined;
+
+// Initialize lazily so builds do not evaluate the email SDK before runtime secrets exist.
 const getResendClient = () => {
+  if (resendClient !== undefined) return resendClient;
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
-    console.warn('⚠️ Warning: RESEND_API_KEY is not defined in environment variables. Email sending is mocked.');
-    return null;
+    resendClient = null;
+    return resendClient;
   }
-  return new Resend(apiKey);
+  resendClient = new Resend(apiKey);
+  return resendClient;
 };
-
-const resend = getResendClient();
 
 // Configuration parameters
 const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'UFO LABZ <hello@ufolabz.com>';
@@ -63,6 +65,7 @@ export const emailService = {
    */
   async sendOrderConfirmation(orderData: any, items: any[]): Promise<EmailSendResult> {
     try {
+      const resend = getResendClient();
       if (!resend) {
         console.log(`[MOCK EMAIL] sendOrderConfirmation to ${orderData.email} for order #${orderData.order_number}`);
         return { success: true, id: 'mock-confirm-id' };
@@ -135,6 +138,7 @@ export const emailService = {
    */
   async sendAdminNotification(orderData: any, items: any[]): Promise<EmailSendResult> {
     try {
+      const resend = getResendClient();
       if (!resend) {
         console.log(`[MOCK EMAIL] sendAdminNotification to ${ADMIN_EMAIL} for order #${orderData.order_number}`);
         return { success: true, id: 'mock-admin-id' };
@@ -207,6 +211,7 @@ export const emailService = {
    */
   async sendWelcomeEmail(email: string, name: string): Promise<EmailSendResult> {
     try {
+      const resend = getResendClient();
       if (!resend) {
         console.log(`[MOCK EMAIL] sendWelcomeEmail to ${email}`);
         return { success: true, id: 'mock-welcome-id' };
@@ -235,6 +240,7 @@ export const emailService = {
    */
   async sendVerificationEmail(email: string, token: string, name?: string): Promise<EmailSendResult> {
     try {
+      const resend = getResendClient();
       const url = `${APP_URL}/verify-email?token=${token}`;
       if (!resend) {
         console.log(`[MOCK EMAIL] sendVerificationEmail to ${email} with url ${url}`);
@@ -264,6 +270,7 @@ export const emailService = {
    */
   async sendPasswordReset(email: string, token: string, name?: string): Promise<EmailSendResult> {
     try {
+      const resend = getResendClient();
       const url = `${APP_URL}/reset-password?token=${token}`;
       if (!resend) {
         console.log(`[MOCK EMAIL] sendPasswordReset to ${email} with url ${url}`);
@@ -293,6 +300,7 @@ export const emailService = {
    */
   async sendOrderShipped(orderData: any): Promise<EmailSendResult> {
     try {
+      const resend = getResendClient();
       if (!resend) {
         console.log(`[MOCK EMAIL] sendOrderShipped to ${orderData.email} for order #${orderData.order_number}`);
         return { success: true, id: 'mock-shipped-id' };
@@ -324,6 +332,7 @@ export const emailService = {
    */
   async sendOrderDelivered(orderData: any): Promise<EmailSendResult> {
     try {
+      const resend = getResendClient();
       if (!resend) {
         console.log(`[MOCK EMAIL] sendOrderDelivered to ${orderData.email} for order #${orderData.order_number}`);
         return { success: true, id: 'mock-delivered-id' };
@@ -353,6 +362,7 @@ export const emailService = {
    */
   async sendRefundProcessed(orderData: any, refundAmount: number): Promise<EmailSendResult> {
     try {
+      const resend = getResendClient();
       if (!resend) {
         console.log(`[MOCK EMAIL] sendRefundProcessed to ${orderData.email} for amount ${refundAmount}`);
         return { success: true, id: 'mock-refund-id' };
@@ -383,6 +393,7 @@ export const emailService = {
    */
   async sendReviewRequest(orderData: any, productName: string): Promise<EmailSendResult> {
     try {
+      const resend = getResendClient();
       if (!resend) {
         console.log(`[MOCK EMAIL] sendReviewRequest to ${orderData.email} for product ${productName}`);
         return { success: true, id: 'mock-review-req-id' };
@@ -415,6 +426,7 @@ export const emailService = {
    */
   async sendNewsletterWelcome(email: string): Promise<EmailSendResult> {
     try {
+      const resend = getResendClient();
       if (!resend) {
         console.log(`[MOCK EMAIL] sendNewsletterWelcome to ${email}`);
         return { success: true, id: 'mock-newsletter-id' };
@@ -442,6 +454,7 @@ export const emailService = {
    */
   async sendAffiliateApproval(email: string, partnerName: string, referralCode: string, commissionRate: number): Promise<EmailSendResult> {
     try {
+      const resend = getResendClient();
       if (!resend) {
         console.log(`[MOCK EMAIL] sendAffiliateApproval to ${email} for partner ${partnerName}`);
         return { success: true, id: 'mock-aff-approve-id' };
@@ -471,6 +484,7 @@ export const emailService = {
    */
   async sendOrderStatusChange(email: string, customerName: string, orderNumber: string, oldStatus: string, newStatus: string): Promise<EmailSendResult> {
     try {
+      const resend = getResendClient();
       if (!resend) {
         console.log(`[MOCK EMAIL] sendOrderStatusChange to ${email} for order #${orderNumber} (${oldStatus} -> ${newStatus})`);
         return { success: true, id: 'mock-status-change-id' };
@@ -501,6 +515,7 @@ export const emailService = {
    */
   async sendLoyaltyReward(email: string, customerName: string, points: number, expiryDate: string): Promise<EmailSendResult> {
     try {
+      const resend = getResendClient();
       if (!resend) {
         console.log(`[MOCK EMAIL] sendLoyaltyReward to ${email}: +${points} pts expiring ${expiryDate}`);
         return { success: true, id: 'mock-loyalty-reward-id' };
@@ -530,6 +545,7 @@ export const emailService = {
    */
   async sendAffiliateRateChange(email: string, partnerName: string, oldRate: number, newRate: number): Promise<EmailSendResult> {
     try {
+      const resend = getResendClient();
       if (!resend) {
         console.log(`[MOCK EMAIL] sendAffiliateRateChange to ${email}: ${oldRate}% -> ${newRate}%`);
         return { success: true, id: 'mock-aff-rate-change-id' };
@@ -559,6 +575,7 @@ export const emailService = {
    */
   async sendAbandonedCart(email: string, customerName: string, cartItems: any[], checkoutUrl: string, discountCode?: string): Promise<EmailSendResult> {
     try {
+      const resend = getResendClient();
       if (!resend) {
         console.log(`[MOCK EMAIL] sendAbandonedCart to ${email} for checkoutUrl ${checkoutUrl}`);
         return { success: true, id: 'mock-abandoned-cart-id' };
@@ -589,6 +606,7 @@ export const emailService = {
    */
   async sendReplenishment(email: string, customerName: string, productName: string, reorderUrl: string): Promise<EmailSendResult> {
     try {
+      const resend = getResendClient();
       if (!resend) {
         console.log(`[MOCK EMAIL] sendReplenishment to ${email} for product ${productName}`);
         return { success: true, id: 'mock-replenish-id' };

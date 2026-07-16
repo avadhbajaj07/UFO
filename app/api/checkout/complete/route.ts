@@ -1,24 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { createClient } from '@/lib/supabase/server';
-import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { emailService } from '@/lib/email/email';
 import { buildValidatedCheckoutTotals, toStripeAmount } from '@/lib/checkout/amounts';
 import { isStripeConfigured, stripe } from '@/lib/stripe';
 import Stripe from 'stripe';
 
-const supabaseAdmin = createSupabaseClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
-
 export async function POST(req: NextRequest) {
   try {
+    const supabaseAdmin = createAdminClient();
     const body = await req.json();
 
     const {
       orderNumber,
-      profileId: bodyProfileId,
       email,
       fullName,
       phone,
@@ -44,10 +39,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 1. Get authenticated user profile ID if logged in (supporting cookie vs payload)
+    // 1. Only the authenticated session may own an order. Never trust a profile ID from the request body.
     const supabaseUser = createClient();
     const { data: { user } } = await supabaseUser.auth.getUser();
-    let profileId = bodyProfileId || (user ? user.id : null);
+    let profileId = user?.id ?? null;
 
     // Validate profile existence and auto-create if missing
     if (profileId) {

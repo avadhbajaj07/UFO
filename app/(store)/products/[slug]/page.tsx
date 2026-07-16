@@ -5,6 +5,7 @@ import { getLocalizedField } from '@/types'
 import ProductDetail from '@/components/product/ProductDetail'
 import type { Metadata } from 'next'
 import { isExcludedPublicProductSlug } from '@/lib/products/catalog'
+import { getProductSeo, SITE_URL } from '@/lib/seo/catalog'
 
 export const revalidate = 0
 
@@ -46,16 +47,34 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!product) return { title: 'Product Not Found' }
 
   const name = getLocalizedField(product.name as Record<string, string>)
-  const desc = getLocalizedField(product.seo_description as Record<string, string>)
+  const fallbackDescription = getLocalizedField(product.seo_description as Record<string, string>)
     || getLocalizedField(product.short_description as Record<string, string>)
+  const seo = getProductSeo(params.slug, {
+    title: `${name} | UFO LABZ Switzerland`,
+    description: fallbackDescription,
+    keywords: [name, `${name} Switzerland`, 'sports supplements Switzerland'],
+  })
+  const canonical = `${SITE_URL}/products/${params.slug}`
+  const primaryImage = product.images?.find((image: any) => image.is_primary)?.url
+    ?? product.images?.[0]?.url
 
   return {
-    title: name,
-    description: desc,
+    title: seo.title,
+    description: seo.description,
+    keywords: seo.keywords,
+    alternates: { canonical },
     openGraph: {
-      title: name,
-      description: desc,
-      images: product.og_image_url ? [product.og_image_url] : [],
+      title: seo.title,
+      description: seo.description,
+      url: canonical,
+      type: 'website',
+      images: product.og_image_url ? [product.og_image_url] : primaryImage ? [primaryImage] : [],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: seo.title,
+      description: seo.description,
+      images: primaryImage ? [primaryImage] : undefined,
     },
   }
 }
@@ -78,6 +97,9 @@ export default async function ProductPage({ params }: Props) {
   const prod = product as any
   const localizedName = typeof prod.name === 'object' ? (prod.name.en || prod.name.de) : prod.name
   const localizedDesc = typeof prod.description === 'object' ? (prod.description.en || prod.description.de) : prod.description
+  const categoryName = typeof prod.category?.name === 'object'
+    ? (prod.category.name.en || prod.category.name.de)
+    : prod.category?.name
 
   const images = (prod.images as any[] ?? []).map((img) => img.url)
   const offersList = (prod.variants as any[] ?? []).map((v) => ({
@@ -87,7 +109,7 @@ export default async function ProductPage({ params }: Props) {
     itemCondition: 'https://schema.org/NewCondition',
     availability: v.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
     sku: v.sku,
-    url: `https://ufolabz.com/products/${prod.slug}`,
+    url: `${SITE_URL}/products/${prod.slug}`,
   }))
 
   const jsonLd = {
@@ -97,23 +119,59 @@ export default async function ProductPage({ params }: Props) {
     description: localizedDesc,
     image: images.length > 0 ? images : ['https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782667544/UFO4_nuzyls.png'],
     sku: prod.variants?.[0]?.sku ?? prod.slug,
+    category: categoryName,
     brand: {
       '@type': 'Brand',
       name: 'UFO LABZ',
     },
+    ...(Number(prod.total_reviews) > 0 && Number(prod.avg_rating) > 0 ? {
+      aggregateRating: {
+        '@type': 'AggregateRating',
+        ratingValue: Number(prod.avg_rating),
+        reviewCount: Number(prod.total_reviews),
+        bestRating: 5,
+        worstRating: 1,
+      },
+    } : {}),
     offers: offersList.length > 0 ? (offersList.length === 1 ? offersList[0] : offersList) : {
       '@type': 'Offer',
       price: prod.base_price,
       priceCurrency: 'CHF',
       availability: 'https://schema.org/InStock',
+      url: `${SITE_URL}/products/${prod.slug}`,
     }
+  }
+
+  const breadcrumb = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: SITE_URL },
+      { '@type': 'ListItem', position: 2, name: 'Supplements', item: `${SITE_URL}/products` },
+      ...(prod.category?.slug ? [{
+        '@type': 'ListItem',
+        position: 3,
+        name: categoryName,
+        item: `${SITE_URL}/products/category/${prod.category.slug}`,
+      }] : []),
+      {
+        '@type': 'ListItem',
+        position: prod.category?.slug ? 4 : 3,
+        name: localizedName,
+        item: `${SITE_URL}/products/${prod.slug}`,
+      },
+    ],
   }
 
   return (
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb).replace(/</g, '\\u003c') }}
       />
       <ProductDetail product={product as any} slug={params.slug} />
     </>

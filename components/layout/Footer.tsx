@@ -3,10 +3,11 @@ import Link from 'next/link'
 
 const shopLinks = [
   { href: '/products', label: 'All Products' },
-  { href: '/products?category=creatine', label: 'Creatine' },
-  { href: '/products?category=pre-workout', label: 'Pre Workout' },
-  { href: '/products?category=amino-acids', label: 'Amino Acids' },
-  { href: '/products?category=special-edition', label: 'Special Edition' },
+  { href: '/products/category/creatine', label: 'Creatine' },
+  { href: '/products/category/pre-workout', label: 'Pre Workout' },
+  { href: '/products/category/amino-acids', label: 'Amino Acids' },
+  { href: '/products/category/magnesium', label: 'Magnesium' },
+  { href: '/products/category/special-edition', label: 'Special Edition' },
 ]
 
 const companyLinks = [

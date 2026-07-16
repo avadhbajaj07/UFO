@@ -1,7 +1,7 @@
 'use client'
 // components/product/ProductsClient.tsx
 import { useState, useEffect } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Star, ShoppingBag, SlidersHorizontal } from 'lucide-react'
@@ -23,9 +23,18 @@ interface Props {
   categories:     any[]
   activeCategory?: string
   activeSort?:    string
+  heading?:       string
+  intro?:         string
 }
 
-export default function ProductsClient({ products, categories, activeCategory, activeSort = 'sort_order' }: Props) {
+export default function ProductsClient({
+  products,
+  categories,
+  activeCategory,
+  activeSort = 'sort_order',
+  heading = 'THE COLLECTION',
+  intro,
+}: Props) {
   const router = useRouter()
   const [displayProducts, setDisplayProducts] = useState(products)
 
@@ -37,7 +46,8 @@ export default function ProductsClient({ products, categories, activeCategory, a
     const params = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '')
     if (value) params.set(key, value)
     else params.delete(key)
-    router.push(`/products?${params.toString()}`)
+    const pathname = activeCategory ? `/products/category/${activeCategory}` : '/products'
+    router.push(`${pathname}${params.toString() ? `?${params.toString()}` : ''}`)
   }
 
   const { addItem, isLoading } = useCart()
@@ -46,7 +56,8 @@ export default function ProductsClient({ products, categories, activeCategory, a
     <div className="max-w-7xl mx-auto container-px py-10">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="font-display text-5xl tracking-wider text-white mb-2">THE COLLECTION</h1>
+        <h1 className="font-display text-5xl tracking-wider text-white mb-2">{heading}</h1>
+        {intro && <p className="text-muted max-w-3xl leading-relaxed mb-2">{intro}</p>}
         <p className="text-muted">{products.length} products</p>
       </div>
 
@@ -54,8 +65,8 @@ export default function ProductsClient({ products, categories, activeCategory, a
       <div className="flex flex-wrap gap-3 mb-8 items-center justify-between">
         {/* Categories */}
         <div className="flex flex-wrap gap-2">
-          <button
-            onClick={() => setFilter('category', null)}
+          <Link
+            href="/products"
             className={cn(
               'px-4 py-2 rounded-lg text-sm font-medium border transition-all',
               !activeCategory
@@ -64,11 +75,11 @@ export default function ProductsClient({ products, categories, activeCategory, a
             )}
           >
             All
-          </button>
+          </Link>
           {categories.map((cat: any) => (
-            <button
+            <Link
               key={cat.slug}
-              onClick={() => setFilter('category', cat.slug)}
+              href={`/products/category/${cat.slug}`}
               className={cn(
                 'px-4 py-2 rounded-lg text-sm font-medium border transition-all',
                 activeCategory === cat.slug
@@ -77,7 +88,7 @@ export default function ProductsClient({ products, categories, activeCategory, a
               )}
             >
               {getLocalizedField(cat.name)}
-            </button>
+            </Link>
           ))}
         </div>
 
@@ -175,7 +186,7 @@ export default function ProductsClient({ products, categories, activeCategory, a
       {displayProducts.length === 0 && (
         <div className="text-center py-20">
           <p className="text-muted text-lg">No products found.</p>
-          <button onClick={() => setFilter('category', null)} className="btn-outline mt-4">Clear filters</button>
+          <Link href="/products" className="btn-outline mt-4">Clear filters</Link>
         </div>
       )}
     </div>

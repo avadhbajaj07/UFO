@@ -1,13 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import type Stripe from 'stripe'
 import { buildStripeLineItems, buildValidatedCheckoutTotals, toStripeAmount } from '@/lib/checkout/amounts'
 import { isStripeConfigured, stripe } from '@/lib/stripe'
-
-const supabaseAdmin = createSupabaseClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+import { createAdminClient } from '@/lib/supabase/admin'
 
 function getBaseUrl(req: NextRequest) {
   const configuredUrl = process.env.NEXT_PUBLIC_APP_URL
@@ -24,6 +19,8 @@ export async function POST(req: NextRequest) {
   let requestedPaymentMethod: string | null = null
 
   try {
+    const supabaseAdmin = createAdminClient()
+
     if (!isStripeConfigured()) {
       return NextResponse.json(
         { error: 'Stripe is not configured. Add STRIPE_SECRET_KEY to the environment.' },

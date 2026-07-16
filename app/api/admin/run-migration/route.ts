@@ -1,13 +1,8 @@
 import { NextResponse } from 'next/server';
-import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 export const dynamic = 'force-dynamic';
-
-const supabaseAdmin = createAdminClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
 
 const nutritionImages = [
   {
@@ -72,6 +67,8 @@ export async function GET() {
         error: 'SUPABASE_SERVICE_ROLE_KEY is not defined in this environment. Run this on production/Vercel.',
       }, { status: 400 });
     }
+
+    const supabaseAdmin = createAdminClient();
 
     // 1. Delete ALL non-primary images for the target products to clean duplicates
     const productIds = nutritionImages.map(img => img.product_id);
