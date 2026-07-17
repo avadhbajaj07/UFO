@@ -39,7 +39,19 @@ async function getProduct(slug: string) {
     .order('sort_order', { referencedTable: 'faqs', ascending: true })
     .single()
 
-  return data
+  const productData = data as any
+  if (!productData) return null
+
+  // Every storefront product has one fixed purchasable configuration. Keep
+  // legacy variants in the database for existing orders, but expose only the
+  // configured default (or the first active record as a safe fallback).
+  const variants = (productData.variants as any[] | null) ?? []
+  const fixedVariant = variants.find((variant) => variant.is_default) ?? variants[0]
+
+  return {
+    ...productData,
+    variants: fixedVariant ? [fixedVariant] : [],
+  }
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

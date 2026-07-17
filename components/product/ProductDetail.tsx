@@ -496,34 +496,23 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
 
                 {activeSlide === 2 && (
                   <div className="space-y-4 animate-fade-in">
-                    <span className="text-xs text-alien-green font-mono uppercase tracking-widest bg-alien-green/10 border border-alien-green/20 px-2 py-0.5 rounded-full">Variant Selection</span>
+                    <span className="text-xs text-alien-green font-mono uppercase tracking-widest bg-alien-green/10 border border-alien-green/20 px-2 py-0.5 rounded-full">Fixed Product</span>
                     <h2 className="font-display text-4xl md:text-5xl text-white tracking-wide uppercase leading-tight">
-                      FLAVOR FUSION
+                      ONE FORMULA
                     </h2>
                     <p className="text-gray-300 text-sm max-w-lg leading-relaxed">
-                      Engineered for premium performance without compromising on taste. Choose from our standard galactic sizes and refreshing flavors.
+                      One carefully engineered product with a fixed quantity and no size selection required.
                     </p>
 
-                    <div className="flex flex-col gap-2 max-w-sm pt-4">
-                      {product.variants?.map((v: any) => (
-                        <div
-                          key={v.id}
-                          onClick={() => setSelectedVariantId(v.id)}
-                          className={cn(
-                            "flex items-center justify-between p-3 rounded-xl border-2 cursor-pointer transition-all",
-                            v.id === selectedVariantId ? "border-alien-green bg-white/5" : "border-white/5 hover:border-white/10"
-                          )}
-                          style={v.id === selectedVariantId ? { borderColor: color } : {}}
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="w-3.5 h-3.5 rounded-full border border-white/20 flex items-center justify-center">
-                              {v.id === selectedVariantId && <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: color }} />}
-                            </div>
-                            <span className="font-bold text-sm">{v.name}</span>
-                          </div>
-                          <span className="text-xs font-mono font-bold">{formatPrice(v.price)}</span>
-                        </div>
-                      ))}
+                    <div
+                      className="flex items-center justify-between max-w-sm p-4 rounded-xl border bg-white/5"
+                      style={{ borderColor: color }}
+                    >
+                      <div className="flex items-center gap-3">
+                        <CheckCircle2 className="w-4 h-4" style={{ color }} />
+                        <span className="font-bold text-sm">Single fixed product</span>
+                      </div>
+                      <span className="text-xs font-mono font-bold">{formatPrice(selectedVariant?.price ?? product.base_price)}</span>
                     </div>
                   </div>
                 )}
@@ -728,7 +717,7 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
               <div className="flex items-center justify-between pb-4 border-b border-white/5">
                 <div>
                   <h4 className="font-bold text-white text-lg">{name}</h4>
-                  <p className="text-xs text-gray-400">Size: {selectedVariant?.name}</p>
+                  <p className="text-xs text-gray-400">Single fixed product</p>
                 </div>
                 {/* Stock indicator */}
                 <div>
