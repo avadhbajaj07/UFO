@@ -152,17 +152,6 @@ export default function CheckoutPage() {
     setCouponDiscount(0)
   }
 
-  // Pre-fill fields for easy demonstration
-  const handlePrefill = () => {
-    setEmail('shikha@ufolabz.ch')
-    setFullName('Shikha Swiss')
-    setPhone('+41 79 123 45 67')
-    setAddress('Bahnhofstrasse 100')
-    setCity('Zürich')
-    setZip('8001')
-    setCanton('Zurich')
-  }
-
   const buildOrderPayload = (orderId: string) => {
     const mappedItems = items.map((item) => ({
       productId: item.variant?.product_id || (item.variant as any).product?.id,
@@ -470,15 +459,8 @@ export default function CheckoutPage() {
               {checkoutStep === 'info' ? (
                 <form onSubmit={handleSubmitInfo} className="space-y-6">
                   {/* Step Header */}
-                  <div className="flex items-center justify-between border-b border-white/5 pb-4">
+                  <div className="border-b border-white/5 pb-4">
                     <h2 className="font-display text-2xl tracking-wide uppercase text-white">SHIPPING PARAMETERS</h2>
-                    <button
-                      type="button"
-                      onClick={handlePrefill}
-                      className="text-xs font-mono text-alien-green hover:underline"
-                    >
-                      [Auto-Fill Demo Info]
-                    </button>
                   </div>
 
                   {/* Customer parameters */}
@@ -492,7 +474,7 @@ export default function CheckoutPage() {
                           required
                           value={fullName}
                           onChange={(e) => setFullName(e.target.value)}
-                          placeholder="e.g. Shikha Swiss"
+                          placeholder="Full name"
                           className="input"
                         />
                       </div>
@@ -503,7 +485,7 @@ export default function CheckoutPage() {
                           required
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
-                          placeholder="shikha@ufolabz.ch"
+                          placeholder="you@example.com"
                           className="input"
                         />
                       </div>
@@ -515,7 +497,7 @@ export default function CheckoutPage() {
                         required
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
-                        placeholder="+41 79 123 45 67"
+                        placeholder="Phone number"
                         className="input"
                       />
                     </div>
@@ -574,7 +556,7 @@ export default function CheckoutPage() {
                           required
                           value={city}
                           onChange={(e) => setCity(e.target.value)}
-                          placeholder="Zürich"
+                          placeholder="City"
                           className="input"
                         />
                       </div>
@@ -585,7 +567,7 @@ export default function CheckoutPage() {
                           required
                           value={zip}
                           onChange={(e) => setZip(e.target.value)}
-                          placeholder="8001"
+                          placeholder="Postal code"
                           className="input"
                         />
                       </div>

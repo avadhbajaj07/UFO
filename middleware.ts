@@ -12,6 +12,26 @@ export function middleware(request: NextRequest) {
     return NextResponse.rewrite(adminUrl)
   }
 
+  if (hostname === 'mail.ufolabz.com') {
+    // Keep storefront pages from being exposed on the dedicated mail host.
+    // Framework assets and protected mail APIs must retain their real paths.
+    const pathname = request.nextUrl.pathname
+    const isMailAssetOrApi = pathname.startsWith('/_next/') || pathname.startsWith('/api/mail/')
+
+    if (!isMailAssetOrApi && pathname !== '/') {
+      const rootUrl = request.nextUrl.clone()
+      rootUrl.pathname = '/'
+      rootUrl.search = ''
+      return NextResponse.redirect(rootUrl)
+    }
+
+    if (pathname === '/') {
+      const mailUrl = request.nextUrl.clone()
+      mailUrl.pathname = '/mail'
+      return NextResponse.rewrite(mailUrl)
+    }
+  }
+
   return NextResponse.next()
 }
 
