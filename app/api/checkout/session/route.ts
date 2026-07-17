@@ -78,6 +78,7 @@ export async function POST(req: NextRequest) {
     const baseUrl = getBaseUrl(req)
     const sessionParams: Stripe.Checkout.SessionCreateParams = {
       mode: 'payment',
+      payment_method_types: paymentMethod === 'twint' ? ['twint'] : ['card'],
       customer_email: email,
       line_items: buildStripeLineItems(totals),
       discounts,
