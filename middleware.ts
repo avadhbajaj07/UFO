@@ -1,4 +1,5 @@
 import { createServerClient } from '@supabase/ssr'
+import type { User } from '@supabase/supabase-js'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
@@ -20,26 +21,41 @@ export async function middleware(request: NextRequest) {
 
   let response = createResponse()
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll()
-        },
-        setAll(cookiesToSet: any) {
-          cookiesToSet.forEach(({ name, value }: any) => request.cookies.set(name, value))
-          response = createResponse()
-          cookiesToSet.forEach(({ name, value, options }: any) =>
-            response.cookies.set(name, value, options)
-          )
-        },
-      },
-    }
-  )
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  let supabase: ReturnType<typeof createServerClient> | null = null
+  let user: User | null = null
 
-  const { data: { user } } = await supabase.auth.getUser()
+  // Authentication refresh must never take down the public storefront. New
+  // deployments can briefly see unavailable or incomplete auth configuration;
+  // protected routes still fail closed below when no verified user is present.
+  if (supabaseUrl && supabaseAnonKey) {
+    try {
+      supabase = createServerClient(
+        supabaseUrl,
+        supabaseAnonKey,
+        {
+          cookies: {
+            getAll() {
+              return request.cookies.getAll()
+            },
+            setAll(cookiesToSet: any) {
+              cookiesToSet.forEach(({ name, value }: any) => request.cookies.set(name, value))
+              response = createResponse()
+              cookiesToSet.forEach(({ name, value, options }: any) =>
+                response.cookies.set(name, value, options)
+              )
+            },
+          },
+        }
+      )
+
+      const authResult = await supabase.auth.getUser()
+      user = authResult.data.user
+    } catch (error) {
+      console.error('[MIDDLEWARE] Supabase auth refresh failed:', error)
+    }
+  }
 
   // 1. Admin Panel Access Guard
   const isAdminPath = request.nextUrl.pathname === '/admin'
@@ -54,7 +70,7 @@ export async function middleware(request: NextRequest) {
         new URL(`/login?redirect=${encodeURIComponent(redirectPath)}${adminLoginFlag}`, request.url)
       )
     }
-    const { data: profile } = await supabase
+    const { data: profile } = await supabase!
       .from('profiles')
       .select('role')
       .eq('id', user.id)
