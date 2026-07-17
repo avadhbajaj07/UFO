@@ -367,23 +367,26 @@ export async function POST(req: NextRequest) {
       created_at: orderInsertData.paid_at,
     };
 
-    // Send emails in background
-    const emailPromises = [
-      emailService.sendOrderConfirmation(emailOrderData, itemsToInsertWithOrderId).then((res) => {
-        if (!res.success) console.error(`[CHECKOUT API] Customer confirmation fail: ${res.error}`);
-      }),
-      emailService.sendAdminNotification(emailOrderData, itemsToInsertWithOrderId).then((res) => {
-        if (!res.success) console.error(`[CHECKOUT API] Admin notification fail: ${res.error}`);
-      }),
-    ];
+    // Keep the function alive until Resend has accepted both messages. Vercel may
+    // terminate unawaited work as soon as the response is returned.
+    const [customerEmailResult, adminEmailResult] = await Promise.all([
+      emailService.sendOrderConfirmation(emailOrderData, itemsToInsertWithOrderId),
+      emailService.sendAdminNotification(emailOrderData, itemsToInsertWithOrderId),
+    ]);
 
-    Promise.allSettled(emailPromises);
+    if (!customerEmailResult.success) {
+      console.error(`[CHECKOUT API] Customer confirmation failed: ${customerEmailResult.error}`);
+    }
+
+    if (!adminEmailResult.success) {
+      console.error(`[CHECKOUT API] Admin notification failed: ${adminEmailResult.error}`);
+    }
 
     return NextResponse.json({
       success: true,
       orderId: newOrderId,
       orderNumber: orderNumber,
-      message: 'Order created and emails triggered.',
+      message: 'Order created and email delivery attempted.',
     });
   } catch (err: any) {
     console.error('❌ Error in checkout API handler:', err);
