@@ -130,7 +130,7 @@ export default function CartPage() {
                           <Link href={`/products/${product?.slug}`}>
                             <h3 className="font-bold text-base text-white hover:text-alien-green transition-colors truncate">{name}</h3>
                           </Link>
-                          <p className="text-xs text-muted mt-1 uppercase font-mono tracking-wider">{item.variant.name}</p>
+                          <p className="text-xs text-muted mt-1 uppercase font-mono tracking-wider">Fixed product</p>
                         </div>
                         <button 
                           onClick={() => removeItem(item.id)}

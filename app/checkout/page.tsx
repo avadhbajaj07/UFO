@@ -887,7 +887,7 @@ export default function CheckoutPage() {
                           </div>
                           <div className="text-left">
                             <div className="font-bold text-xs text-white max-w-[180px] truncate">{itemName}</div>
-                            <span className="text-[10px] text-gray-400">{item.variant.name} · Qty: {item.quantity}</span>
+                            <span className="text-[10px] text-gray-400">Qty: {item.quantity}</span>
                           </div>
                         </div>
                         <span className="font-mono text-xs font-bold text-gray-200">

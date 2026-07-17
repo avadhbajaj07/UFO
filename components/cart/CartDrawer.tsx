@@ -138,7 +138,7 @@ export default function CartDrawer() {
                     <Link href={`/products/${product?.slug}`} onClick={closeCart}>
                       <p className="text-sm font-medium text-white truncate">{name}</p>
                     </Link>
-                    <p className="text-xs text-muted mb-2">{item.variant.name}</p>
+                    <p className="text-xs text-muted mb-2">Fixed product</p>
 
                     <div className="flex items-center justify-between">
                       {/* Qty controls */}
