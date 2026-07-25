@@ -1064,19 +1064,19 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
                 <div className="bg-space-900 border border-white/5 p-4 rounded-xl space-y-2">
                   <Truck className="w-6 h-6 text-alien-green" />
                   <div className="font-bold text-sm">Delivery Time</div>
-                  <p className="text-xs text-gray-400">1-2 working days within Switzerland (PostPac Priority).</p>
+                  <p className="text-xs text-gray-400">Swiss orders typically arrive within 24 hours of dispatch.</p>
                 </div>
 
                 <div className="bg-space-900 border border-white/5 p-4 rounded-xl space-y-2">
                   <Award className="w-6 h-6 text-alien-green" />
                   <div className="font-bold text-sm">Shipping Costs</div>
-                  <p className="text-xs text-gray-400">Free delivery for orders above CHF 99. Otherwise CHF 9.00 flat.</p>
+                  <p className="text-xs text-gray-400">Free to Switzerland, Portugal, and Spain. Rest of Europe from CHF 12.90.</p>
                 </div>
 
                 <div className="bg-space-900 border border-white/5 p-4 rounded-xl space-y-2">
                   <RefreshCw className="w-6 h-6 text-alien-green" />
                   <div className="font-bold text-sm">Returns Policy</div>
-                  <p className="text-xs text-gray-400">14-day return cooling-off period on unopened items.</p>
+                  <p className="text-xs text-gray-400">All sales are final except for damaged, defective, or incorrect items.</p>
                 </div>
               </div>
             </div>

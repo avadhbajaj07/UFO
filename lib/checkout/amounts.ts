@@ -1,8 +1,6 @@
 import type Stripe from 'stripe'
 
-const STANDARD_SHIPPING_AMOUNT = 9
 const PRIORITY_SHIPPING_AMOUNT = 15
-const FREE_SHIPPING_THRESHOLD = 99
 const CARBON_OFFSET_AMOUNT = 1.5
 
 export type CheckoutShippingMethod = 'standard' | 'priority'
@@ -120,9 +118,7 @@ export async function buildValidatedCheckoutTotals(
   const shippingAmount =
     input.shippingMethod === 'priority'
       ? PRIORITY_SHIPPING_AMOUNT
-      : validatedSubtotal >= FREE_SHIPPING_THRESHOLD
-        ? 0
-        : STANDARD_SHIPPING_AMOUNT
+      : 0
   const carbonOffsetAmount = input.carbonOffset ? CARBON_OFFSET_AMOUNT : 0
   const total = Math.max(
     0,

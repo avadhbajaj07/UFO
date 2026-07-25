@@ -6,7 +6,7 @@ export const metadata: Metadata = {
     default: 'UFO LABZ | Sports Supplements Switzerland',
     template: '%s',
   },
-  description: 'Premium science-backed supplements engineered for peak performance. Free delivery in Switzerland on orders over CHF 99.',
+  description: 'Science-backed, Swiss-engineered supplements designed by athletes and bodybuilders. Free delivery to Switzerland, Portugal, and Spain.',
   metadataBase: new URL('https://ufolabz.com'),
   applicationName: 'UFO LABZ',
   alternates: { canonical: 'https://ufolabz.com' },
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     : undefined,
   openGraph: {
     title: 'UFO LABZ — Alien Performance Technology',
-    description: 'Premium science-backed supplements engineered for peak performance. Free delivery in Switzerland on orders over CHF 99.',
+    description: 'Science-backed, Swiss-engineered supplements designed by athletes and bodybuilders. Free delivery to Switzerland, Portugal, and Spain.',
     url: 'https://ufolabz.com',
     siteName: 'UFO LABZ',
     images: [
@@ -43,7 +43,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'UFO LABZ — Alien Performance Technology',
-    description: 'Premium science-backed supplements engineered for peak performance. Free delivery in Switzerland on orders over CHF 99.',
+    description: 'Science-backed, Swiss-engineered supplements designed by athletes and bodybuilders. Free delivery to Switzerland, Portugal, and Spain.',
     images: ['https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782667544/UFO4_nuzyls.png'],
   },
 }

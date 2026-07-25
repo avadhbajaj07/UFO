@@ -8,7 +8,6 @@ import { useCart } from '@/hooks/useCart'
 import { formatPrice } from '@/lib/utils/pricing'
 import { getLocalizedField } from '@/types'
 import { cn } from '@/lib/utils'
-import { FREE_SHIPPING_THRESHOLD } from '@/config/client'
 
 export default function CartDrawer() {
   const { items, breakdown, isOpen, isLoading, closeCart, updateQuantity, removeItem } = useCart()
@@ -26,9 +25,6 @@ export default function CartDrawer() {
     document.body.style.overflow = isOpen ? 'hidden' : ''
     return () => { document.body.style.overflow = '' }
   }, [isOpen])
-
-  const shippingProgress = Math.min(100, (breakdown.subtotal / FREE_SHIPPING_THRESHOLD) * 100)
-  const remaining = Math.max(0, FREE_SHIPPING_THRESHOLD - breakdown.subtotal)
 
   return (
     <>
@@ -71,23 +67,10 @@ export default function CartDrawer() {
           </button>
         </div>
 
-        {/* Free shipping progress */}
-        {remaining > 0 && items.length > 0 && (
+        {/* Free standard delivery */}
+        {items.length > 0 && (
           <div className="px-5 py-3 bg-alien-green/5 border-b border-alien-green/10">
-            <p className="text-xs text-alien-green mb-2">
-              Add {formatPrice(remaining)} more for free shipping
-            </p>
-            <div className="h-1 bg-space-800 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-alien-green rounded-full transition-all duration-500"
-                style={{ width: `${shippingProgress}%` }}
-              />
-            </div>
-          </div>
-        )}
-        {remaining === 0 && items.length > 0 && (
-          <div className="px-5 py-3 bg-alien-green/5 border-b border-alien-green/10">
-            <p className="text-xs text-alien-green">🚀 You qualify for free shipping!</p>
+            <p className="text-xs text-alien-green">🚀 Free standard delivery</p>
           </div>
         )}
 

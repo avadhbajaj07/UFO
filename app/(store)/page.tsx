@@ -9,8 +9,8 @@ import type { Metadata } from 'next'
 import { sortPublicProducts } from '@/lib/products/catalog'
 
 export const metadata: Metadata = {
-  title: 'UFO LABZ — Alien Performance Technology',
-  description: 'Premium science-backed supplements engineered for peak performance. Free delivery in Switzerland on orders over CHF 99.',
+  title: 'UFO LABZ | Swiss-Engineered Supplements, Built by Athletes',
+  description: 'Science-backed supplements designed by the athlete and bodybuilder community. Third-party tested, Swiss-engineered. Shipping across Switzerland and Europe.',
 }
 
 export const revalidate = 3600 // ISR: revalidate every hour

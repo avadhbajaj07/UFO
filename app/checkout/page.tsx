@@ -93,7 +93,7 @@ export default function CheckoutPage() {
   // Shipping rates calculations
   const shippingCost = shippingMethod === 'priority'
     ? 15.00
-    : (breakdown.subtotal >= 99 ? 0 : 9.00)
+    : 0
 
   const offsetCost = carbonOffset ? 1.50 : 0
   const finalSubtotal = Math.max(0, breakdown.subtotal - couponDiscount)
@@ -654,12 +654,10 @@ export default function CheckoutPage() {
                           </div>
                           <div>
                             <div className="font-bold text-sm text-white">PostPac Standard Delivery</div>
-                            <div className="text-xs text-gray-400">Delivered within 2-3 business days</div>
+                            <div className="text-xs text-gray-400">Typically arrives within 24 hours of dispatch</div>
                           </div>
                         </div>
-                        <span className="font-mono text-xs font-bold">
-                          {breakdown.subtotal >= 99 ? 'FREE' : 'CHF 9.00'}
-                        </span>
+                        <span className="font-mono text-xs font-bold">FREE</span>
                       </div>
 
                       {/* Priority */}

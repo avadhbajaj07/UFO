@@ -1,55 +1,15 @@
-'use client'
+import { FlaskConical, ShieldCheck, Truck, Users } from 'lucide-react'
 
-import { useState, useEffect } from 'react'
-import { Rocket } from 'lucide-react'
-
-interface TimeLeft {
-  days: number
-  hours: number
-  minutes: number
-  seconds: number
-}
-
-function getTimeLeft(target: Date): TimeLeft {
-  const now = new Date().getTime()
-  const diff = Math.max(target.getTime() - now, 0)
-
-  return {
-    days: Math.floor(diff / (1000 * 60 * 60 * 24)),
-    hours: Math.floor((diff / (1000 * 60 * 60)) % 24),
-    minutes: Math.floor((diff / (1000 * 60)) % 60),
-    seconds: Math.floor((diff / 1000) % 60),
-  }
-}
+const trustItems = [
+  { icon: Users, label: 'Designed by Athletes & Bodybuilders' },
+  { icon: FlaskConical, label: 'Swiss-Engineered Formulas' },
+  { icon: ShieldCheck, label: 'Third-Party Purity Tested' },
+  { icon: Truck, label: 'Shipping Across Switzerland & Europe' },
+]
 
 export default function MarqueeBanner() {
-  const [targetDate] = useState(() => {
-    const d = new Date()
-    d.setDate(d.getDate() + 7)
-    return d
-  })
-
-  const [timeLeft, setTimeLeft] = useState<TimeLeft | null>(null)
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-    setTimeLeft(getTimeLeft(targetDate))
-    const interval = setInterval(() => {
-      setTimeLeft(getTimeLeft(targetDate))
-    }, 1000)
-    return () => clearInterval(interval)
-  }, [targetDate])
-
-  const timerBlocks: { value: number; label: string }[] = [
-    { value: mounted && timeLeft ? timeLeft.days : 0, label: 'Days' },
-    { value: mounted && timeLeft ? timeLeft.hours : 0, label: 'Hrs' },
-    { value: mounted && timeLeft ? timeLeft.minutes : 0, label: 'Mins' },
-    { value: mounted && timeLeft ? timeLeft.seconds : 0, label: 'Secs' },
-  ]
-
   return (
-    <div className="relative w-full overflow-hidden py-5 bg-gradient-to-r from-space-800 via-nebula-900/40 to-space-800 border-y border-nebula-700/20">
+    <section className="relative w-full overflow-hidden bg-gradient-to-r from-space-800 via-nebula-900/40 to-space-800 border-y border-nebula-700/20">
       {/* Animated shimmer overlay */}
       <div
         className="pointer-events-none absolute inset-0 animate-shimmer"
@@ -60,34 +20,19 @@ export default function MarqueeBanner() {
         }}
       />
 
-      <div className="relative z-10 mx-auto flex max-w-6xl flex-col items-center justify-center gap-6 px-4 sm:flex-row sm:gap-10">
-        {/* Left side – Promo text */}
-        <div className="flex items-center gap-3">
-          <Rocket className="h-6 w-6 shrink-0 text-nebula-400" />
-          <p className="font-display text-xl tracking-wider text-white sm:text-2xl">
-            BUY 2, GET{' '}
-            <span className="text-alien-green text-glow-green">25% OFF</span>{' '}
-            ON YOUR 3RD ITEM!
-          </p>
-        </div>
-
-        {/* Right side – Countdown timer */}
-        <div className="flex items-center gap-2 sm:gap-3">
-          {timerBlocks.map((block) => (
-            <div
-              key={block.label}
-              className="group flex flex-col items-center bg-nebula-800/60 border border-nebula-600/30 rounded-xl px-4 py-3 transition-shadow duration-300 hover:shadow-glow-purple"
-            >
-              <span className="font-mono text-2xl font-bold text-white">
-                {timeLeft ? String(block.value).padStart(2, '0') : '00'}
-              </span>
-              <span className="text-[10px] uppercase tracking-widest text-nebula-400">
-                {block.label}
-              </span>
-            </div>
-          ))}
-        </div>
+      <div className="relative z-10 mx-auto grid max-w-7xl grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        {trustItems.map((item) => (
+          <div
+            key={item.label}
+            className="flex items-center justify-center gap-3 border-b border-white/5 px-5 py-5 sm:[&:nth-child(n+3)]:border-b-0 lg:border-b-0 lg:border-r lg:last:border-r-0"
+          >
+            <item.icon className="h-5 w-5 shrink-0 text-alien-green" />
+            <span className="text-center font-mono text-[11px] font-semibold uppercase tracking-wider text-white">
+              {item.label}
+            </span>
+          </div>
+        ))}
       </div>
-    </div>
+    </section>
   )
 }

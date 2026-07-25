@@ -5,61 +5,49 @@ import Link from 'next/link'
 import {
   Package,
   FlaskConical,
-  CreditCard,
   RotateCcw,
-  Users,
   ChevronDown,
   HelpCircle,
 } from 'lucide-react'
 
 const faqData = [
   {
+    category: 'Products',
+    icon: FlaskConical,
+    items: [
+      {
+        q: 'Are UFO LABZ supplements third-party tested?',
+        a: 'Yes. Every batch goes through independent lab testing to verify purity and potency before it ships.',
+      },
+      {
+        q: 'Do your products contain proprietary blends?',
+        a: 'No. We list every ingredient and its exact dose on the label - full transparency, no hidden amounts.',
+      },
+      {
+        q: 'Are your supplements suitable for daily use?',
+        a: 'Yes, our core range - creatine, magnesium, aminos, and collagen - is formulated for daily use. Check individual product labels for specific usage guidance.',
+      },
+    ],
+  },
+  {
     category: 'Orders & Shipping',
     icon: Package,
     items: [
       {
-        q: 'How long does shipping take?',
-        a: 'Standard shipping within Switzerland takes 2-3 business days. Express delivery is available for next-day delivery. International orders to EU countries typically arrive within 5-7 business days.',
+        q: 'How fast is delivery in Switzerland?',
+        a: 'Most orders arrive within 24 hours of dispatch.',
       },
       {
-        q: 'Do you ship internationally?',
-        a: 'Yes! We ship to all EU countries and select international destinations. Free shipping on Swiss orders over CHF 99.',
+        q: 'Is delivery free?',
+        a: 'Yes - delivery is free for orders to Switzerland, Portugal, and Spain.',
       },
       {
-        q: 'How can I track my order?',
-        a: 'Once your order ships, you will receive a tracking number via email. Track your package on our website or directly through Swiss Post/DHL.',
+        q: 'Do you ship outside Switzerland?',
+        a: 'Yes - we ship across Switzerland and the rest of Europe.',
       },
-    ],
-  },
-  {
-    category: 'Products & Ingredients',
-    icon: FlaskConical,
-    items: [
-      {
-        q: 'Are your products third-party tested?',
-        a: 'All UFO LABZ supplements are third-party tested for purity and potency in Swiss GMP-certified facilities.',
-      },
-      {
-        q: 'Are your supplements vegan-friendly?',
-        a: 'Most of our products are vegan-friendly. Check each product page for specific dietary information.',
-      },
-      {
-        q: 'What makes UFO LABZ different?',
-        a: 'We combine Swiss precision with cutting-edge sports science. Every formula uses only premium-grade, transparently-dosed ingredients.',
-      },
-    ],
-  },
-  {
-    category: 'Payments & Billing',
-    icon: CreditCard,
-    items: [
       {
         q: 'What payment methods do you accept?',
-        a: 'Visa, Mastercard, TWINT, SEPA bank transfers, and PayPal. All secured with 256-bit SSL encryption.',
-      },
-      {
-        q: 'Can I pay with TWINT?',
-        a: 'Absolutely! TWINT is our most popular payment method. Select TWINT at checkout and confirm in your TWINT app.',
+        a: 'We accept Visa, Mastercard, TWINT, and SEPA.',
       },
     ],
   },
@@ -70,24 +58,6 @@ const faqData = [
       {
         q: 'What is your return policy?',
         a: 'All sales are final. We do not accept returns or issue refunds except in the case of products that arrive damaged, defective, or incorrect. If this applies to your order, contact support@ufolabz.com within 7 days of delivery with your order number and a clear photo of the issue.',
-      },
-      {
-        q: 'How long do refunds take?',
-        a: 'If your claim for a damaged or incorrect item is approved, refunds are processed back to your original payment method within 5–7 business days.',
-      },
-    ],
-  },
-  {
-    category: 'Affiliate Program',
-    icon: Users,
-    items: [
-      {
-        q: 'How do I become an affiliate?',
-        a: 'Visit our Affiliate Program page to apply. Once approved, you get a unique referral link, dashboard access, and marketing materials.',
-      },
-      {
-        q: 'What commission rates do you offer?',
-        a: 'Standard commission is 15-25% per sale depending on product category. Top performers unlock higher tiers.',
       },
     ],
   },
@@ -131,9 +101,7 @@ export default function FAQPageClient() {
             FREQUENTLY ASKED QUESTIONS
           </h1>
           <p className="text-lg text-muted max-w-2xl mx-auto">
-            Everything you need to know about UFO LABZ products, orders, and
-            more. Can&apos;t find what you&apos;re looking for? Reach out to our
-            support team.
+            Everything you need to know before your first mission.
           </p>
         </div>
       </section>
@@ -198,13 +166,13 @@ export default function FAQPageClient() {
             Still have questions?
           </h2>
           <p className="text-sm text-muted mb-6">
-            Our support team is here to help you with anything you need.
+            Contact our team and we will help you prepare for your mission.
           </p>
           <Link
             href="/pages/contact"
             className="btn-primary inline-flex items-center gap-2"
           >
-            CONTACT US
+            CONTACT OUR TEAM
           </Link>
         </div>
       </section>
