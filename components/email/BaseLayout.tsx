@@ -125,7 +125,7 @@ export default function BaseLayout({
           {/* Footer */}
           <Section className="footer">
             <Text style={{ margin: '0 0 8px 0' }}>
-              Designed in Switzerland · UFO LABZ Premium Performance Technology
+              Designed in Europe · UFO LABZ Premium Performance Technology
             </Text>
             <Text style={{ margin: '0 0 16px 0' }}>
               Have questions? Reply directly to this email or contact us at{' '}

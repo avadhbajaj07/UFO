@@ -101,7 +101,7 @@ export function OrderShipped({ orderNumber, customerName, carrier = 'Swiss PostP
         Dear {customerName},
       </Text>
       <Text style={{ fontSize: '15px', lineHeight: '1.6', color: '#d1d1d6', margin: '0 0 24px 0' }}>
-        Good news! Your supplements have left our Swiss laboratories and are currently in transit.
+        Good news! Your supplements have left our European laboratories and are currently in transit.
       </Text>
       <Section style={{ backgroundColor: '#0b0b0f', border: '1px solid #1e1e26', borderRadius: '16px', padding: '16px', margin: '0 0 24px 0' }}>
         <Text style={{ margin: '0 0 4px 0', fontSize: '11px', color: '#66667a', textTransform: 'uppercase', fontFamily: 'monospace' }}>Shipping Provider</Text>
@@ -165,7 +165,7 @@ export function RefundProcessed({ orderNumber, customerName, refundAmount, curre
       </Text>
       <Text style={{ fontSize: '15px', lineHeight: '1.6', color: '#d1d1d6', margin: '0 0 24px 0' }}>
         We have processed a refund of **{currency} {refundAmount.toFixed(2)}** for order **#{orderNumber}**. 
-        Depending on your bank, it should reflect in your account within 3 to 10 Swiss business days.
+        Depending on your bank, it should reflect in your account within 3 to 10 business days.
       </Text>
     </BaseLayout>
   );
@@ -209,7 +209,7 @@ export function NewsletterWelcome({ email }: NewsletterProps) {
       </Text>
       <Text style={{ fontSize: '15px', lineHeight: '1.6', color: '#d1d1d6', margin: '0 0 24px 0' }}>
         You have been successfully added to our intelligence feed at **{email}**. 
-        You will receive exclusive early access to Swiss laboratory test formulas, discounts, and product drops before they hit the general launchpad.
+        You will receive exclusive early access to European laboratory test formulas, discounts, and product drops before they hit the general launchpad.
       </Text>
     </BaseLayout>
   );
@@ -279,7 +279,7 @@ export function LoyaltyReward({ customerName, points, expiryDate }: LoyaltyRewar
         Dear {customerName},
       </Text>
       <Text style={{ fontSize: '15px', lineHeight: '1.6', color: '#d1d1d6', margin: '0 0 24px 0' }}>
-        We have added a custom reward of **{points.toLocaleString()} Loyalty Points** to your Swiss client profile!
+        We have added a custom reward of **{points.toLocaleString()} Loyalty Points** to your UFO LABZ client profile!
       </Text>
       <Section style={{ backgroundColor: '#0b0b0f', border: '1px solid #1e1e26', borderRadius: '16px', padding: '16px', margin: '0 0 24px 0' }}>
         <Text style={{ margin: '0 0 4px 0', fontSize: '11px', color: '#66667a', textTransform: 'uppercase', fontFamily: 'monospace' }}>Points Added</Text>
@@ -333,7 +333,7 @@ export function AbandonedCartEmail({ customerName, cartItems, checkoutUrl, disco
       </Text>
       <Text style={{ fontSize: '15px', lineHeight: '1.6', color: '#d1d1d6', margin: '0 0 24px 0' }}>
         Your flight settings are locked, but your capsule payload is still waiting on the pad. 
-        We have reserved your premium Swiss formulas. Complete your purchase in one click:
+        We have reserved your premium European formulas. Complete your purchase in one click:
       </Text>
       
       <Section style={{ backgroundColor: '#0b0b0f', border: '1px solid #1e1e26', borderRadius: '16px', padding: '16px', margin: '0 0 24px 0' }}>

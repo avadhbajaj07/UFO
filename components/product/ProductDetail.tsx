@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation'
 import {
   Star, ShoppingBag, Plus, Minus, ChevronDown, ChevronUp,
   Shield, FlaskConical, CheckCircle2, Heart, RefreshCw,
-  Truck, ArrowRight, Award, Flame, Info, Check, MessageCircle, HelpCircle, Phone, Send
+  Truck, ArrowRight, Award, Flame, Info, Check, MessageCircle, HelpCircle, Send
 } from 'lucide-react'
 import { formatPrice, getPricedForQuantity } from '@/lib/utils/pricing'
 import { getLocalizedField } from '@/types'
@@ -31,8 +31,8 @@ const CERTIFICATIONS = [
 const TRUST_BADGES = [
   { text: 'Secure Checkout', icon: Shield, desc: 'SSL Encrypted payment systems' },
   { text: 'Final Sale', icon: RefreshCw, desc: 'No returns unless damaged' },
-  { text: 'Fast Shipping', icon: Truck, desc: 'Next day Swiss dispatch' },
-  { text: '100% Authentic', icon: Award, desc: 'Direct from UFO LABZ Swiss labs' }
+  { text: 'Fast Shipping', icon: Truck, desc: 'Fast European dispatch' },
+  { text: '100% Authentic', icon: Award, desc: 'Direct from UFO LABZ European labs' }
 ]
 
 export default function ProductDetail({ product: serverProduct, slug }: { product: any; slug?: string }) {
@@ -202,7 +202,7 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
               messages: [
                 {
                   role: 'system',
-                  content: `You are an advanced UFO LABZ AI Lab Assistant, a premium sports nutrition specialist for a Swiss brand. Respond professionally and scientifically. You are assisting a client interested in the product: "${product?.name?.en || product?.title}". Short description: "${product?.short_description?.en || product?.desc}". Recommend stack details.`
+                  content: `You are an advanced UFO LABZ AI Lab Assistant, a premium sports nutrition specialist for a European brand. Respond professionally and scientifically. You are assisting a client interested in the product: "${product?.name?.en || product?.title}". Short description: "${product?.short_description?.en || product?.desc}". Recommend stack details.`
                 },
                 { role: 'user', content: userText }
               ],
@@ -367,21 +367,6 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
           <div className="absolute bottom-16 right-0 w-64 bg-space-900 border border-white/10 rounded-2xl p-4 shadow-2xl space-y-2 backdrop-blur-xl">
             <h4 className="text-xs font-mono font-bold tracking-widest text-muted text-gray-400 mb-2 uppercase">MISSION SUPPORT</h4>
 
-            <a
-              href="https://wa.me/41790000000"
-              target="_blank"
-              rel="noreferrer"
-              className="flex items-center gap-3 p-2.5 hover:bg-white/5 rounded-xl transition-colors text-sm text-gray-200"
-            >
-              <div className="w-8 h-8 rounded-lg bg-green-500/10 border border-green-500/20 flex items-center justify-center">
-                <Phone className="w-4 h-4 text-green-500" />
-              </div>
-              <div className="text-left">
-                <div className="font-bold text-xs">WhatsApp Dispatch</div>
-                <div className="text-[10px] text-gray-400">Response time: ~5 mins</div>
-              </div>
-            </a>
-
             <div className="flex items-center gap-3 p-2.5 hover:bg-white/5 rounded-xl cursor-pointer transition-colors text-sm text-gray-200">
               <div className="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
                 <MessageCircle className="w-4 h-4 text-blue-500" />
@@ -450,7 +435,7 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
                       <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
                       <span className="text-xs font-mono text-gray-300 font-bold">{product.avg_rating || '4.9'} rating</span>
                       <span className="text-white/20">|</span>
-                      <span className="text-xs text-alien-green bg-alien-green/10 border border-alien-green/20 px-2 py-0.5 rounded-full uppercase tracking-wider font-mono">Swiss engineered</span>
+                      <span className="text-xs text-alien-green bg-alien-green/10 border border-alien-green/20 px-2 py-0.5 rounded-full uppercase tracking-wider font-mono">European engineered</span>
                     </div>
 
                     <h1 className="font-display text-5xl md:text-7xl tracking-wider text-white uppercase leading-none">
@@ -479,7 +464,7 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
                       THE LAB BLUEPRINT
                     </h2>
                     <p className="text-gray-300 text-sm max-w-lg leading-relaxed">
-                      Every batch is verified in Switzerland. Engineered with high-dosage active key ingredients to provide peak physical performance.
+                      Every batch is verified in Europe. Engineered with high-dosage active key ingredients to provide peak physical performance.
                     </p>
 
                     <div className="grid grid-cols-2 gap-4 max-w-md pt-4">
@@ -1059,24 +1044,24 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
           {/* Shipping & Returns */}
           {activeTab === 'shipping' && (
             <div className="space-y-4 animate-fade-in">
-              <h3 className="text-xl font-bold mb-4 uppercase font-display tracking-wider">Swiss Logistical Details</h3>
+              <h3 className="text-xl font-bold mb-4 uppercase font-display tracking-wider">European Delivery Details</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-space-900 border border-white/5 p-4 rounded-xl space-y-2">
                   <Truck className="w-6 h-6 text-alien-green" />
                   <div className="font-bold text-sm">Delivery Time</div>
-                  <p className="text-xs text-gray-400">1-2 working days within Switzerland (PostPac Priority).</p>
+                  <p className="text-xs text-gray-400">Orders typically arrive within 24 hours of dispatch in supported European regions.</p>
                 </div>
 
                 <div className="bg-space-900 border border-white/5 p-4 rounded-xl space-y-2">
                   <Award className="w-6 h-6 text-alien-green" />
                   <div className="font-bold text-sm">Shipping Costs</div>
-                  <p className="text-xs text-gray-400">Free delivery for orders above CHF 99. Otherwise CHF 9.00 flat.</p>
+                  <p className="text-xs text-gray-400">Free standard delivery across supported European regions.</p>
                 </div>
 
                 <div className="bg-space-900 border border-white/5 p-4 rounded-xl space-y-2">
                   <RefreshCw className="w-6 h-6 text-alien-green" />
                   <div className="font-bold text-sm">Returns Policy</div>
-                  <p className="text-xs text-gray-400">14-day return cooling-off period on unopened items.</p>
+                  <p className="text-xs text-gray-400">All sales are final except for damaged, defective, or incorrect items.</p>
                 </div>
               </div>
             </div>
@@ -1088,7 +1073,7 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
       {/* ─── 6. CERTIFICATIONS & TRUST BADGES ─── */}
       <section className="py-16 bg-space-900/60 border-t border-b border-white/5">
         <div className="max-w-7xl mx-auto container-px text-center">
-          <h3 className="font-display text-2xl md:text-3xl tracking-widest text-muted text-gray-400 uppercase mb-10">SWISS QUALITY ASSURED</h3>
+          <h3 className="font-display text-2xl md:text-3xl tracking-widest text-muted text-gray-400 uppercase mb-10">EUROPEAN QUALITY ASSURED</h3>
 
           {/* Certifications grid */}
           <div className="grid grid-cols-2 md:grid-cols-6 gap-6 mb-12">

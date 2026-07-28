@@ -501,7 +501,7 @@ export default function AdminPage() {
       longDesc: aiResult.longDesc,
       featuredImage: 'https://images.unsplash.com/photo-1579758629938-03607ccdbaba?w=600',
       imageGallery: ['https://images.unsplash.com/photo-1579758629938-03607ccdbaba?w=600'],
-      keyBenefits: ['Premium Bioavailability', 'Tested In Swiss Laboratory', 'Optimized Muscle Synthesis'],
+      keyBenefits: ['Premium Bioavailability', 'Tested In European Laboratory', 'Optimized Muscle Synthesis'],
       ingredients: aiResult.ingredients,
       product_color: '#00FF88',
       color_name: 'Alien Green'
@@ -718,7 +718,7 @@ export default function AdminPage() {
     const weightVal = Number(manualWeight) || 0
     const videoVal = manualVideo || null
 
-    const keyBenefitsArray = manualKeyBenefits ? manualKeyBenefits.split(',').map(b => b.trim()) : ['Premium Bioavailability', 'Tested In Swiss Laboratory', 'Optimized Muscle Synthesis']
+    const keyBenefitsArray = manualKeyBenefits ? manualKeyBenefits.split(',').map(b => b.trim()) : ['Premium Bioavailability', 'Tested In European Laboratory', 'Optimized Muscle Synthesis']
     const relatedArray = manualRelated ? manualRelated.split(',').map(r => r.trim()).filter(Boolean) : []
     const crossSellsArray = manualCrossSells ? manualCrossSells.split(',').map(c => c.trim()).filter(Boolean) : []
     const upsellsArray = manualUpsells ? manualUpsells.split(',').map(u => u.trim()).filter(Boolean) : []
@@ -1199,13 +1199,13 @@ export default function AdminPage() {
       setCustomEmailBody(`Hi ${customer.name},\n\nIt's been a while since your last purchase of ${productsText} with us. We noticed you haven't restocked yet!\n\nTo help you fuel your training and stretch your limits, we've loaded a custom 15% discount code into your account: COMEBACK15.\n\nClaim it here: ufolabz.ch/shop\n\nBest,\nThe UFO LABZ Team`)
     } else if (templateKey === 'welcome') {
       setEmailSubject(`Welcome to the UFO LABZ Fleet, ${customer.name}!`)
-      setCustomEmailBody(`Hi ${customer.name},\n\nWelcome to the elite league of Swiss high-performance athletes.\n\nUse code SYSTEM10 for a flat 10% discount on your next formula stack.\n\nBest,\nThe UFO LABZ Team`)
+      setCustomEmailBody(`Hi ${customer.name},\n\nWelcome to the elite league of European high-performance athletes.\n\nUse code SYSTEM10 for a flat 10% discount on your next formula stack.\n\nBest,\nThe UFO LABZ Team`)
     } else if (templateKey === 'feedback') {
       setEmailSubject(`How is your performance, ${customer.name}?`)
       setCustomEmailBody(`Hi ${customer.name},\n\nWe would love to know how you are loving your recent purchase of ${productsText}.\n\nReply to this email with your review and we'll credit 200 Loyalty Points to your account instantly.\n\nBest,\nThe UFO LABZ Team`)
     } else if (templateKey === 'reward') {
       setEmailSubject(`A special loyalty boost for ${customer.name}!`)
-      setCustomEmailBody(`Hi ${customer.name},\n\nWe have credited a special loyalty bonus to your Swiss Client Profile.\n\nYour loyalty points balance has been successfully increased by 500 points!\n\nBest,\nThe UFO LABZ Team`)
+      setCustomEmailBody(`Hi ${customer.name},\n\nWe have credited a special loyalty bonus to your UFO LABZ Client Profile.\n\nYour loyalty points balance has been successfully increased by 500 points!\n\nBest,\nThe UFO LABZ Team`)
     }
   }
 
@@ -1237,14 +1237,14 @@ export default function AdminPage() {
     setAiResult({
       title: aiTitle.toUpperCase(),
       category: aiCategory.toUpperCase() + ' PRODUCT',
-      shortDesc: `Premium formulation containing high-grade ingredients optimized specifically for Swiss athletes striving to unlock maximum energy output.`,
+      shortDesc: `Premium formulation containing high-grade ingredients optimized specifically for European athletes striving to unlock maximum energy output.`,
       longDesc: `Our advanced synthesis utilizes micronized active elements providing instantaneous bioavailability. Specifically designed to optimize training volume, cellular recovery ratios, and sustained focus indices.`,
-      seoTitle: `Buy ${aiTitle} | UFO LABZ Swiss Supplement`,
-      seoDesc: `Get premium ${aiTitle} with priority PostPac dispatch. Certified laboratory formulations engineered for Swiss endurance athletes.`,
+      seoTitle: `Buy ${aiTitle} | UFO LABZ European Supplement`,
+      seoDesc: `Get premium ${aiTitle} with priority dispatch. Certified laboratory formulations engineered for European endurance athletes.`,
       ingredients: `Micronized compounds, organic flavors, magnesium citrate, silicon dioxide.`,
       faqs: [
         { q: 'How should I stack this product?', a: 'We recommend stacking with Astro Creatine for optimal cellular energy replication.' },
-        { q: 'Is this batch lab tested?', a: 'Yes, every batch undergoes independent microbiological screening at our Swiss testing facilities.' }
+        { q: 'Is this batch lab tested?', a: 'Yes, every batch undergoes independent microbiological screening at our European testing facilities.' }
       ],
       deTranslation: {
         title: `${aiTitle} Premium Pulver`,
@@ -1262,9 +1262,9 @@ export default function AdminPage() {
 
     let copy = ''
     if (adChannel === 'facebook') {
-      copy = `🪐 COSMIC FORMULAS FOR Swiss Peak Performance. Reorder your supplement stack with an extra 10% discount using code ${adPromoCode} during checkout. 🇨🇭 FAST Priority PostPac shipping. Shop now at ufolabz.ch!`
+      copy = `🪐 COSMIC FORMULAS FOR European Peak Performance. Reorder your supplement stack with an extra 10% discount using code ${adPromoCode} during checkout. FAST priority shipping. Shop now at ufolabz.ch!`
     } else if (adChannel === 'instagram') {
-      copy = `⚡️ LEVEL UP! Swiss-engineered pure performance supplements. Science-backed, lab-tested, sugar-free. Use my exclusive coupon code ${adPromoCode} to get 10% off your entire cart. 🛸 Link in bio! #ufolabz #swissfit`
+      copy = `⚡️ LEVEL UP! European-engineered pure performance supplements. Science-backed, lab-tested, sugar-free. Use my exclusive coupon code ${adPromoCode} to get 10% off your entire cart. 🛸 Link in bio! #ufolabz #fiteurope`
     } else {
       copy = `Subject: Upgrade your athletic parameters 🛸\n\nDear Athlete,\n\nWe have unlocked high-impact stacks at UFO LABZ. Get 10% off your entire order by entering coupon code ${adPromoCode} during checkout. Click here to shop: https://ufolabz.ch`
     }
@@ -1475,7 +1475,7 @@ export default function AdminPage() {
                 <div className="space-y-6 animate-fade-in text-left">
                   <div>
                     <h2 className="font-sans text-2xl font-bold tracking-tight text-white">Executive Control Overview</h2>
-                    <p className="text-xs text-gray-400">Real-time telemetry and operational statistics across Swiss domains.</p>
+                    <p className="text-xs text-gray-400">Real-time telemetry and operational statistics across European domains.</p>
                   </div>
 
                   {/* 1. CORE telemetry stats grid */}
@@ -2126,7 +2126,7 @@ export default function AdminPage() {
                                 type="text"
                                 value={manualKeyBenefits}
                                 onChange={(e) => setManualKeyBenefits(e.target.value)}
-                                placeholder="e.g. Tested In Swiss Labs, GMP Certified, 100% Vegan"
+                                placeholder="e.g. Tested In European Labs, GMP Certified, 100% Vegan"
                                 className="input bg-space-900 border-white/5 text-white"
                               />
                             </div>
@@ -2840,7 +2840,7 @@ export default function AdminPage() {
                                         </head>
                                         <body onload="window.print();">
                                           <div class="invoice-header">
-                                            <h2>UFO LABZ SWISS</h2>
+                                            <h2>UFO LABZ EUROPE</h2>
                                             <p>Enterprise Order Receipt</p>
                                             <p>ID: \${order.id} | Date: \${order.date}</p>
                                           </div>

@@ -69,8 +69,9 @@ export default function HeroSection() {
           className="animate-fade-in-up max-w-xl text-xs sm:text-sm md:text-base leading-relaxed text-gray-300 mb-8 font-sans"
           style={{ animationDelay: '0.45s' }}
         >
-          Next-generation supplements engineered for peak performance. Formulated with
-          extraterrestrial precision.
+          Supplements designed by the athlete and bodybuilder community, engineered
+          with extraterrestrial precision. European-made. Third-party tested. Shipping
+          across Europe.
         </p>
 
         {/* Action Buttons */}
@@ -88,7 +89,7 @@ export default function HeroSection() {
             href="/affiliate"
             className="w-full sm:w-auto text-center border border-[#00FF88]/40 hover:border-[#00FF88] bg-black/60 hover:bg-black/80 text-white font-bold font-mono text-xs uppercase tracking-wider px-8 py-4 rounded-xl transition-all duration-300 transform hover:scale-[1.02]"
           >
-            Join Our Team
+            Join Our Crew
           </Link>
         </div>
       </div>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Mail, Phone, MapPin, Send, CheckCircle2, Clock } from 'lucide-react';
+import { Mail, MapPin, Send, CheckCircle2, Clock } from 'lucide-react';
 
 export default function ContactPageClient() {
   const [name, setName] = useState('');
@@ -39,15 +39,14 @@ export default function ContactPageClient() {
             CONTACT US
           </h1>
           <p className="text-lg text-muted max-w-xl mx-auto">
-            Have a question, feedback, or need support? We&apos;re here to help.
-            Reach out and our team will get back to you as soon as possible.
+            Questions about your order, our products, or partnering with us? Our team is here to help.
           </p>
         </div>
       </section>
 
       {/* Contact Cards */}
       <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+        <div className="grid grid-cols-1 gap-6 mb-16 md:grid-cols-2">
           {/* Email */}
           <div className="card-glass p-6 text-center group hover:border-nebula-600/30 transition-all duration-300">
             <div className="w-12 h-12 rounded-xl bg-nebula-800/30 border border-nebula-600/20 flex items-center justify-center mx-auto mb-4">
@@ -59,20 +58,6 @@ export default function ContactPageClient() {
               className="text-sm text-muted group-hover:text-alien-green transition-colors"
             >
               support@ufolabz.com
-            </a>
-          </div>
-
-          {/* Phone */}
-          <div className="card-glass p-6 text-center group hover:border-nebula-600/30 transition-all duration-300">
-            <div className="w-12 h-12 rounded-xl bg-nebula-800/30 border border-nebula-600/20 flex items-center justify-center mx-auto mb-4">
-              <Phone className="w-5 h-5 text-nebula-400" />
-            </div>
-            <h3 className="font-display text-lg text-white mb-1">Call Us</h3>
-            <a
-              href="tel:+41792503564"
-              className="text-sm text-muted group-hover:text-alien-green transition-colors"
-            >
-              +41 79 250 35 64
             </a>
           </div>
 
@@ -88,14 +73,36 @@ export default function ContactPageClient() {
               rel="noopener noreferrer"
               className="text-sm text-muted group-hover:text-alien-green transition-colors"
             >
-              Bahnhofstrasse 100, 8001 Zürich
+              Bahnhofstrasse 100, 8001 Zürich, Switzerland
             </a>
           </div>
         </div>
       </section>
 
+      {/* Offline Store */}
+      <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mb-16">
+        <div className="card-glass p-8 text-center border-alien-green/20">
+          <MapPin className="w-9 h-9 text-alien-green mx-auto mb-4" />
+          <p className="text-xs font-mono font-bold uppercase tracking-[0.25em] text-alien-green mb-3">
+            SHOP OFFLINE
+          </p>
+          <h2 className="font-display text-3xl text-white mb-3">
+            AVAILABLE AT NUTRIFIT GENEVA
+          </h2>
+          <p className="text-sm text-muted max-w-xl mx-auto">
+            The NutriFit shop in Geneva, Switzerland, is our only offline retail location.
+          </p>
+        </div>
+      </section>
+
       {/* Form Section */}
       <section className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="mb-8 text-center">
+          <h2 className="font-display text-3xl tracking-wider text-white">SEND US A MESSAGE</h2>
+          <p className="mt-3 text-sm text-muted">
+            Send us a message and we&apos;ll get back to you within one business day.
+          </p>
+        </div>
         <div className="card-glass p-8 md:p-10">
           {submitted ? (
             <div className="text-center p-8">
@@ -190,13 +197,12 @@ export default function ContactPageClient() {
         </div>
       </section>
 
-      {/* Business Hours */}
+      {/* Response Time */}
       <section className="max-w-2xl mx-auto px-4 mt-8 mb-16">
         <div className="card-glass p-6 text-center">
           <Clock className="w-8 h-8 text-nebula-400 mx-auto mb-3" />
-          <h3 className="font-display text-lg text-white mb-3">BUSINESS HOURS</h3>
-          <p className="text-sm text-muted">Monday — Friday: 9:00 — 18:00 CET</p>
-          <p className="text-sm text-muted">Saturday &amp; Sunday: Closed</p>
+          <h3 className="font-display text-lg text-white mb-3">RESPONSE TIME</h3>
+          <p className="text-sm text-muted">We typically reply within 24 hours.</p>
         </div>
       </section>
     </div>

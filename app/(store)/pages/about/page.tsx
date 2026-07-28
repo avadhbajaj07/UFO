@@ -1,158 +1,152 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
-import { Shield, Sparkles, TrendingUp, Eye, ArrowRight } from 'lucide-react'
+import { ArrowRight, Beaker, FlaskConical, ShieldCheck, Users } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'About Us | UFO LABZ',
+  title: 'About UFO LABZ | Sports Nutrition Built by Athletes',
   description:
-    'Learn about UFO LABZ — Swiss-engineered supplements designed for peak human performance. Our story, mission, and vision.',
+    'UFO LABZ is a European sports nutrition brand designed by the athlete and bodybuilder community, built on third-party testing and European quality standards.',
 }
 
-const values = [
+const standards = [
   {
-    icon: Shield,
-    title: 'Swiss Precision',
+    icon: ShieldCheck,
+    title: 'Third-Party Tested',
     description:
-      'Every formula is developed and manufactured in Swiss GMP-certified laboratories.',
+      'Every batch is independently verified for purity and potency before it reaches you.',
   },
   {
-    icon: Sparkles,
-    title: 'Alien Innovation',
+    icon: Beaker,
+    title: 'Full-Dose Formulas',
     description:
-      'We push the boundaries of sports nutrition with cutting-edge research.',
+      'No proprietary blends. Every ingredient is dosed at levels backed by sports nutrition research.',
   },
   {
-    icon: TrendingUp,
-    title: 'Peak Performance',
+    icon: FlaskConical,
+    title: 'European Quality',
     description:
-      'Clinically-dosed ingredients designed for measurable results.',
+      'Manufactured in Europe and held to rigorous quality standards before it reaches you.',
   },
   {
-    icon: Eye,
-    title: 'Transparency',
+    icon: Users,
+    title: 'Real Athletes, Real Feedback',
     description:
-      'Full ingredient transparency. No proprietary blends. No hidden fillers.',
+      'Our formulas are shaped by feedback from the athletes who actually use them daily.',
   },
 ]
 
-const milestones = [
+const journey = [
   {
-    year: '2022',
-    title: 'THE LAUNCH',
+    marker: '2026',
+    title: 'THE MISSION BEGINS',
     description:
-      'Founded in Zurich with a vision to revolutionize sports nutrition.',
+      'UFO LABZ officially launched in Zürich with one goal: build honest, high-performance supplements with the athlete and bodybuilder community.',
   },
   {
-    year: '2023',
-    title: 'FIRST FORMULA',
-    description: 'Astro Creatine launched and sold out in 48 hours.',
-  },
-  {
-    year: '2024',
-    title: 'GOING VIRAL',
-    description: 'Surpassed 100,000 customers across Switzerland.',
-  },
-  {
-    year: '2025',
-    title: 'GLOBAL EXPANSION',
+    marker: 'NOW',
+    title: 'OUR FIRST COLLECTION',
     description:
-      'Now available across Europe with next-day Swiss delivery.',
+      'Our debut formulas are now available, bringing European-engineered performance nutrition to athletes across Europe.',
+  },
+  {
+    marker: 'NEXT',
+    title: 'BUILT WITH THE CREW',
+    description:
+      'We are listening to our first customers, gathering real training feedback, and using it to shape every formula and future release.',
+  },
+  {
+    marker: 'FUTURE',
+    title: 'EARNING YOUR TRUST',
+    description:
+      'Our journey is just beginning. We will grow through transparent formulas, independent testing, and products that prove themselves in the real world.',
   },
 ]
 
 export default function AboutPage() {
   return (
     <div className="pt-24">
-      {/* ── Hero ── */}
-      <section className="pt-28 pb-16 text-center relative overflow-hidden">
-        {/* Ambient nebula glows */}
+      <section className="relative overflow-hidden pb-16 pt-28 text-center">
         <div
-          className="absolute top-0 left-1/4 w-[600px] h-[600px] rounded-full opacity-[0.06] pointer-events-none"
-          style={{
-            background:
-              'radial-gradient(circle, rgba(200,80,255,0.5) 0%, transparent 70%)',
-          }}
+          className="pointer-events-none absolute left-1/4 top-0 h-[600px] w-[600px] rounded-full opacity-[0.06]"
+          style={{ background: 'radial-gradient(circle, rgba(200,80,255,0.5) 0%, transparent 70%)' }}
         />
         <div
-          className="absolute bottom-0 right-1/4 w-[500px] h-[500px] rounded-full opacity-[0.08] pointer-events-none"
-          style={{
-            background:
-              'radial-gradient(circle, rgba(0,255,136,0.4) 0%, transparent 70%)',
-          }}
+          className="pointer-events-none absolute bottom-0 right-1/4 h-[500px] w-[500px] rounded-full opacity-[0.08]"
+          style={{ background: 'radial-gradient(circle, rgba(0,255,136,0.4) 0%, transparent 70%)' }}
         />
 
-        <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <p className="text-xs font-mono font-bold uppercase tracking-[0.3em] text-alien-green mb-4">
-            OUR STORY
+        <div className="relative z-10 mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+          <p className="mb-4 font-mono text-xs font-bold uppercase tracking-[0.3em] text-alien-green">
+            OUR MISSION
           </p>
-          <h1 className="font-display text-5xl md:text-7xl tracking-wider mb-6">
-            ENGINEERED BEYOND EARTH
+          <h1 className="font-display text-5xl tracking-wider text-white md:text-7xl">
+            BUILT BY ATHLETES.
+            <br />
+            <span className="text-gradient-cosmic">ENGINEERED FOR ANOTHER WORLD.</span>
           </h1>
-          <p className="text-lg text-muted max-w-2xl mx-auto">
-            UFO LABZ was born from the belief that human potential has no
-            ceiling. We combine Swiss precision with futuristic innovation to
-            create supplements that are truly out of this world.
+          <p className="mx-auto mt-6 max-w-3xl text-lg leading-relaxed text-muted">
+            UFO LABZ was founded on a simple idea: performance supplements should be
+            designed by the people who actually use them. Developed with the athlete and
+            bodybuilder community, manufactured to European quality standards, and shipped
+            across Europe.
           </p>
         </div>
       </section>
 
-      {/* ── Mission / Vision ── */}
       <section className="py-16 md:py-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            {/* Mission */}
-            <div className="card-glass p-8">
-              <div className="h-1 w-16 rounded-full bg-gradient-to-r from-nebula-600 to-alien-green mb-6" />
-              <h2 className="font-display text-2xl mb-4 tracking-wider">
-                OUR MISSION
-              </h2>
-              <p className="text-muted text-sm leading-relaxed">
-                To deliver Swiss-engineered supplements that unlock peak human
-                performance. Every ingredient is clinically dosed, every formula
-                rigorously tested — because your body deserves nothing less than
-                precision-grade nutrition built for the future.
+        <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+          <div className="card-glass p-8 md:p-12">
+            <p className="mb-3 font-mono text-xs font-bold uppercase tracking-[0.25em] text-alien-green">
+              OUR STORY
+            </p>
+            <h2 className="font-display text-3xl tracking-wider text-white md:text-5xl">
+              THE MISSION BEHIND THE BRAND
+            </h2>
+            <div className="mt-7 space-y-5 text-muted leading-relaxed">
+              <p>
+                We started UFO LABZ because the supplement industry was full of noise -
+                bold claims, underdosed formulas, and labels that hid more than they
+                revealed. We wanted to build something different: a Zürich-based brand
+                shaped directly by athletes and bodybuilders, where every product is dosed
+                at levels that actually work, tested by independent labs, and backed by real
+                transparency.
               </p>
-            </div>
-
-            {/* Vision */}
-            <div className="card-glass p-8">
-              <div className="h-1 w-16 rounded-full bg-gradient-to-r from-nebula-600 to-alien-green mb-6" />
-              <h2 className="font-display text-2xl mb-4 tracking-wider">
-                OUR VISION
-              </h2>
-              <p className="text-muted text-sm leading-relaxed">
-                To redefine the future of supplement science by merging
-                cutting-edge research with uncompromising quality. We envision a
-                world where every athlete — from weekend warriors to elite
-                competitors — has access to the most advanced nutrition on the
-                planet.
+              <p>
+                The &quot;alien performance&quot; identity is not just branding - it reflects how
+                we approach product development. We treat every formula like it needs to
+                perform beyond what is normal. Because for the athletes who train with us,
+                normal is not the goal.
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── Values ── */}
-      <section className="py-16 md:py-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="font-display text-3xl md:text-5xl tracking-wider text-center mb-12">
-            WHAT DRIVES US
-          </h2>
+      <section className="bg-nebula-glow border-y border-white/5 py-16 md:py-24">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mb-12 text-center">
+            <p className="mb-3 font-mono text-xs font-bold uppercase tracking-[0.25em] text-alien-green">
+              WHAT SETS US APART
+            </p>
+            <h2 className="font-display text-3xl tracking-wider text-white md:text-5xl">
+              THE UFO LABZ STANDARD
+            </h2>
+          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {values.map((v) => (
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+            {standards.map((standard) => (
               <div
-                key={v.title}
-                className="card-glass p-6 hover:border-nebula-600/30 transition-all duration-300"
+                key={standard.title}
+                className="card-glass p-6 transition-all duration-300 hover:border-nebula-600/30"
               >
-                <div className="w-12 h-12 rounded-xl bg-nebula-800/30 border border-nebula-600/20 flex items-center justify-center mb-4">
-                  <v.icon className="w-6 h-6 text-nebula-400" />
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-nebula-600/20 bg-nebula-800/30">
+                  <standard.icon className="h-6 w-6 text-nebula-400" />
                 </div>
-                <h3 className="font-display text-xl tracking-wider mb-2">
-                  {v.title}
+                <h3 className="font-display text-xl tracking-wider text-white">
+                  {standard.title}
                 </h3>
-                <p className="text-sm text-muted leading-relaxed">
-                  {v.description}
+                <p className="mt-3 text-sm leading-relaxed text-muted">
+                  {standard.description}
                 </p>
               </div>
             ))}
@@ -160,39 +154,44 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* ── Timeline ── */}
       <section className="py-16 md:py-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="font-display text-3xl md:text-5xl tracking-wider text-center mb-12">
-            THE UFO LABZ JOURNEY
-          </h2>
+        <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+          <div className="mb-14 text-center">
+            <p className="mb-3 font-mono text-xs font-bold uppercase tracking-[0.25em] text-alien-green">
+              JUST GETTING STARTED
+            </p>
+            <h2 className="font-display text-3xl tracking-wider text-white md:text-5xl">
+              THE UFO LABZ JOURNEY
+            </h2>
+          </div>
 
-          <div className="max-w-3xl mx-auto relative">
-            {/* Center line */}
-            <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-nebula-600 via-alien-green/50 to-nebula-600" />
+          <div className="relative mx-auto max-w-4xl">
+            <div className="absolute bottom-0 left-3 top-0 w-px bg-gradient-to-b from-nebula-600 via-alien-green/70 to-nebula-600 md:left-1/2" />
 
-            <div className="space-y-12">
-              {milestones.map((m, i) => {
-                const isEven = i % 2 === 0
+            <div className="space-y-12 md:space-y-16">
+              {journey.map((milestone, index) => {
+                const alignLeft = index % 2 === 0
+
                 return (
-                  <div
-                    key={m.year}
-                    className={`relative ${
-                      isEven
-                        ? 'pl-[calc(50%+2rem)]'
-                        : 'pr-[calc(50%+2rem)] text-right'
-                    }`}
-                  >
-                    {/* Dot */}
-                    <div className="absolute top-2 left-[calc(50%-6px)] w-3 h-3 rounded-full bg-alien-green" />
-
-                    <p className="font-mono text-sm text-alien-green mb-1">
-                      {m.year}
-                    </p>
-                    <h3 className="font-display text-xl tracking-wider mb-1">
-                      {m.title}
-                    </h3>
-                    <p className="text-sm text-muted">{m.description}</p>
+                  <div key={milestone.marker} className="relative md:grid md:grid-cols-2">
+                    <div className="absolute left-3 top-1.5 h-3 w-3 -translate-x-1/2 rounded-full bg-alien-green shadow-glow-green md:left-1/2" />
+                    <div
+                      className={`pl-10 md:pl-0 ${
+                        alignLeft
+                          ? 'md:col-start-1 md:pr-12 md:text-right'
+                          : 'md:col-start-2 md:pl-12'
+                      }`}
+                    >
+                      <p className="mb-2 font-mono text-sm font-bold uppercase tracking-wider text-alien-green">
+                        {milestone.marker}
+                      </p>
+                      <h3 className="font-display text-xl tracking-wider text-white">
+                        {milestone.title}
+                      </h3>
+                      <p className="mt-3 text-sm leading-relaxed text-muted">
+                        {milestone.description}
+                      </p>
+                    </div>
                   </div>
                 )
               })}
@@ -201,23 +200,16 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* ── CTA ── */}
       <section className="py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="card-glass p-12 text-center max-w-3xl mx-auto">
-            <h2 className="font-display text-3xl tracking-wider mb-3">
-              READY TO ELEVATE?
-            </h2>
-            <p className="text-muted mb-6">
-              Discover our range of premium supplements engineered for those who
-              demand more.
+        <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+          <div className="card-glass p-10 text-center md:p-12">
+            <h2 className="font-display text-3xl tracking-wider text-white">JOIN THE CREW</h2>
+            <p className="mb-6 mt-3 text-muted">
+              Be among the first to experience European-engineered, alien-grade performance nutrition.
             </p>
-            <Link
-              href="/products"
-              className="btn-primary inline-flex items-center gap-2"
-            >
-              SHOP NOW
-              <ArrowRight className="w-4 h-4" />
+            <Link href="/products" className="btn-primary inline-flex items-center gap-2">
+              EXPLORE THE COLLECTION
+              <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
         </div>

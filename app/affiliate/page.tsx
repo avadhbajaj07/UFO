@@ -236,11 +236,11 @@ export default function AffiliatePage() {
     let copy = ''
     if (aiProduct === 'blast-pre-workout-energy') {
       copy = aiChannel === 'instagram' 
-        ? `⚡ BLAST OFF! Reached new heights in training today with UFO LABZ Pre-Workout. Insane pump and zero crash. Use my code ${customSlug} to get 10% off your next energy boost! Link in bio. 🛸 #ufolabz #preworkout #fitswiss`
+        ? `⚡ BLAST OFF! Reached new heights in training today with UFO LABZ Pre-Workout. Insane pump and zero crash. Use my code ${customSlug} to get 10% off your next energy boost! Link in bio. 🛸 #ufolabz #preworkout #fiteurope`
         : `📥 Hey team! Just released my review of the Blast Pre-Workout. The focus is unlike anything I’ve tested this year. 200mg Caffeine + L-Citrulline. Grab yours here for 10% off: https://ufolabz.ch/products/blast-pre-workout-energy/?ref=${customSlug}`
     } else {
       copy = aiChannel === 'instagram'
-        ? `🪐 Clean strength synthesis. Astro Creatine is 100% pure micronized monohydrate. Easy mix, pure absorption. Support your recovery with 10% off using code ${customSlug}. Link in bio! 🏋️ #creatine #supplements #swissfit`
+        ? `🪐 Clean strength synthesis. Astro Creatine is 100% pure micronized monohydrate. Easy mix, pure absorption. Support your recovery with 10% off using code ${customSlug}. Link in bio! 🏋️ #creatine #supplements #fiteurope`
         : `📝 Muscle growth requires nutritional consistency. Astro Creatine monohydrate has been a game changer for ATP replenishment. Get it with 10% off: https://ufolabz.ch/products/astro-creatine/?ref=${customSlug}`
     }
     setGeneratedCaption(copy)
@@ -413,7 +413,7 @@ export default function AffiliatePage() {
               EARN UP TO 25% COMMISSION
             </h1>
             <p className="text-gray-300 text-base max-w-xl mx-auto leading-relaxed">
-              Partner with Switzerland's premium supplement brand. Promote science-backed performance formulas and earn payouts directly via TWINT or bank transfers.
+              Partner with Europe&apos;s premium supplement brand. Promote science-backed performance formulas and earn payouts directly via TWINT or bank transfers.
             </p>
             <div className="pt-4">
               <a href="#apply" className="bg-alien-green text-space-950 font-bold px-8 py-3.5 rounded-xl hover:shadow-glow-green active:scale-98 transition-all inline-block">
@@ -436,7 +436,7 @@ export default function AffiliatePage() {
               <div className="w-12 h-12 bg-alien-green/10 border border-alien-green/20 rounded-xl flex items-center justify-center text-xl">
                 📱
               </div>
-              <h3 className="font-bold text-lg text-white">TWINT Swiss Payouts</h3>
+              <h3 className="font-bold text-lg text-white">TWINT Payouts</h3>
               <p className="text-xs text-gray-400 leading-relaxed">We support standard localized payments. Withdraw your earnings securely via TWINT or direct bank transfers.</p>
             </div>
 
@@ -555,7 +555,7 @@ export default function AffiliatePage() {
                   className="w-4 h-4 rounded accent-alien-green mt-0.5 cursor-pointer"
                 />
                 <label htmlFor="agree" className="text-[10px] text-gray-400 cursor-pointer leading-normal">
-                  I agree to the UFO LABZ Affiliate Terms of Service, allowing commission verification, fraud protection limits, and secure Swiss payout guidelines.
+                  I agree to the UFO LABZ Affiliate Terms of Service, allowing commission verification, fraud protection limits, and secure payout guidelines.
                 </label>
               </div>
 

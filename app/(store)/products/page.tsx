@@ -2,12 +2,12 @@
 import { createClient } from '@/lib/supabase/server'
 import ProductsClient from '@/components/product/ProductsClient'
 import type { Metadata } from 'next'
-import { sortPublicProducts } from '@/lib/products/catalog'
+import { isExcludedPublicCategorySlug, sortPublicProducts } from '@/lib/products/catalog'
 import { redirect } from 'next/navigation'
 
 export const metadata: Metadata = {
   title: 'Shop Supplements | UFO LABZ',
-  description: 'Power your workouts with premium Swiss-engineered sports supplements. Explore UFO LABZ Creatine, Pre-Workout, and Amino Acid formulas.',
+  description: 'Power your workouts with premium European-engineered sports supplements. Explore UFO LABZ Creatine, Pre-Workout, and Amino Acid formulas.',
   alternates: { canonical: 'https://ufolabz.com/products' },
 }
 
@@ -56,7 +56,7 @@ async function getCategories() {
     .select('id, name, slug')
     .eq('is_active', true)
     .order('sort_order', { ascending: true })
-  return data ?? []
+  return (data ?? []).filter((category: any) => !isExcludedPublicCategorySlug(category.slug))
 }
 
 export default async function ProductsPage({
@@ -66,6 +66,7 @@ export default async function ProductsPage({
 }) {
   const params = searchParams || {}
   if (params.category) {
+    if (isExcludedPublicCategorySlug(params.category)) redirect('/products')
     const sort = params.sort ? `?sort=${encodeURIComponent(params.sort)}` : ''
     redirect(`/products/category/${encodeURIComponent(params.category)}${sort}`)
   }
@@ -81,7 +82,7 @@ export default async function ProductsPage({
         categories={categories as any}
         activeCategory={params.category}
         activeSort={params.sort}
-        intro="Science-backed creatine, pre-workout, amino acids, magnesium and recovery supplements with fast delivery across Switzerland."
+        intro="Science-backed creatine, pre-workout, amino acids, magnesium and recovery supplements with fast delivery across Europe."
       />
     </div>
   )

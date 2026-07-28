@@ -206,8 +206,8 @@ export default function ProductGrid({ products }: ProductGridProps) {
           PRODUCTS
         </h2>
         <p className="text-muted max-w-xl mx-auto">
-          Precision-engineered supplements. Each one designed for a specific mission.
-          All of them built to take you beyond your limits.
+          Every formula is built for one mission: to take your performance beyond the
+          limits of ordinary supplements. Precision-dosed. Lab-verified. Built for orbit.
         </p>
       </div>
 

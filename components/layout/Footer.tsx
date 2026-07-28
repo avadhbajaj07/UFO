@@ -7,7 +7,6 @@ const shopLinks = [
   { href: '/products/category/pre-workout', label: 'Pre Workout' },
   { href: '/products/category/amino-acids', label: 'Amino Acids' },
   { href: '/products/category/magnesium', label: 'Magnesium' },
-  { href: '/products/category/special-edition', label: 'Special Edition' },
 ]
 
 const companyLinks = [
@@ -20,15 +19,7 @@ const companyLinks = [
 
 const contactInfo = [
   { label: 'support@ufolabz.com', href: 'mailto:support@ufolabz.com' },
-  { label: '+41 79 250 35 64', href: 'tel:+41792503564' },
   { label: 'Bahnhofstrasse 100, 8001 Zürich', href: 'https://maps.app.goo.gl/yQ32D81x11Vn4C2k8' },
-]
-
-const socials = [
-  { label: 'Instagram', icon: 'IG', href: 'https://instagram.com/ufolabz' },
-  { label: 'Facebook', icon: 'FB', href: 'https://facebook.com/ufolabz' },
-  { label: 'Twitter', icon: 'X', href: 'https://x.com/ufolabz' },
-  { label: 'YouTube', icon: 'YT', href: 'https://youtube.com/@ufolabz' },
 ]
 
 const legalLinks = [
@@ -60,23 +51,8 @@ export default function Footer() {
               />
             </Link>
             <p className="text-sm text-muted leading-relaxed mb-5">
-              Alien Performance Technology. Premium supplements engineered in Swiss laboratories for peak human performance.
+              Alien Performance Technology. Premium supplements engineered in Europe laboratories for peak human performance.
             </p>
-            {/* Social Icons */}
-            <div className="flex items-center gap-3">
-              {socials.map((s) => (
-                <a
-                  key={s.label}
-                  href={s.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-9 h-9 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center text-muted hover:text-white hover:border-nebula-600/40 hover:bg-nebula-800/30 transition-all duration-200 text-xs font-mono"
-                  aria-label={s.label}
-                >
-                  {s.icon}
-                </a>
-              ))}
-            </div>
           </div>
 
           {/* Shop Links */}

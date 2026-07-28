@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import ProductsClient from '@/components/product/ProductsClient'
 import { createClient } from '@/lib/supabase/server'
-import { sortPublicProducts } from '@/lib/products/catalog'
+import { isExcludedPublicCategorySlug, sortPublicProducts } from '@/lib/products/catalog'
 import { CATEGORY_SEO, SITE_URL } from '@/lib/seo/catalog'
 
 export const revalidate = 3600
@@ -13,6 +13,8 @@ interface Props {
 }
 
 async function getCategory(slug: string) {
+  if (isExcludedPublicCategorySlug(slug)) return null
+
   const supabase = createClient()
   const { data } = await supabase
     .from('categories')
@@ -55,7 +57,7 @@ async function getCategories() {
     .select('id, name, slug')
     .eq('is_active', true)
     .order('sort_order')
-  return data ?? []
+  return (data ?? []).filter((category: any) => !isExcludedPublicCategorySlug(category.slug))
 }
 
 export async function generateStaticParams() {
@@ -110,4 +112,3 @@ export default async function CategoryPage({ params, searchParams = {} }: Props)
     </div>
   )
 }
-

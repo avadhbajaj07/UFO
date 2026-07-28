@@ -11,7 +11,6 @@ import { useCart } from '@/hooks/useCart'
 import { formatPrice } from '@/lib/utils/pricing'
 import { getLocalizedField } from '@/types'
 import { cn } from '@/lib/utils'
-import { FREE_SHIPPING_THRESHOLD } from '@/config/client'
 
 export default function CartPage() {
   const { items, breakdown, isLoading, updateQuantity, removeItem } = useCart()
@@ -34,9 +33,6 @@ export default function CartPage() {
       </div>
     )
   }
-
-  const shippingProgress = Math.min(100, (breakdown.subtotal / FREE_SHIPPING_THRESHOLD) * 100)
-  const remaining = Math.max(0, FREE_SHIPPING_THRESHOLD - breakdown.subtotal)
 
   return (
     <div className="relative pt-28 pb-20 min-h-screen">
@@ -72,7 +68,7 @@ export default function CartPage() {
             <div className="space-y-2">
               <h2 className="font-display text-2xl tracking-wide uppercase text-white">Your Cargo Bay is Empty</h2>
               <p className="text-sm text-muted max-w-sm mx-auto">
-                No performance enhancements loaded. Power up your training with Swiss-engineered formulas.
+                No performance enhancements loaded. Power up your training with European-engineered formulas.
               </p>
             </div>
             <div className="pt-4">
@@ -194,22 +190,12 @@ export default function CartPage() {
               
               {/* Shipping Status Meter */}
               <div className="card-glass p-5 space-y-3">
-                <div className="flex justify-between items-center text-xs">
-                  <span className="text-muted uppercase font-mono tracking-wider">Swiss Cargo Transit</span>
-                  {remaining > 0 ? (
-                    <span className="text-alien-green font-bold">CHF {remaining.toFixed(2)} to Free Delivery</span>
-                  ) : (
-                    <span className="text-alien-green font-bold font-mono">🚀 FREE SHIPPING EARNED</span>
-                  )}
-                </div>
-                <div className="h-1.5 bg-space-950 rounded-full overflow-hidden border border-white/5 p-0.5">
-                  <div 
-                    className="h-full bg-alien-green rounded-full transition-all duration-500 shadow-glow-green"
-                    style={{ width: `${shippingProgress}%` }}
-                  />
+                <div className="flex items-center justify-between gap-4 text-xs">
+                  <span className="text-muted uppercase font-mono tracking-wider">European Cargo Transit</span>
+                  <span className="text-alien-green font-bold font-mono">🚀 FREE STANDARD DELIVERY</span>
                 </div>
                 <p className="text-[10px] text-muted/60 leading-relaxed">
-                  We ship directly from our Swiss performance laboratory. Free priority delivery on orders exceeding CHF {FREE_SHIPPING_THRESHOLD}.-
+                  Free standard delivery across supported European regions.
                 </p>
               </div>
 
@@ -273,7 +259,7 @@ export default function CartPage() {
                 <div className="card-glass p-3 flex flex-col items-center justify-center space-y-1.5">
                   <CornerUpLeft className="w-4 h-4 text-alien-green" />
                   <span className="text-[9px] font-mono uppercase tracking-wider text-white font-bold">Returns</span>
-                  <span className="text-[8px] text-muted/60">14-Day Guarantee</span>
+                  <span className="text-[8px] text-muted/60">Damage Exceptions</span>
                 </div>
               </div>
 

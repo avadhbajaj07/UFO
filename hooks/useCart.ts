@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useCartStore } from '@/store/cart'
 import { getPricedForQuantity } from '@/lib/utils/pricing'
-import { FREE_SHIPPING_THRESHOLD } from '@/config/client'
 import { isExcludedPublicProductSlug } from '@/lib/products/catalog'
 
 export function useCart() {
@@ -38,8 +37,8 @@ export function useCart() {
   const loyalty_discount = 0
   const gift_card_amount = 0
 
-  const is_free_shipping = subtotal >= FREE_SHIPPING_THRESHOLD || subtotal === 0
-  const shipping_amount = subtotal === 0 ? 0 : (is_free_shipping ? 0 : 9.00) // 9.00 CHF standard shipping
+  const is_free_shipping = true
+  const shipping_amount = 0
 
   const total = Math.max(0, subtotal - coupon_discount - loyalty_discount - gift_card_amount + shipping_amount)
   const tax_amount = total * (8.1 / 108.1) // 8.1% VAT included in price

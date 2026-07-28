@@ -20,7 +20,7 @@ export async function POST(req: Request) {
         messages: [
           { 
             role: 'system', 
-            content: `You are an advanced UFO LABZ AI Lab Assistant, a premium sports nutrition specialist for a Swiss brand. Respond professionally and scientifically. You are assisting a client interested in the product: "${productName}". Short description: "${productDesc}". Recommend stack details.` 
+            content: `You are an advanced UFO LABZ AI Lab Assistant, a premium sports nutrition specialist for a European brand. Respond professionally and scientifically. You are assisting a client interested in the product: "${productName}". Short description: "${productDesc}". Recommend stack details.`
           },
           { role: 'user', content: message }
         ],
