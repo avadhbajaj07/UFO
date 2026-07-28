@@ -1,5 +1,4 @@
-import Link from 'next/link'
-import { Rocket, ShieldCheck } from 'lucide-react'
+import { ShieldCheck } from 'lucide-react'
 
 export default function TestimonialsSection() {
   return (
@@ -20,23 +19,6 @@ export default function TestimonialsSection() {
         </div>
       </section>
 
-      <section className="section max-w-5xl mx-auto container-px pt-0">
-        <div className="relative overflow-hidden rounded-2xl border border-nebula-600/20 bg-nebula-glow p-8 text-center md:p-14">
-          <Rocket className="mx-auto mb-5 h-10 w-10 text-nebula-400" />
-          <h2 className="font-display text-4xl tracking-wider text-white md:text-5xl">
-            READY FOR LIFTOFF?
-          </h2>
-          <p className="mx-auto mb-7 mt-4 max-w-xl text-muted">
-            Be among the first to fuel your training with European-engineered, alien-grade supplements.
-          </p>
-          <Link
-            href="mailto:support@ufolabz.com?subject=UFO%20LABZ%20Launch%20Notification"
-            className="btn-primary inline-flex items-center gap-2"
-          >
-            NOTIFY ME AT LAUNCH
-          </Link>
-        </div>
-      </section>
     </>
   )
 }
