@@ -157,7 +157,7 @@ export function buildStripeLineItems(
       price_data: {
         currency: 'chf',
         product_data: {
-          name: 'Swiss shipping',
+          name: 'European shipping',
         },
         unit_amount: toStripeAmount(totals.shippingAmount),
       },

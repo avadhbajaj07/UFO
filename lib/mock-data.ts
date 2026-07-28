@@ -37,7 +37,7 @@ export const PRODUCTS = [
       fr: 'Matrice de récupération premium. EAA à absorption rapide avec un goût rafraîchissant de framboise bleue cosmique.',
     },
     description: {
-      en: 'Formulated identically to our Mango blend, Amino Fuel Blue provides the ultimate intra-workout recovery experience with a punchy, interstellar Blue Raspberry taste. Provides critical hydration and prevents muscle breakdown. Formulated under clean lab standards in Switzerland.',
+      en: 'Formulated identically to our Mango blend, Amino Fuel Blue provides the ultimate intra-workout recovery experience with a punchy, interstellar Blue Raspberry taste. Provides critical hydration and prevents muscle breakdown. Formulated under clean European laboratory standards.',
       de: 'Identisch formuliert wie unsere Mango-Mischung, bietet Amino Fuel Blue das ultimative Intra-Workout-Erholungserlebnis mit einem spritzigen, interstellaren Blaue-Himbeere-Geschmack. Bietet wichtige Hydratation und verhindert Muskelabbau. Formuliert unter sauberen Laborstandards in der Schweiz.',
       fr: 'Formulé de manière identique à notre mélange Mango, Amino Fuel Blue offre l\'expérience ultime de récupération intra-entraînement avec un goût de framboise bleue interstellaire percutant. Fournit une hydratation critique et prévient la dégradation musculaire. Formulé selon les normes de laboratoire en Suisse.',
     },
@@ -76,7 +76,7 @@ export const PRODUCTS = [
       fr: 'Potentiel illimité. Booster de performance physique et cognitive hybride avec adaptogènes et nootropiques.',
     },
     description: {
-      en: 'The crown jewel of UFO LABZ. Special Edition is a limited-run hybrid formulation combining premium physical performance enhancers with advanced cognitive nootropics. Featuring Alpha-GPC, Lion\'s Mane Extract, and Rhodiola Rosea alongside premium Pump agents, it creates a ultimate mind-muscle connection. Swiss engineered for elite minds and bodies.',
+      en: 'The crown jewel of UFO LABZ. Special Edition is a limited-run hybrid formulation combining premium physical performance enhancers with advanced cognitive nootropics. Featuring Alpha-GPC, Lion\'s Mane Extract, and Rhodiola Rosea alongside premium Pump agents, it creates a ultimate mind-muscle connection. European engineered for elite minds and bodies.',
       de: 'Das Kronjuwel von UFO LABZ. Die Sonderedition ist eine limitierte Hybrid-Formulierung, die erstklassige körperliche Leistungssteigerer mit fortschrittlichen kognitiven Nootropika kombiniert. Mit Alpha-GPC, Igelstachelbart-Extrakt (Lion\'s Mane) und Rhodiola Rosea neben erstklassigen Pump-Wirkstoffen schafft es eine ultimative Geist-Muskel-Verbindung. In der Schweiz entwickelt für Elite-Köpfe und -Körper.',
       fr: 'Le joyau de la couronne d\'UFO LABZ. Special Edition est une formule hybride en édition limitée combinant des boosters de performance physique de qualité supérieure avec des nootropiques cognitifs avancés. Comprenant de l\'Alpha-GPC, de l\'extrait de crinière de lion et de la Rhodiola Rosea, ainsi que des agents de congestion haut de gamme, il crée une connexion esprit-muscle ultime. Conçu en Suisse pour les esprits et les corps d\'élite.',
     },

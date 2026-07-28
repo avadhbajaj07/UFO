@@ -9,8 +9,8 @@ import type { Metadata } from 'next'
 import { sortPublicProducts } from '@/lib/products/catalog'
 
 export const metadata: Metadata = {
-  title: 'UFO LABZ | Swiss-Engineered Supplements, Built by Athletes',
-  description: 'Science-backed supplements designed by the athlete and bodybuilder community. Third-party tested, Swiss-engineered. Shipping across Switzerland and Europe.',
+  title: 'UFO LABZ | European-Engineered Supplements, Built by Athletes',
+  description: 'Science-backed supplements designed by the athlete and bodybuilder community. Third-party tested and European-engineered. Shipping across Europe.',
 }
 
 export const revalidate = 3600 // ISR: revalidate every hour
@@ -44,13 +44,11 @@ export default async function HomePage() {
     logo: 'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782711478/ufo_logo_sqaure_h2yvkk.jpg',
     contactPoint: {
       '@type': 'ContactPoint',
-      telephone: '+41 79 250 35 64',
       contactType: 'customer service',
       email: 'support@ufolabz.com',
       availableLanguage: ['English', 'German'],
     },
     sameAs: [
-      'https://instagram.com/ufolabz',
       'https://facebook.com/ufolabz',
       'https://x.com/ufolabz',
     ],

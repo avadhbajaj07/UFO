@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Mail, Phone, MapPin, Send, CheckCircle2, Clock } from 'lucide-react';
+import { Mail, MapPin, Send, CheckCircle2, Clock } from 'lucide-react';
 
 export default function ContactPageClient() {
   const [name, setName] = useState('');
@@ -46,7 +46,7 @@ export default function ContactPageClient() {
 
       {/* Contact Cards */}
       <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+        <div className="grid grid-cols-1 gap-6 mb-16 md:grid-cols-2">
           {/* Email */}
           <div className="card-glass p-6 text-center group hover:border-nebula-600/30 transition-all duration-300">
             <div className="w-12 h-12 rounded-xl bg-nebula-800/30 border border-nebula-600/20 flex items-center justify-center mx-auto mb-4">
@@ -58,20 +58,6 @@ export default function ContactPageClient() {
               className="text-sm text-muted group-hover:text-alien-green transition-colors"
             >
               support@ufolabz.com
-            </a>
-          </div>
-
-          {/* Phone */}
-          <div className="card-glass p-6 text-center group hover:border-nebula-600/30 transition-all duration-300">
-            <div className="w-12 h-12 rounded-xl bg-nebula-800/30 border border-nebula-600/20 flex items-center justify-center mx-auto mb-4">
-              <Phone className="w-5 h-5 text-nebula-400" />
-            </div>
-            <h3 className="font-display text-lg text-white mb-1">Call Us</h3>
-            <a
-              href="tel:+41792503564"
-              className="text-sm text-muted group-hover:text-alien-green transition-colors"
-            >
-              +41 79 250 35 64
             </a>
           </div>
 

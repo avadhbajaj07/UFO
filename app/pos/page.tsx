@@ -317,7 +317,7 @@ export default function PosDashboard() {
 
     <div class="footer">
       <div>THANK YOU FOR SHOPPING WITH UFO LABZ GMBH</div>
-      <div style="margin-top: 4px; font-size: 9px; color: #8888BB; letter-spacing: 1px;">SWISS LABS INTELLECTUAL PROPERTY</div>
+      <div style="margin-top: 4px; font-size: 9px; color: #8888BB; letter-spacing: 1px;">EUROPEAN LABS INTELLECTUAL PROPERTY</div>
     </div>
   </div>
 </body>

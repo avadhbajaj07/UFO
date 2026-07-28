@@ -821,7 +821,7 @@ export default function CheckoutPage() {
                       className="w-4 h-4 rounded accent-alien-green mt-0.5 cursor-pointer"
                     />
                     <label htmlFor="terms" className="text-xs text-gray-400 cursor-pointer leading-normal">
-                      I agree to the <Link href="/terms" className="text-alien-green hover:underline">Terms & Conditions</Link> and <Link href="/privacy" className="text-alien-green hover:underline">Privacy Policy</Link> of UFO LABZ Swiss.
+                      I agree to the <Link href="/terms" className="text-alien-green hover:underline">Terms & Conditions</Link> and <Link href="/privacy" className="text-alien-green hover:underline">Privacy Policy</Link> of UFO LABZ.
                     </label>
                   </div>
 
@@ -955,7 +955,7 @@ export default function CheckoutPage() {
 
               {/* Guarantees & trust panel */}
               <div className="bg-space-900/60 border border-white/5 rounded-2xl p-6 space-y-4">
-                <h4 className="text-xs font-mono font-bold tracking-widest text-muted text-gray-400 uppercase">SWISS GUARANTEE</h4>
+                <h4 className="text-xs font-mono font-bold tracking-widest text-muted text-gray-400 uppercase">EUROPEAN GUARANTEE</h4>
                 <div className="space-y-3 text-xs text-gray-300">
                   <div className="flex gap-2.5">
                     <Shield className="w-4 h-4 text-alien-green flex-shrink-0" />
@@ -963,7 +963,7 @@ export default function CheckoutPage() {
                   </div>
                   <div className="flex gap-2.5">
                     <CheckCircle2 className="w-4 h-4 text-alien-green flex-shrink-0" />
-                    <p><strong>100% Authentic:</strong> Shipped directly from certified Swiss manufacturing labs.</p>
+                    <p><strong>100% Authentic:</strong> Shipped directly from certified European manufacturing labs.</p>
                   </div>
                 </div>
               </div>

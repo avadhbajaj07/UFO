@@ -5,7 +5,7 @@ import { sortPublicProducts } from '@/lib/products/catalog'
 
 export const metadata: Metadata = {
   title: 'Search | UFO LABZ',
-  description: 'Search the UFO LABZ collection for premium Swiss-engineered supplements.',
+  description: 'Search the UFO LABZ collection for premium European-engineered supplements.',
 }
 
 async function getProducts() {

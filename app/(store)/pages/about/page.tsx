@@ -5,7 +5,7 @@ import { ArrowRight, Beaker, FlaskConical, ShieldCheck, Users } from 'lucide-rea
 export const metadata: Metadata = {
   title: 'About UFO LABZ | Sports Nutrition Built by Athletes',
   description:
-    'UFO LABZ is a Swiss sports nutrition brand designed by the athlete and bodybuilder community, built on third-party testing and Swiss quality standards.',
+    'UFO LABZ is a European sports nutrition brand designed by the athlete and bodybuilder community, built on third-party testing and European quality standards.',
 }
 
 const standards = [
@@ -23,9 +23,9 @@ const standards = [
   },
   {
     icon: FlaskConical,
-    title: 'Swiss Quality',
+    title: 'European Quality',
     description:
-      'Manufactured and shipped from Switzerland, held to some of the strictest quality standards in the world.',
+      'Manufactured in Europe and held to rigorous quality standards before it reaches you.',
   },
   {
     icon: Users,
@@ -46,7 +46,7 @@ const journey = [
     marker: 'NOW',
     title: 'OUR FIRST COLLECTION',
     description:
-      'Our debut formulas are now available, bringing Swiss-engineered performance nutrition to athletes across Switzerland and Europe.',
+      'Our debut formulas are now available, bringing European-engineered performance nutrition to athletes across Europe.',
   },
   {
     marker: 'NEXT',
@@ -87,8 +87,8 @@ export default function AboutPage() {
           <p className="mx-auto mt-6 max-w-3xl text-lg leading-relaxed text-muted">
             UFO LABZ was founded on a simple idea: performance supplements should be
             designed by the people who actually use them. Developed with the athlete and
-            bodybuilder community, manufactured to Swiss quality standards, and shipped
-            across Switzerland and Europe.
+            bodybuilder community, manufactured to European quality standards, and shipped
+            across Europe.
           </p>
         </div>
       </section>
@@ -205,7 +205,7 @@ export default function AboutPage() {
           <div className="card-glass p-10 text-center md:p-12">
             <h2 className="font-display text-3xl tracking-wider text-white">JOIN THE CREW</h2>
             <p className="mb-6 mt-3 text-muted">
-              Be among the first to experience Swiss-engineered, alien-grade performance nutrition.
+              Be among the first to experience European-engineered, alien-grade performance nutrition.
             </p>
             <Link href="/products" className="btn-primary inline-flex items-center gap-2">
               EXPLORE THE COLLECTION

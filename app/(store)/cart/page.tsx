@@ -68,7 +68,7 @@ export default function CartPage() {
             <div className="space-y-2">
               <h2 className="font-display text-2xl tracking-wide uppercase text-white">Your Cargo Bay is Empty</h2>
               <p className="text-sm text-muted max-w-sm mx-auto">
-                No performance enhancements loaded. Power up your training with Swiss-engineered formulas.
+                No performance enhancements loaded. Power up your training with European-engineered formulas.
               </p>
             </div>
             <div className="pt-4">
@@ -191,11 +191,11 @@ export default function CartPage() {
               {/* Shipping Status Meter */}
               <div className="card-glass p-5 space-y-3">
                 <div className="flex items-center justify-between gap-4 text-xs">
-                  <span className="text-muted uppercase font-mono tracking-wider">Swiss Cargo Transit</span>
+                  <span className="text-muted uppercase font-mono tracking-wider">European Cargo Transit</span>
                   <span className="text-alien-green font-bold font-mono">🚀 FREE STANDARD DELIVERY</span>
                 </div>
                 <p className="text-[10px] text-muted/60 leading-relaxed">
-                  Free standard delivery to Switzerland, Portugal, and Spain.
+                  Free standard delivery across supported European regions.
                 </p>
               </div>
 

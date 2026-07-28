@@ -15,7 +15,7 @@ export default function TestimonialsSection() {
           </h2>
           <p className="mx-auto mt-5 max-w-2xl text-muted leading-relaxed">
             No filler ingredients. No underdosed formulas. Every product is third-party
-            tested and built to Swiss quality standards before it ever reaches your door.
+            tested and built to European quality standards before it ever reaches your door.
           </p>
         </div>
       </section>
@@ -27,7 +27,7 @@ export default function TestimonialsSection() {
             READY FOR LIFTOFF?
           </h2>
           <p className="mx-auto mb-7 mt-4 max-w-xl text-muted">
-            Be among the first to fuel your training with Swiss-engineered, alien-grade supplements.
+            Be among the first to fuel your training with European-engineered, alien-grade supplements.
           </p>
           <Link
             href="mailto:support@ufolabz.com?subject=UFO%20LABZ%20Launch%20Notification"

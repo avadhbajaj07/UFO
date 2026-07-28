@@ -7,7 +7,7 @@ import { redirect } from 'next/navigation'
 
 export const metadata: Metadata = {
   title: 'Shop Supplements | UFO LABZ',
-  description: 'Power your workouts with premium Swiss-engineered sports supplements. Explore UFO LABZ Creatine, Pre-Workout, and Amino Acid formulas.',
+  description: 'Power your workouts with premium European-engineered sports supplements. Explore UFO LABZ Creatine, Pre-Workout, and Amino Acid formulas.',
   alternates: { canonical: 'https://ufolabz.com/products' },
 }
 
@@ -81,7 +81,7 @@ export default async function ProductsPage({
         categories={categories as any}
         activeCategory={params.category}
         activeSort={params.sort}
-        intro="Science-backed creatine, pre-workout, amino acids, magnesium and recovery supplements with fast delivery across Switzerland."
+        intro="Science-backed creatine, pre-workout, amino acids, magnesium and recovery supplements with fast delivery across Europe."
       />
     </div>
   )

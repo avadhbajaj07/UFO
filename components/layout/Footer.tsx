@@ -20,12 +20,10 @@ const companyLinks = [
 
 const contactInfo = [
   { label: 'support@ufolabz.com', href: 'mailto:support@ufolabz.com' },
-  { label: '+41 79 250 35 64', href: 'tel:+41792503564' },
   { label: 'Bahnhofstrasse 100, 8001 Zürich', href: 'https://maps.app.goo.gl/yQ32D81x11Vn4C2k8' },
 ]
 
 const socials = [
-  { label: 'Instagram', icon: 'IG', href: 'https://instagram.com/ufolabz' },
   { label: 'Facebook', icon: 'FB', href: 'https://facebook.com/ufolabz' },
   { label: 'Twitter', icon: 'X', href: 'https://x.com/ufolabz' },
   { label: 'YouTube', icon: 'YT', href: 'https://youtube.com/@ufolabz' },
@@ -60,7 +58,7 @@ export default function Footer() {
               />
             </Link>
             <p className="text-sm text-muted leading-relaxed mb-5">
-              Alien Performance Technology. Premium supplements engineered in Swiss laboratories for peak human performance.
+              Alien Performance Technology. Premium supplements engineered in Europe laboratories for peak human performance.
             </p>
             {/* Social Icons */}
             <div className="flex items-center gap-3">

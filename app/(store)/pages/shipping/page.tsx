@@ -5,7 +5,7 @@ import { AlertTriangle, CheckCircle2, Globe, Truck } from 'lucide-react'
 export const metadata: Metadata = {
   title: 'Shipping & Returns | UFO LABZ',
   description:
-    'UFO LABZ shipping times, delivery costs, and return policy for orders across Switzerland and Europe.',
+    'UFO LABZ shipping times, delivery costs, and return policy for orders across Europe.',
 }
 
 const shippingZones = [
@@ -43,8 +43,8 @@ export default function ShippingPage() {
             SHIPPING &amp; RETURNS
           </h1>
           <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-muted">
-            We ship from our Swiss facility to Switzerland and across Europe, with Swiss
-            orders typically arriving within 24 hours of dispatch.
+            We ship from our European facility across Europe, with orders typically
+            arriving within 24 hours of dispatch in supported regions.
           </p>
         </div>
       </section>
@@ -85,7 +85,7 @@ export default function ShippingPage() {
             {[
               'Order tracking is sent by email once your package ships.',
               'Orders placed before 2:00 PM CET are shipped the same business day.',
-              'We ship Monday through Friday, excluding Swiss public holidays.',
+              'We ship Monday through Friday, excluding local public holidays.',
             ].map((detail) => (
               <div key={detail} className="flex items-start gap-3">
                 <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-alien-green" />

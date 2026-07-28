@@ -26,7 +26,7 @@ const features = [
     icon: Truck,
     title: 'Europe-Wide Delivery',
     description:
-      'Swiss-based fulfillment with fast shipping across Switzerland and the rest of Europe.',
+      'European fulfillment with fast shipping across Europe.',
     color: '#FF8C00',
   },
 ]

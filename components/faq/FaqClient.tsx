@@ -34,16 +34,16 @@ const faqData = [
     icon: Package,
     items: [
       {
-        q: 'How fast is delivery in Switzerland?',
-        a: 'Most orders arrive within 24 hours of dispatch.',
+        q: 'How fast is delivery in Europe?',
+        a: 'Most orders arrive within 24 hours of dispatch in supported regions.',
       },
       {
         q: 'Is delivery free?',
-        a: 'Yes - delivery is free for orders to Switzerland, Portugal, and Spain.',
+        a: 'Yes - standard delivery is free in supported European regions.',
       },
       {
-        q: 'Do you ship outside Switzerland?',
-        a: 'Yes - we ship across Switzerland and the rest of Europe.',
+        q: 'Where do you ship?',
+        a: 'We ship across supported regions of Europe.',
       },
       {
         q: 'What payment methods do you accept?',

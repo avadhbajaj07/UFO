@@ -2,9 +2,9 @@ import { FlaskConical, ShieldCheck, Truck, Users } from 'lucide-react'
 
 const trustItems = [
   { icon: Users, label: 'Designed by Athletes & Bodybuilders' },
-  { icon: FlaskConical, label: 'Swiss-Engineered Formulas' },
+  { icon: FlaskConical, label: 'European-Engineered Formulas' },
   { icon: ShieldCheck, label: 'Third-Party Purity Tested' },
-  { icon: Truck, label: 'Shipping Across Switzerland & Europe' },
+  { icon: Truck, label: 'Shipping Across Europe' },
 ]
 
 export default function MarqueeBanner() {

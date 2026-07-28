@@ -70,8 +70,8 @@ export default function HeroSection() {
           style={{ animationDelay: '0.45s' }}
         >
           Supplements designed by the athlete and bodybuilder community, engineered
-          with extraterrestrial precision. Swiss-made. Third-party tested. Shipping
-          across Switzerland and Europe.
+          with extraterrestrial precision. European-made. Third-party tested. Shipping
+          across Europe.
         </p>
 
         {/* Action Buttons */}

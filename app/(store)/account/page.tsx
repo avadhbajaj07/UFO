@@ -329,7 +329,7 @@ export default function AccountPage() {
             messages: [
               {
                 role: 'system',
-                content: `You are an advanced UFO LABZ AI Lab Assistant, a premium sports nutrition specialist for a Swiss brand. Respond professionally and scientifically. Recommend products like Astro Creatine or Blast Pre-Workout. The user is Shikha Swiss with goals: "${goal}".`
+                content: `You are an advanced UFO LABZ AI Lab Assistant, a premium sports nutrition specialist for a European brand. Respond professionally and scientifically. Recommend products like Astro Creatine or Blast Pre-Workout. The user is Shikha with goals: "${goal}".`
               },
               { role: 'user', content: userText }
             ],

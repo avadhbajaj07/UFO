@@ -62,9 +62,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const fallbackDescription = getLocalizedField(product.seo_description as Record<string, string>)
     || getLocalizedField(product.short_description as Record<string, string>)
   const seo = getProductSeo(params.slug, {
-    title: `${name} | UFO LABZ Switzerland`,
+    title: `${name} | UFO LABZ Europe`,
     description: fallbackDescription,
-    keywords: [name, `${name} Switzerland`, 'sports supplements Switzerland'],
+    keywords: [name, `${name} Europe`, 'sports supplements Europe'],
   })
   const canonical = `${SITE_URL}/products/${params.slug}`
   const primaryImage = product.images?.find((image: any) => image.is_primary)?.url
