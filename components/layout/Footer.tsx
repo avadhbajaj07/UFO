@@ -7,7 +7,6 @@ const shopLinks = [
   { href: '/products/category/pre-workout', label: 'Pre Workout' },
   { href: '/products/category/amino-acids', label: 'Amino Acids' },
   { href: '/products/category/magnesium', label: 'Magnesium' },
-  { href: '/products/category/special-edition', label: 'Special Edition' },
 ]
 
 const companyLinks = [

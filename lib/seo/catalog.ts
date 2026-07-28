@@ -73,13 +73,6 @@ export const CATEGORY_SEO: Record<string, SeoEntry & { heading: string; intro: s
     intro: 'Daily magnesium support for active lifestyles, normal muscle function, energy metabolism and recovery.',
     keywords: ['magnesium Europe', 'magnesium for muscles', 'magnesium recovery supplement'],
   },
-  'special-edition': {
-    title: 'Special Edition Sports Supplements | UFO LABZ Europe',
-    description: 'Discover limited and special-edition UFO LABZ sports supplements created for athletes and active lifestyles across Europe.',
-    heading: 'SPECIAL EDITION SUPPLEMENTS',
-    intro: 'Discover limited-release and special-edition performance supplements from UFO LABZ.',
-    keywords: ['special edition supplements', 'sports supplements Europe', 'UFO LABZ supplements'],
-  },
 }
 
 export function getProductSeo(slug: string, fallback: SeoEntry): SeoEntry {
