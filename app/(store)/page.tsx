@@ -48,10 +48,6 @@ export default async function HomePage() {
       email: 'support@ufolabz.com',
       availableLanguage: ['English', 'German'],
     },
-    sameAs: [
-      'https://facebook.com/ufolabz',
-      'https://x.com/ufolabz',
-    ],
   }
 
   return (
