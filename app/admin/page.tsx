@@ -1000,19 +1000,28 @@ export default function AdminPage() {
 
   // Delete product
   const handleDeleteProduct = async (id: string) => {
-    if (confirm('Are you sure you want to delete this product from Supabase catalog?')) {
-      const supabase = createClient() as any
-      const { error } = await supabase
-        .from('products')
-        .delete()
-        .eq('id', id)
+    const productToDelete = liveProducts.find((p: any) => p.id === id)
+    const productName = productToDelete?.title || 'this product'
 
-      if (error) {
-        alert('Failed to delete product: ' + error.message)
-      } else {
-        alert('Product deleted successfully from Supabase!')
-        setActiveTab('dashboard')
+    if (!confirm(`⚠️ PERMANENT DELETE\n\nAre you sure you want to permanently delete "${productName}"?\n\nThis will remove the product and ALL related data (images, variants, FAQs, nutrition facts, reviews, etc.) from the database.\n\nThis action CANNOT be undone.`)) return
+
+    try {
+      const res = await fetch(`/api/admin/delete-product?id=${id}&secret=UFOLabzAdmin2026!`, {
+        method: 'DELETE',
+      })
+      const data = await res.json()
+
+      if (!res.ok || data.error) {
+        alert('❌ Failed to delete product: ' + (data.error || 'Unknown error'))
+        return
       }
+
+      alert(`✅ "${productName}" has been permanently deleted from the database!`)
+      // Remove from local state immediately
+      setLiveProducts((prev: any[]) => prev.filter((p: any) => p.id !== id))
+      setActiveTab('dashboard')
+    } catch (err: any) {
+      alert('❌ Failed to delete product: ' + err.message)
     }
   }
 
