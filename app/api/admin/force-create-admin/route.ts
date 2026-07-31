@@ -45,7 +45,7 @@ export async function GET(req: NextRequest) {
         if (existingProfile) {
           userId = existingProfile.id;
           // Also update their password to make sure they can log in
-          await supabaseAdmin.auth.admin.updateUserById(userId, { password: password });
+          await supabaseAdmin.auth.admin.updateUserById(userId as string, { password: password });
         } else {
            return NextResponse.json({ error: 'User exists in auth but not in profiles. Try signing up normally.' }, { status: 400 });
         }
