@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import { formatPrice } from '@/lib/utils/pricing'
 import { cn } from '@/lib/utils'
+import { createClient } from '@/lib/supabase/client'
 
 // Seeded products for POS catalog matching storefront
 const SEEDED_POS_PRODUCTS = [
@@ -341,29 +342,57 @@ export default function PosDashboard() {
   // UI notifications
   const [alerts, setAlerts] = useState<string[]>([])
   
-  // Load products list from localStorage (to merge custom ones) or seed
+  // Load products from Supabase, fallback to seeded products
   useEffect(() => {
-    const stored = localStorage.getItem('ufo_catalog_products')
-    if (stored) {
-      const parsed = JSON.parse(stored)
-      const formatted = parsed.map((p: any) => ({
-        id: p.id,
-        title: p.title,
-        sku: p.slug ? p.slug.toUpperCase() : `CUSTOM-${p.id}`,
-        barcode: p.barcode || `764000${Math.floor(100000 + Math.random() * 900000)}`,
-        category: p.category ? p.category.toLowerCase() : 'custom',
-        price: p.price,
-        base_price: p.base_price || p.price + 10,
-        stock: p.stock,
-        desc: p.desc || '',
-        image: p.featuredImage || 'https://images.unsplash.com/photo-1579758629938-03607ccdbaba?w=100',
-        color: p.product_color || '#00FF88',
-        expiry: '2027-12-31'
-      }))
-      setPosProducts([...SEEDED_POS_PRODUCTS, ...formatted])
-    } else {
-      setPosProducts(SEEDED_POS_PRODUCTS)
+    const fetchProducts = async () => {
+      try {
+        const supabase = createClient()
+        const { data: prods, error } = await supabase
+          .from('products')
+          .select(`
+            id, name, slug, short_description,
+            product_color, base_price, compare_at_price, status,
+            images:product_images(url, is_primary, sort_order),
+            variants:product_variants(id, name, price, compare_at_price, stock, is_default)
+          `)
+          .eq('status', 'active')
+          .order('sort_order', { ascending: true })
+
+        if (error || !prods || prods.length === 0) {
+          console.warn('Supabase fetch failed or empty, using seeded products', error)
+          setPosProducts(SEEDED_POS_PRODUCTS)
+        } else {
+          const formatted = prods.map((p: any) => {
+            const primaryVariant = p.variants?.find((v: any) => v.is_default) || p.variants?.[0] || {}
+            const primaryImage = p.images?.find((i: any) => i.is_primary)?.url || p.images?.[0]?.url || ''
+            const productName = typeof p.name === 'object' ? (p.name.en || p.name.de || '') : String(p.name || '')
+            const desc = typeof p.short_description === 'object' ? (p.short_description.en || p.short_description.de || '') : (p.short_description || '')
+            const totalStock = p.variants?.reduce((sum: number, v: any) => sum + (v.stock || 0), 0) || 0
+
+            return {
+              id: p.id,
+              title: productName,
+              sku: p.slug ? p.slug.toUpperCase() : `PROD-${p.id.slice(0, 6)}`,
+              barcode: `764000${Math.floor(100000 + Math.random() * 900000)}`,
+              category: 'supplements',
+              price: primaryVariant.price ?? p.base_price ?? 0,
+              base_price: primaryVariant.compare_at_price ?? p.compare_at_price ?? (p.base_price ? p.base_price + 5 : 0),
+              stock: totalStock,
+              desc,
+              image: primaryImage,
+              color: p.product_color || '#00FF88',
+              expiry: '2028-12-31'
+            }
+          })
+          setPosProducts(formatted)
+        }
+      } catch (err) {
+        console.error('Failed to fetch POS products:', err)
+        setPosProducts(SEEDED_POS_PRODUCTS)
+      }
     }
+
+    fetchProducts()
 
     // Trigger low stock/expiry alerts on load
     const lowStock = SEEDED_POS_PRODUCTS.filter(p => p.stock <= 15).map(p => `Low Stock: ${p.title} (${p.stock} left)`)
@@ -552,7 +581,6 @@ export default function PosDashboard() {
       return p
     })
     setPosProducts(updatedProducts)
-    localStorage.setItem('ufo_catalog_products', JSON.stringify(updatedProducts.filter(p => !SEEDED_POS_PRODUCTS.some(sp => sp.id === p.id))))
 
     // Credit loyalty points to customer (1 CHF spent = 1 point)
     if (selectedCustomer) {
