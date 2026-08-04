@@ -31,8 +31,7 @@ INSERT INTO categories (name, slug, sort_order) VALUES
   ('{"en":"Pre Workout","de":"Pre Workout"}', 'pre-workout', 2),
   ('{"en":"Amino Acids","de":"Aminosäuren"}', 'amino-acids', 3),
   ('{"en":"Special Edition","de":"Spezialedition"}', 'special-edition', 4),
-  ('{"en":"Marine Collagen","de":"Marines Kollagen"}', 'marine-collagen', 5),
-  ('{"en":"Marine Collagen","de":"Marines Kollagen"}', 'marin-collagen', 6)
+  ('{"en":"Marine Collagen","de":"Marines Kollagen"}', 'marine-collagen', 5)
 ON CONFLICT (slug) DO UPDATE SET
   name = EXCLUDED.name,
   sort_order = EXCLUDED.sort_order;

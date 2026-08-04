@@ -87,13 +87,6 @@ export const CATEGORY_SEO: Record<string, SeoEntry & { heading: string; intro: s
     intro: 'Premium marine collagen peptides optimized for rapid absorption, joint strength, and skin elasticity.',
     keywords: ['marine collagen', 'collagen peptides', 'collagen for joints'],
   },
-  'marin-collagen': {
-    title: 'Marine Collagen Supplements | Joints & Skin',
-    description: 'Shop marine collagen peptides for joints, cartilage and youthful skin elasticity.',
-    heading: 'MARINE COLLAGEN',
-    intro: 'Premium marine collagen peptides optimized for rapid absorption, joint strength, and skin elasticity.',
-    keywords: ['marine collagen', 'collagen peptides', 'collagen for joints'],
-  },
 }
 
 export function getProductSeo(slug: string, fallback: SeoEntry): SeoEntry {
