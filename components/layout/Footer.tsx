@@ -7,6 +7,7 @@ const shopLinks = [
   { href: '/products/category/pre-workout', label: 'Pre Workout' },
   { href: '/products/category/amino-acids', label: 'Amino Acids' },
   { href: '/products/category/magnesium', label: 'Magnesium' },
+  { href: '/products/category/marine-collagen', label: 'Marine Collagen' },
 ]
 
 const companyLinks = [

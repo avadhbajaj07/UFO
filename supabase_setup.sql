@@ -1254,7 +1254,8 @@ insert into categories (name, slug, sort_order) values
   ('{"en":"Creatine","de":"Kreatin"}', 'creatine', 1),
   ('{"en":"Pre Workout","de":"Pre-Workout"}', 'pre-workout', 2),
   ('{"en":"Amino Acids","de":"Aminosäuren"}', 'amino-acids', 3),
-  ('{"en":"Special Edition","de":"Sonderedition"}', 'special-edition', 4);
+  ('{"en":"Special Edition","de":"Sonderedition"}', 'special-edition', 4),
+  ('{"en":"Marine Collagen","de":"Marines Kollagen"}', 'marine-collagen', 5);
 
 -- ─── PRODUCTS ─────────────────────────────────────────────────
 insert into products (

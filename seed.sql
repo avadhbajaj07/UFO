@@ -30,7 +30,9 @@ INSERT INTO categories (name, slug, sort_order) VALUES
   ('{"en":"Creatine","de":"Kreatin"}', 'creatine', 1),
   ('{"en":"Pre Workout","de":"Pre Workout"}', 'pre-workout', 2),
   ('{"en":"Amino Acids","de":"Aminosäuren"}', 'amino-acids', 3),
-  ('{"en":"Special Edition","de":"Spezialedition"}', 'special-edition', 4)
+  ('{"en":"Special Edition","de":"Spezialedition"}', 'special-edition', 4),
+  ('{"en":"Marine Collagen","de":"Marines Kollagen"}', 'marine-collagen', 5),
+  ('{"en":"Marine Collagen","de":"Marines Kollagen"}', 'marin-collagen', 6)
 ON CONFLICT (slug) DO UPDATE SET
   name = EXCLUDED.name,
   sort_order = EXCLUDED.sort_order;
@@ -47,7 +49,7 @@ INSERT INTO products (
   '{"en":"Interstellar Skin, Joint, and Bone Rejuvenation","de":"Interstellare Regeneration für Haut, Gelenke und Knochen"}',
   '{"en":"Astro Collagen Peptide is our high-purity, bioavailable grass-fed collagen formula. Engineered to counter the intense physical stress of athletic training and gravity-defying movement, each serving provides 10g of hydrolyzed Type I & III collagen peptides to rebuild cartilage, support joint integrity, and promote glowing skin.","de":"Astro Kollagen Peptid ist unsere hochreine, bioverfügbare Kollagenformel aus Weidehaltung. Entwickelt, um der intensiven körperlichen Belastung durch sportliches Training entgegenzuwirken, liefert jede Portion 10 g hydrolysierte Kollagenpeptide vom Typ I und III, um Knorpel wieder aufzubauen, die Gelenkintegrität zu unterstützen und strahlende Haut zu fördern."}',
   '{"en":"Premium hydrolyzed grass-fed collagen peptides optimized for rapid absorption, joint strength, and skin elasticity.","de":"Premium hydrolysierte Kollagenpeptide aus Weidehaltung, optimiert für schnelle Absorption, Gelenkstärke und Hautelastizität."}',
-  (SELECT id FROM categories WHERE slug = 'special-edition'),
+  (SELECT id FROM categories WHERE slug = 'marine-collagen'),
   'active', true, '#9B30FF', 'cosmic-purple',
   34.00, 8.1, true, 1,
   '{"key_benefits": ["Rebuilds Joint Cartilage & Connective Tissue", "Promotes Skin Hydration & Youthful Elasticity", "Hydrolyzed Peptides for Near-Instant Absorption", "Swiss Laboratory Quality Assured"]}'::jsonb

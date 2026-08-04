@@ -846,7 +846,7 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
       <section className="py-16 max-w-4xl mx-auto container-px">
 
         {/* Tabs switcher headers */}
-        <div className="flex border-b border-white/5 overflow-x-auto no-scrollbar gap-8 mb-8">
+        <div className="flex flex-wrap border-b border-white/5 gap-4 md:gap-8 mb-8">
           {[
             { id: 'benefits', label: 'Key Benefits' },
             { id: 'ingredients', label: 'Ingredients matrix' },
