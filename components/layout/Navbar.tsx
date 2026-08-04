@@ -50,14 +50,6 @@ export default function Navbar() {
 
           {/* Actions */}
           <div className="flex items-center gap-1">
-            {/* Language */}
-            <button
-              className="hidden sm:flex items-center gap-1 px-2.5 py-2 text-muted hover:text-white transition-colors rounded-lg hover:bg-white/[0.04] text-xs font-mono"
-              aria-label="Language"
-            >
-              <Globe className="w-4 h-4" />
-              <span>EN</span>
-            </button>
 
             <Link
               href="/search"

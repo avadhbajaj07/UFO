@@ -7,7 +7,6 @@ const shopLinks = [
   { href: '/products/category/pre-workout', label: 'Pre Workout' },
   { href: '/products/category/amino-acids', label: 'Amino Acids' },
   { href: '/products/category/magnesium', label: 'Magnesium' },
-  { href: '/products/category/special-edition', label: 'Special Edition' },
 ]
 
 const companyLinks = [
@@ -15,12 +14,10 @@ const companyLinks = [
   { href: '/pages/shipping', label: 'Shipping & Returns' },
   { href: '/pages/faq', label: 'FAQ' },
   { href: '/pages/contact', label: 'Contact' },
-  { href: '/pages/affiliate', label: 'Affiliate Program' },
 ]
 
 const contactInfo = [
   { label: 'support@ufolabz.com', href: 'mailto:support@ufolabz.com' },
-  { label: '+41 79 250 35 64', href: 'tel:+41792503564' },
   { label: 'Bahnhofstrasse 100, 8001 Zürich', href: 'https://maps.app.goo.gl/yQ32D81x11Vn4C2k8' },
 ]
 
