@@ -35,30 +35,6 @@ const standards = [
   },
 ]
 
-const milestones = [
-  {
-    year: '2022',
-    title: 'THE LAUNCH',
-    description:
-      'Founded in Europe with a vision to revolutionize sports nutrition.',
-  },
-  {
-    year: '2023',
-    title: 'FIRST FORMULA',
-    description: 'Astro Creatine launched and sold out in 48 hours.',
-  },
-  {
-    year: '2024',
-    title: 'GOING VIRAL',
-    description: 'Surpassed 100,000 customers across Europe.',
-  },
-  {
-    year: '2025',
-    title: 'GLOBAL EXPANSION',
-    description:
-      'Now available worldwide with next-day European delivery.',
-  },
-]
 
 export default function AboutPage() {
   return (
@@ -142,46 +118,6 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* ── Timeline ── */}
-      <section className="py-16 md:py-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="font-display text-3xl md:text-5xl tracking-wider text-center mb-12">
-            THE UFO LABZ JOURNEY
-          </h2>
-
-          <div className="max-w-3xl mx-auto relative">
-            {/* Center line */}
-            <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-nebula-600 via-alien-green/50 to-nebula-600" />
-
-            <div className="space-y-12">
-              {milestones.map((m, i) => {
-                const isEven = i % 2 === 0
-                return (
-                  <div
-                    key={m.year}
-                    className={`relative ${
-                      isEven
-                        ? 'pl-[calc(50%+2rem)]'
-                        : 'pr-[calc(50%+2rem)] text-right'
-                    }`}
-                  >
-                    {/* Dot */}
-                    <div className="absolute top-2 left-[calc(50%-6px)] w-3 h-3 rounded-full bg-alien-green" />
-
-                    <p className="font-mono text-sm text-alien-green mb-1">
-                      {m.year}
-                    </p>
-                    <h3 className="font-display text-xl tracking-wider mb-1">
-                      {m.title}
-                    </h3>
-                    <p className="text-sm text-muted">{m.description}</p>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* ── CTA ── */}
       <section className="py-16">

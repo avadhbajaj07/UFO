@@ -4,7 +4,7 @@ import HeroSection from '@/components/home/HeroSection'
 import ProductGrid from '@/components/home/ProductGrid'
 import FeaturesSection from '@/components/home/FeaturesSection'
 import MarqueeBanner from '@/components/home/MarqueeBanner'
-import TestimonialsSection from '@/components/home/TestimonialsSection'
+import BrandPromiseSection from '@/components/home/BrandPromiseSection'
 import type { Metadata } from 'next'
 import { sortPublicProducts } from '@/lib/products/catalog'
 
@@ -66,7 +66,7 @@ export default async function HomePage() {
       <MarqueeBanner />
       <ProductGrid products={products as any} />
       <FeaturesSection />
-      <TestimonialsSection />
+      <BrandPromiseSection />
     </>
   )
 }
