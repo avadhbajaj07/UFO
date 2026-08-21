@@ -43,21 +43,21 @@ export default function ComingSoon() {
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/[0.04] border border-white/10 backdrop-blur-md mb-8 animate-pulse">
           <span className="w-2 h-2 rounded-full bg-alien-green shadow-[0_0_10px_#00FF88]" />
           <span className="text-xs font-mono tracking-widest text-alien-green uppercase font-semibold">
-            MISSION INITIALIZING • LAUNCHING SOON
+            INITIALISATION DE LA MISSION • LANCEMENT IMMINENT
           </span>
         </div>
 
         {/* Headline */}
         <h1 className="font-display text-5xl sm:text-7xl md:text-8xl tracking-wider text-white mb-6 leading-none uppercase">
-          ENGINEERED <br />
+          CONÇU AU-DELÀ <br />
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-nebula-400 via-alien-green to-white">
-            BEYOND EARTH
+            DE LA TERRE
           </span>
         </h1>
 
         {/* Subtitle */}
         <p className="text-muted sm:text-xl max-w-2xl mx-auto leading-relaxed mb-10 font-normal">
-          Alien Performance Technology. We are currently finalizing our orbital launch. Premium European-engineered sports supplements built for peak human potential.
+          Technologie de performance extraterrestre. Nous finalisons actuellement notre mise en orbite. Compléments sportifs haut de gamme conçus en Europe pour repousser les limites du potentiel humain.
         </p>
 
         {/* Email Notify Card */}
@@ -68,10 +68,10 @@ export default function ComingSoon() {
                 <CheckCircle2 className="w-6 h-6 text-alien-green" />
               </div>
               <h3 className="font-display text-xl text-white tracking-wider mb-1">
-                ACCESS GRANTED
+                ACCÈS ACCORDÉ
               </h3>
               <p className="text-xs text-muted">
-                You are on the priority list. You will receive an exclusive transmission on launch day.
+                Vous êtes sur la liste prioritaire. Vous recevrez une transmission exclusive le jour du lancement.
               </p>
             </div>
           ) : (
@@ -79,7 +79,7 @@ export default function ComingSoon() {
               <div className="text-left">
                 <label className="text-xs font-mono uppercase tracking-wider text-muted mb-2 flex items-center gap-1.5">
                   <Sparkles className="w-3.5 h-3.5 text-alien-green" />
-                  Get Notified on Liftoff
+                  Soyez averti lors du lancement
                 </label>
                 <div className="relative">
                   <input
@@ -87,7 +87,7 @@ export default function ComingSoon() {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Enter your email address"
+                    placeholder="Entrez votre adresse e-mail"
                     className="w-full bg-space-900/90 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-muted focus:outline-none focus:border-alien-green/60 transition-all"
                   />
                 </div>
@@ -96,7 +96,7 @@ export default function ComingSoon() {
                 type="submit"
                 className="btn-primary w-full py-3.5 rounded-xl font-bold tracking-wider uppercase flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg"
               >
-                <span>Notify Me At Launch</span>
+                <span>M'avertir du lancement</span>
                 <Send className="w-4 h-4" />
               </button>
             </form>
@@ -107,22 +107,22 @@ export default function ComingSoon() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full max-w-2xl">
           <div className="card-glass p-4 rounded-xl flex items-center justify-center gap-3 border border-white/5">
             <Shield className="w-4 h-4 text-alien-green flex-shrink-0" />
-            <span className="text-xs font-mono text-muted uppercase tracking-wider">Third-Party Tested</span>
+            <span className="text-xs font-mono text-muted uppercase tracking-wider">Testé en Laboratoire</span>
           </div>
           <div className="card-glass p-4 rounded-xl flex items-center justify-center gap-3 border border-white/5">
             <Beaker className="w-4 h-4 text-nebula-400 flex-shrink-0" />
-            <span className="text-xs font-mono text-muted uppercase tracking-wider">Full-Dose Formulas</span>
+            <span className="text-xs font-mono text-muted uppercase tracking-wider">Formules Hautement Dosées</span>
           </div>
           <div className="card-glass p-4 rounded-xl flex items-center justify-center gap-3 border border-white/5">
             <Sparkles className="w-4 h-4 text-[#00CFFF] flex-shrink-0" />
-            <span className="text-xs font-mono text-muted uppercase tracking-wider">European Quality</span>
+            <span className="text-xs font-mono text-muted uppercase tracking-wider">Qualité Européenne</span>
           </div>
         </div>
       </main>
 
       {/* ── Footer Bar ── */}
       <footer className="relative z-10 w-full max-w-7xl mx-auto px-6 py-6 border-t border-white/[0.06] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-muted/60">
-        <p>© {new Date().getFullYear()} UFO LABZ GmbH. All rights reserved.</p>
+        <p>© {new Date().getFullYear()} UFO LABZ GmbH. Tous droits réservés.</p>
         <div className="flex items-center gap-6">
           <a
             href="mailto:support@ufolabz.com"
