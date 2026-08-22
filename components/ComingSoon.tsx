@@ -39,11 +39,17 @@ export default function ComingSoon() {
 
       {/* ── Main Hero Section ── */}
       <main className="relative z-10 max-w-4xl mx-auto px-6 py-12 text-center flex-1 flex flex-col items-center justify-center">
-        {/* Status Tag */}
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/[0.04] border border-white/10 backdrop-blur-md mb-8 animate-pulse">
-          <span className="w-2 h-2 rounded-full bg-alien-green shadow-[0_0_10px_#00FF88]" />
-          <span className="text-xs font-mono tracking-widest text-alien-green uppercase font-semibold">
-            INITIALISATION DE LA MISSION • LANCEMENT IMMINENT
+        {/* Status Tag & Swiss Origin */}
+        <div className="inline-flex flex-wrap items-center justify-center gap-2 sm:gap-3 px-4 py-2 rounded-full bg-white/[0.04] border border-white/10 backdrop-blur-md mb-8">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-alien-green shadow-[0_0_10px_#00FF88] animate-pulse" />
+            <span className="text-xs font-mono tracking-widest text-alien-green uppercase font-semibold">
+              LANCEMENT IMMINENT
+            </span>
+          </div>
+          <span className="text-white/20 hidden sm:inline">•</span>
+          <span className="text-xs font-mono tracking-widest text-white/90 uppercase font-semibold flex items-center gap-1.5">
+            Formule spatiale de Suisse 🇨🇭
           </span>
         </div>
 
@@ -57,7 +63,7 @@ export default function ComingSoon() {
 
         {/* Subtitle */}
         <p className="text-muted sm:text-xl max-w-2xl mx-auto leading-relaxed mb-10 font-normal">
-          Technologie de performance extraterrestre. Nous finalisons actuellement notre mise en orbite. Compléments sportifs haut de gamme conçus en Europe pour repousser les limites du potentiel humain.
+          Technologie de performance extraterrestre — <span className="text-white font-medium">Formule spatiale de Suisse 🇨🇭</span>. Nous finalisons actuellement notre mise en orbite. Compléments sportifs haut de gamme conçus pour repousser les limites du potentiel humain.
         </p>
 
         {/* Email Notify Card */}
@@ -115,7 +121,7 @@ export default function ComingSoon() {
           </div>
           <div className="card-glass p-4 rounded-xl flex items-center justify-center gap-3 border border-white/5">
             <Sparkles className="w-4 h-4 text-[#00CFFF] flex-shrink-0" />
-            <span className="text-xs font-mono text-muted uppercase tracking-wider">Qualité Européenne</span>
+            <span className="text-xs font-mono text-muted uppercase tracking-wider">Formule Spatiale Suisse 🇨🇭</span>
           </div>
         </div>
       </main>
