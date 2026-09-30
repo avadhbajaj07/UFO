@@ -123,7 +123,12 @@ export default function CheckoutPage() {
     }
 
     // 2. Fallback to standard coupons
-    if (code === 'ALIEN10') {
+    if (code === 'UFO99' || code === 'ALIEN99') {
+      const discount = breakdown.subtotal * 0.99
+      setCouponDiscount(discount)
+      setAppliedCoupon(`${code} (99% Off)`)
+      setCouponCode('')
+    } else if (code === 'ALIEN10') {
       const discount = breakdown.subtotal * 0.10
       setCouponDiscount(discount)
       setAppliedCoupon('ALIEN10 (10% Off)')
@@ -132,6 +137,11 @@ export default function CheckoutPage() {
       const discount = breakdown.subtotal * 0.90
       setCouponDiscount(discount)
       setAppliedCoupon('NUTRIFIT (90% Off)')
+      setCouponCode('')
+    } else if (code === 'WELCOME10') {
+      const discount = Math.min(10, breakdown.subtotal)
+      setCouponDiscount(discount)
+      setAppliedCoupon('WELCOME10 (CHF 10.00 Off)')
       setCouponCode('')
     } else if (code === 'WELCOME500') {
       const discount = Math.min(5, breakdown.subtotal)

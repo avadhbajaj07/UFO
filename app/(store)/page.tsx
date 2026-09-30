@@ -50,9 +50,8 @@ export default async function HomePage() {
       availableLanguage: ['English', 'German'],
     },
     sameAs: [
-      'https://instagram.com/ufolabz',
+      'https://www.instagram.com/ufolabz_official?igsi=NGR1YWNzcDBhdGx3',
       'https://facebook.com/ufolabz',
-      'https://x.com/ufolabz',
     ],
   }
 

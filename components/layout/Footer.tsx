@@ -23,9 +23,8 @@ const contactInfo = [
 ]
 
 const socials = [
-  { label: 'Instagram', icon: 'IG', href: 'https://instagram.com/ufolabz' },
+  { label: 'Instagram', icon: 'IG', href: 'https://www.instagram.com/ufolabz_official?igsi=NGR1YWNzcDBhdGx3' },
   { label: 'Facebook', icon: 'FB', href: 'https://facebook.com/ufolabz' },
-  { label: 'Twitter', icon: 'X', href: 'https://x.com/ufolabz' },
   { label: 'YouTube', icon: 'YT', href: 'https://youtube.com/@ufolabz' },
 ]
 

@@ -55,8 +55,10 @@ function resolveDiscountAmount(
 ) {
   const code = couponCode?.trim().toUpperCase()
 
+  if (code === 'UFO99' || code === 'ALIEN99') return subtotal * 0.99
   if (code === 'NUTRIFIT') return subtotal * 0.9
   if (code === 'ALIEN10') return subtotal * 0.1
+  if (code === 'WELCOME10') return Math.min(10, subtotal)
   if (code === 'WELCOME500') return Math.min(5, subtotal)
 
   return Number(requestedDiscountAmount || 0)

@@ -138,20 +138,12 @@ export default function ComingSoon() {
             support@ufolabz.com
           </a>
           <a
-            href="https://instagram.com/ufolabz"
+            href="https://www.instagram.com/ufolabz_official?igsi=NGR1YWNzcDBhdGx3"
             target="_blank"
             rel="noopener noreferrer"
             className="hover:text-white transition-colors text-muted"
           >
             Instagram
-          </a>
-          <a
-            href="https://x.com/ufolabz"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hover:text-white transition-colors text-muted"
-          >
-            X (Twitter)
           </a>
         </div>
       </footer>

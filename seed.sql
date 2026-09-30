@@ -311,6 +311,7 @@ INSERT INTO pricing_rules (name, min_qty, max_qty, discount_type, discount_value
 
 -- ─── SAMPLE COUPONS ───────────────────────────────────────────
 INSERT INTO coupons (code, type, value, min_order_amount, max_uses, is_active, description) VALUES
+  ('UFO99', 'percentage', 99, 0, null, true, '99% off entire order'),
   ('ALIEN10', 'percentage', 10, 999, 1000, true, '10% off for new customers'),
   ('WELCOME500', 'fixed', 500, 2000, 500, true, 'Flat ₹500 off on orders above ₹2000'),
   ('FREESHIP', 'free_shipping', 0, 499, null, true, 'Free shipping on all orders')
@@ -327,7 +328,7 @@ INSERT INTO site_settings (key, value) VALUES
   ('general', '{"site_name":"UFO LABZ","tagline":"Alien Performance Technology","support_email":"support@ufolabz.com","support_phone":"+41-44-1234567","currency":"CHF","currency_symbol":"CHF","gst_number":"CHE-123.456.789 MWST"}'),
   ('shipping', '{"free_shipping_above":99,"standard_rate":8.90,"express_rate":18.90,"estimated_days_standard":3,"estimated_days_express":1}'),
   ('loyalty', '{"points_per_rupee":1,"rupees_per_point":0.1,"signup_bonus":100,"birthday_bonus":200}'),
-  ('social', '{"instagram":"https://instagram.com/ufolabz","youtube":"https://youtube.com/@ufolabz","facebook":"https://facebook.com/ufolabz","twitter":"https://twitter.com/ufolabz","tiktok":"https://tiktok.com/@ufolabz"}'),
+  ('social', '{"instagram":"https://www.instagram.com/ufolabz_official?igsi=NGR1YWNzcDBhdGx3","youtube":"https://youtube.com/@ufolabz","facebook":"https://facebook.com/ufolabz","tiktok":"https://tiktok.com/@ufolabz"}'),
   ('seo', '{"default_title":"UFO LABZ – Alien Performance Supplements","default_description":"Premium science-backed supplement brand. 6 elite formulas engineered for peak performance.","og_image":"https://ufolabz.com/og-default.jpg"}')
 ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value;
 
