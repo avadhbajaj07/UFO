@@ -13,6 +13,7 @@ import { formatPrice } from '@/lib/utils/pricing'
 import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
 import { useAuthStore } from '@/store/auth'
+import ComingSoon from '@/components/ComingSoon'
 
 // Swiss Cantons for dropdown
 const CANTONS = [
@@ -38,7 +39,13 @@ const MARKETING_ASSETS = [
   { title: 'UFO LABZ Logo Pack (Vector)', type: 'ZIP/SVG', size: '3.5 MB' }
 ]
 
+const COMING_SOON = true
+
 export default function AffiliatePage() {
+  if (COMING_SOON) {
+    return <ComingSoon />
+  }
+
   const { user, profile, isLoading } = useAuthStore()
   const [affiliateRecord, setAffiliateRecord] = useState<any>(null)
   const [isCheckingRecord, setIsCheckingRecord] = useState(true)

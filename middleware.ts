@@ -1,40 +1,47 @@
-import { NextResponse, type NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
+
+// ── Temporary Coming Soon Flag ──────────────────────────────────────────
+// Set this to `false` when you are ready to make the full website live.
+const COMING_SOON = true
 
 export function middleware(request: NextRequest) {
-  const forwardedHost = request.headers.get('x-forwarded-host')?.split(',')[0]?.trim()
-  const hostname = (forwardedHost || request.headers.get('host') || '').split(':')[0]
-
-  // Keep the clean admin subdomain URL visible. Authorization is enforced in
-  // app/admin/layout.tsx, where failures cannot take down public storefronts.
-  if (hostname === 'admin.ufolabz.com' && request.nextUrl.pathname === '/') {
-    const adminUrl = request.nextUrl.clone()
-    adminUrl.pathname = '/admin'
-    return NextResponse.rewrite(adminUrl)
+  if (!COMING_SOON) {
+    return NextResponse.next()
   }
 
-  if (hostname === 'mail.ufolabz.com') {
-    // Keep storefront pages from being exposed on the dedicated mail host.
-    // Framework assets and protected mail APIs must retain their real paths.
-    const pathname = request.nextUrl.pathname
-    const isMailAssetOrApi = pathname.startsWith('/_next/') || pathname.startsWith('/api/mail/')
+  const { pathname } = request.nextUrl
 
-    if (!isMailAssetOrApi && pathname !== '/') {
-      const rootUrl = request.nextUrl.clone()
-      rootUrl.pathname = '/'
-      rootUrl.search = ''
-      return NextResponse.redirect(rootUrl)
-    }
+  // Allow admin portal, mail dashboard, api endpoints, and static files
+  if (
+    pathname.startsWith('/admin') ||
+    pathname.startsWith('/mail') ||
+    pathname.startsWith('/api') ||
+    pathname.startsWith('/_next') ||
+    pathname.startsWith('/images') ||
+    pathname.includes('.')
+  ) {
+    return NextResponse.next()
+  }
 
-    if (pathname === '/') {
-      const mailUrl = request.nextUrl.clone()
-      mailUrl.pathname = '/mail'
-      return NextResponse.rewrite(mailUrl)
-    }
+  // Redirect any deep links or direct page visits (e.g. /checkout, /products, /cart, /login) to root
+  if (pathname !== '/') {
+    const url = request.nextUrl.clone()
+    url.pathname = '/'
+    return NextResponse.redirect(url)
   }
 
   return NextResponse.next()
 }
 
 export const config = {
-  matcher: ['/:path*'],
+  matcher: [
+    /*
+     * Match all request paths except for:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     */
+    '/((?!_next/static|_next/image|favicon.ico).*)',
+  ],
 }

@@ -14,6 +14,8 @@ import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/store/auth'
 
 // Swiss Cantons for dropdown
+import ComingSoon from '@/components/ComingSoon'
+
 const CANTONS = [
   'Aargau', 'Appenzell Ausserrhoden', 'Appenzell Innerrhoden', 'Basel-Landschaft',
   'Basel-Stadt', 'Bern', 'Fribourg', 'Geneva', 'Glarus', 'Graubünden', 'Jura',
@@ -22,8 +24,13 @@ const CANTONS = [
 ]
 
 const STRIPE_PENDING_ORDER_KEY = 'ufolabz_pending_stripe_order'
+const COMING_SOON = true
 
 export default function CheckoutPage() {
+  if (COMING_SOON) {
+    return <ComingSoon />
+  }
+
   const { items, breakdown, addItem, removeItem, updateQuantity, clearCart } = useCart()
   const { user } = useAuthStore()
 
