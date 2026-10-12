@@ -750,22 +750,31 @@ export default function CheckoutPage() {
                     <div
                       onClick={() => setPaymentMethod('twint')}
                       className={cn(
-                        "border-2 rounded-xl p-4 flex items-center justify-between cursor-pointer transition-all",
+                        "border-2 rounded-xl p-4 flex flex-col gap-3 cursor-pointer transition-all",
                         paymentMethod === 'twint' ? "border-alien-green bg-white/5" : "border-white/5 hover:border-white/10"
                       )}
                     >
-                      <div className="flex items-center gap-3">
-                        <div className="w-5 h-5 rounded-full border border-white/20 flex items-center justify-center">
-                          {paymentMethod === 'twint' && <div className="w-2.5 h-2.5 rounded-full bg-alien-green" />}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-5 h-5 rounded-full border border-white/20 flex items-center justify-center">
+                            {paymentMethod === 'twint' && <div className="w-2.5 h-2.5 rounded-full bg-alien-green" />}
+                          </div>
+                          <div>
+                            <div className="font-bold text-sm text-white">TWINT (Swiss QR Code)</div>
+                            <div className="text-xs text-gray-400">Instant scan with your TWINT app</div>
+                          </div>
                         </div>
-                        <div>
-                          <div className="font-bold text-sm text-white">TWINT (Swiss QR Code)</div>
-                          <div className="text-xs text-gray-400">Instant scan with your TWINT app</div>
+                        <div className="w-14 h-8 relative flex-shrink-0 bg-white border border-white/10 rounded px-1.5 py-0.5 flex items-center justify-center">
+                          <span className="text-[10px] font-bold text-blue-900 font-sans tracking-wide">TWINT</span>
                         </div>
                       </div>
-                      <div className="w-14 h-8 relative flex-shrink-0 bg-white border border-white/10 rounded px-1.5 py-0.5 flex items-center justify-center">
-                        <span className="text-[10px] font-bold text-blue-900 font-sans tracking-wide">TWINT</span>
-                      </div>
+
+                      {paymentMethod === 'twint' && (
+                        <div className="pt-2 border-t border-white/5 text-xs text-gray-400 animate-fade-in flex items-center justify-between" onClick={(e) => e.stopPropagation()}>
+                          <span>Secure Swiss TWINT payment via mobile scan</span>
+                          <span className="text-[10px] font-mono text-gray-500">Terminal: b883c1b6...</span>
+                        </div>
+                      )}
                     </div>
 
                     {/* Credit Card */}

@@ -1111,6 +1111,17 @@ export default function PosDashboard() {
               ))}
             </div>
 
+            {/* TWINT Terminal Info */}
+            {paymentMethod === 'twint' && (
+              <div className="flex items-center justify-between bg-space-900/60 p-2.5 rounded-xl animate-fade-in text-[10px] font-mono border border-white/5">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-alien-green animate-pulse" />
+                  <span className="text-gray-300">TWINT Swiss QR Terminal</span>
+                </div>
+                <span className="text-alien-green/80 font-mono text-[9px]">ID: b883c1b66b4844f3a5553ceb108cb5f3</span>
+              </div>
+            )}
+
             {/* Cash Received fields if Cash payment selected */}
             {paymentMethod === 'cash' && (
               <div className="flex gap-2 items-center bg-space-900/60 p-2.5 rounded-xl animate-fade-in">

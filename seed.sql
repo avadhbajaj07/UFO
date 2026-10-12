@@ -329,6 +329,7 @@ INSERT INTO site_settings (key, value) VALUES
   ('shipping', '{"free_shipping_above":99,"standard_rate":8.90,"express_rate":18.90,"estimated_days_standard":3,"estimated_days_express":1}'),
   ('loyalty', '{"points_per_rupee":1,"rupees_per_point":0.1,"signup_bonus":100,"birthday_bonus":200}'),
   ('social', '{"instagram":"https://www.instagram.com/ufolabz_official?igsi=NGR1YWNzcDBhdGx3","youtube":"https://youtube.com/@ufolabz","facebook":"https://facebook.com/ufolabz","tiktok":"https://tiktok.com/@ufolabz"}'),
+  ('payment', '{"twint_terminal_id":"b883c1b66b4844f3a5553ceb108cb5f3","provider":"stripe_twint","country":"CH","currency":"CHF"}'),
   ('seo', '{"default_title":"UFO LABZ – Alien Performance Supplements","default_description":"Premium science-backed supplement brand. 6 elite formulas engineered for peak performance.","og_image":"https://ufolabz.com/og-default.jpg"}')
 ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value;
 
