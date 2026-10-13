@@ -39,7 +39,7 @@ const MARKETING_ASSETS = [
   { title: 'UFO LABZ Logo Pack (Vector)', type: 'ZIP/SVG', size: '3.5 MB' }
 ]
 
-const COMING_SOON = true
+const COMING_SOON = false
 
 export default function AffiliatePage() {
   if (COMING_SOON) {
