@@ -24,7 +24,7 @@ const CANTONS = [
 ]
 
 const STRIPE_PENDING_ORDER_KEY = 'ufolabz_pending_stripe_order'
-const COMING_SOON = false
+const COMING_SOON = true
 
 export default function CheckoutPage() {
   if (COMING_SOON) {

@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server'
 
 // ── Temporary Coming Soon Flag ──────────────────────────────────────────
 // Set this to `false` when you are ready to make the full website live.
-const COMING_SOON = false
+const COMING_SOON = true
 
 export function middleware(request: NextRequest) {
   if (!COMING_SOON) {
