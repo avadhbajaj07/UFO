@@ -111,22 +111,34 @@ export default function ComingSoon() {
           />
         </div>
 
-        {/* Language Switcher */}
-        <div className="flex items-center gap-1 bg-white/[0.05] border border-white/10 rounded-xl p-1 backdrop-blur-md">
-          <Globe className="w-3.5 h-3.5 text-white/40 ml-2 mr-1" />
-          {(['en', 'fr', 'de'] as const).map((l) => (
-            <button
-              key={l}
-              onClick={() => setLang(l)}
-              className={`px-2.5 py-1 text-xs font-mono uppercase rounded-lg transition-all ${
-                lang === l
-                  ? 'bg-alien-green text-space-950 font-bold shadow-sm'
-                  : 'text-white/60 hover:text-white hover:bg-white/[0.05]'
-              }`}
-            >
-              {l}
-            </button>
-          ))}
+        <div className="flex items-center gap-3">
+          <a
+            href="/mail"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.04] border border-white/10 text-xs font-mono text-white/70 hover:text-alien-green hover:border-alien-green/30 transition-all shadow-sm"
+            title="UFO LABZ Business Mail"
+          >
+            <Mail className="w-3.5 h-3.5 text-alien-green" />
+            <span className="hidden sm:inline">UFO Mail</span>
+            <span className="sm:hidden">Mail</span>
+          </a>
+
+          {/* Language Switcher */}
+          <div className="flex items-center gap-1 bg-white/[0.05] border border-white/10 rounded-xl p-1 backdrop-blur-md">
+            <Globe className="w-3.5 h-3.5 text-white/40 ml-2 mr-1" />
+            {(['en', 'fr', 'de'] as const).map((l) => (
+              <button
+                key={l}
+                onClick={() => setLang(l)}
+                className={`px-2.5 py-1 text-xs font-mono uppercase rounded-lg transition-all ${
+                  lang === l
+                    ? 'bg-alien-green text-space-950 font-bold shadow-sm'
+                    : 'text-white/60 hover:text-white hover:bg-white/[0.05]'
+                }`}
+              >
+                {l}
+              </button>
+            ))}
+          </div>
         </div>
       </header>
 
@@ -229,6 +241,13 @@ export default function ComingSoon() {
       <footer className="relative z-10 w-full max-w-7xl mx-auto px-6 py-6 border-t border-white/[0.06] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-muted/60">
         <p>© {new Date().getFullYear()} UFO LABZ GmbH. {t.rights}</p>
         <div className="flex items-center gap-6">
+          <a
+            href="/mail"
+            className="hover:text-alien-green transition-colors flex items-center gap-1.5 text-muted font-mono"
+          >
+            <Mail className="w-3.5 h-3.5 text-alien-green" />
+            UFO Mail
+          </a>
           <a
             href="mailto:support@ufolabz.com"
             className="hover:text-white transition-colors flex items-center gap-1.5 text-muted"
