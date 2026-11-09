@@ -31,12 +31,12 @@ export const CORE_PRODUCTS_PRICING: Record<string, ProductPricingDefinition> = {
     name: 'Creatine 300g',
     slugs: ['astro-creatine'],
     skus: ['ASTRO-300G'],
-    retailPrice: { CHF: 32.37, EUR: 32.37 },
+    retailPrice: { CHF: 23.27, EUR: 23.27 },
     nutrifitPickup: {
-      firstUnitPrice: 32.37,
-      secondUnitPrice: 16.19,
-      pairTotal: 48.56,
-      discountPerPair: 16.18, // 32.37 * 2 - 48.56 = 16.18 discount
+      firstUnitPrice: 23.27,
+      secondUnitPrice: 23.27,
+      pairTotal: 46.54,
+      discountPerPair: 0,
     },
   },
   eaa: {
@@ -44,12 +44,12 @@ export const CORE_PRODUCTS_PRICING: Record<string, ProductPricingDefinition> = {
     name: 'EAA 300g',
     slugs: ['amino-fuel-mango', 'amino-fuel-blue-raspberry', 'amino-fuel-blue'],
     skus: ['AMNO-MANGO-300G', 'AMNO-BLUE-300G', 'AMINO-MANGO', 'var-ab1'],
-    retailPrice: { CHF: 45.37, EUR: 45.37 },
+    retailPrice: { CHF: 32.37, EUR: 32.37 },
     nutrifitPickup: {
-      firstUnitPrice: 45.37,
-      secondUnitPrice: 22.69,
-      pairTotal: 68.06,
-      discountPerPair: 22.68, // 45.37 * 2 - 68.06 = 22.68 discount
+      firstUnitPrice: 32.37,
+      secondUnitPrice: 32.37,
+      pairTotal: 64.74,
+      discountPerPair: 0,
     },
   },
   blast: {
@@ -57,12 +57,12 @@ export const CORE_PRODUCTS_PRICING: Record<string, ProductPricingDefinition> = {
     name: 'BLAST Pre-workout 300g',
     slugs: ['blast-pre-workout-energy', 'blast-pre-workout-blue'],
     skus: ['BLAST-ENERGY-300G', 'BLAST-BLUE-300G'],
-    retailPrice: { CHF: 51.87, EUR: 51.87 },
+    retailPrice: { CHF: 38.87, EUR: 38.87 },
     nutrifitPickup: {
-      firstUnitPrice: 51.87,
-      secondUnitPrice: 25.94,
-      pairTotal: 77.81,
-      discountPerPair: 25.93, // 51.87 * 2 - 77.81 = 25.93 discount
+      firstUnitPrice: 38.87,
+      secondUnitPrice: 38.87,
+      pairTotal: 77.74,
+      discountPerPair: 0,
     },
   },
   collagen: {
@@ -70,12 +70,12 @@ export const CORE_PRODUCTS_PRICING: Record<string, ProductPricingDefinition> = {
     name: 'Marine Collagen 300g',
     slugs: ['astro-collagen-peptide', 'astro-collagen'],
     skus: ['COL-300G'],
-    retailPrice: { CHF: 51.87, EUR: 51.87 },
+    retailPrice: { CHF: 38.87, EUR: 38.87 },
     nutrifitPickup: {
-      firstUnitPrice: 51.87,
-      secondUnitPrice: 25.94,
-      pairTotal: 77.81,
-      discountPerPair: 25.93, // 51.87 * 2 - 77.81 = 25.93 discount
+      firstUnitPrice: 38.87,
+      secondUnitPrice: 38.87,
+      pairTotal: 77.74,
+      discountPerPair: 0,
     },
   },
   magnesium: {
@@ -83,12 +83,12 @@ export const CORE_PRODUCTS_PRICING: Record<string, ProductPricingDefinition> = {
     name: 'Magnesium 90 capsules',
     slugs: ['magnesium'],
     skus: ['SKU-MAGNESIUM-960'],
-    retailPrice: { CHF: 25.87, EUR: 25.87 },
+    retailPrice: { CHF: 19.37, EUR: 19.37 },
     nutrifitPickup: {
-      firstUnitPrice: 25.87,
-      secondUnitPrice: 12.94,
-      pairTotal: 38.81,
-      discountPerPair: 12.93, // 25.87 * 2 - 38.81 = 12.93 discount
+      firstUnitPrice: 19.37,
+      secondUnitPrice: 19.37,
+      pairTotal: 38.74,
+      discountPerPair: 0,
     },
   },
 }
@@ -166,17 +166,16 @@ export const NUTRIFIT_STORE_INFO = {
   city: 'Geneva',
   country: 'Switzerland',
   hours: 'Mon-Sat: 10:00 - 19:00',
-  pickupNotice: 'Free In-Store Pickup + 50% Off 2nd Identical Unit',
+  pickupNotice: 'Free In-Store Pickup at NutriFit Geneva Store',
 }
 
 /**
- * Calculate NutriFit Geneva 50% discount on second identical units
- * Rule: Per pair of identical units (same variant/product identifier),
- * the first unit is full price, and the second unit is 50% off (exact cents from table).
- * Mixed products do not qualify.
+ * NutriFit Geneva Store Pickup Discount
+ * NOTE: 50% discount on second unit has been removed per updated pricing strategy.
+ * Always returns 0 discount (pickup remains 100% free with no shipping fee).
  */
 export function calculateNutrifitPickupDiscount(
-  items: Array<{
+  _items: Array<{
     variantId?: string
     sku?: string
     slug?: string
@@ -185,40 +184,9 @@ export function calculateNutrifitPickupDiscount(
     unitPrice: number
   }>
 ): { discountTotal: number; lineDiscounts: Array<{ itemKey: string; pairs: number; discount: number }> } {
-  let discountTotal = 0
-  const lineDiscounts: Array<{ itemKey: string; pairs: number; discount: number }> = []
-
-  for (const item of items) {
-    const qty = Math.max(0, Math.floor(item.quantity || 0))
-    if (qty < 2) continue
-
-    const pairs = Math.floor(qty / 2)
-    const pricingDef =
-      getProductPricing(item.slug || '') ||
-      getProductPricing(item.sku || '') ||
-      getProductPricing(item.variantId || '') ||
-      getProductPricing(item.name || '')
-
-    let discountPerPair = 0
-    if (pricingDef) {
-      discountPerPair = pricingDef.nutrifitPickup.discountPerPair
-    } else {
-      // Fallback exact 50% round
-      discountPerPair = Math.round((item.unitPrice * 0.5) * 100) / 100
-    }
-
-    const itemDiscount = Math.round(pairs * discountPerPair * 100) / 100
-    discountTotal += itemDiscount
-    lineDiscounts.push({
-      itemKey: item.slug || item.sku || item.variantId || 'unknown',
-      pairs,
-      discount: itemDiscount,
-    })
-  }
-
   return {
-    discountTotal: Math.round(discountTotal * 100) / 100,
-    lineDiscounts,
+    discountTotal: 0,
+    lineDiscounts: [],
   }
 }
 

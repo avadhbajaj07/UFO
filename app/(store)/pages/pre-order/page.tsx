@@ -115,12 +115,12 @@ export default function PreOrderPolicyPage() {
               <span className="w-7 h-7 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-alien-green font-mono text-xs font-bold">
                 04
               </span>
-              <h3 className="font-bold text-lg text-white">NutriFit Store Geneva Pickup & 50% Off 2nd Unit</h3>
+              <h3 className="font-bold text-lg text-white">NutriFit Store Geneva In-Store Pickup</h3>
             </div>
             <div className="pl-10 space-y-3 text-sm text-gray-400 leading-relaxed">
               <p>
                 Customers in the Geneva region can select <strong>NutriFit Geneva Store Pickup</strong> at checkout.
-                This provides 100% free delivery, plus an exclusive store pickup discount:
+                This provides 100% free delivery with collection directly at the NutriFit retail storefront:
               </p>
               <div className="p-4 bg-alien-green/5 border border-alien-green/20 rounded-xl space-y-2 text-xs">
                 <div className="font-bold text-alien-green flex items-center gap-1.5">
@@ -128,9 +128,7 @@ export default function PreOrderPolicyPage() {
                   <span>Pickup Location: {NUTRIFIT_STORE_INFO.name} ({NUTRIFIT_STORE_INFO.address})</span>
                 </div>
                 <p className="text-gray-300">
-                  <strong>Second Identical Unit 50% Off:</strong> For each pair of identical products ordered for store pickup,
-                  the second unit is automatically discounted by 50% (Creatine 16.19, EAA 22.69, BLAST 25.94, Collagen 25.94, Magnesium 12.94).
-                  Mixed pairs do not qualify.
+                  You will receive an automated notification (SMS &amp; Email) as soon as your batch arrives at NutriFit and is ready for collection.
                 </p>
               </div>
             </div>

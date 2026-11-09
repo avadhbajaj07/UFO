@@ -255,7 +255,7 @@ export default function CartPage() {
                     <span>{PREORDER_CONFIG.estimatedShipDate}</span>
                   </div>
                   <p className="text-[11px] text-gray-400">
-                    NutriFit Geneva Pickup: <strong>50% off second identical unit</strong> or stack savings applied at checkout.
+                    NutriFit Geneva Pickup: <strong>Free in-store collection</strong> available at checkout.
                   </p>
                 </div>
 

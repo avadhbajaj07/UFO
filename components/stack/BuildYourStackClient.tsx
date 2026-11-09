@@ -84,7 +84,7 @@ const FAQ_ITEMS = [
   },
   {
     q: 'Can I combine the stack discount with other promotional coupons?',
-    a: 'Stack discounts provide our highest automatic volume pricing (up to 15% off). Because this is an all-inclusive volume tier, standard promotional discount coupons do not stack. If you choose NutriFit Geneva in-store pickup, our checkout system will automatically apply whichever single discount is better for you.',
+    a: 'Stack discounts provide our highest automatic volume pricing (up to 15% off). Because this is an all-inclusive volume tier, standard promotional discount coupons do not stack on top of stack savings.',
   },
   {
     q: 'Can I customize a preset stack or add more products later?',

@@ -81,20 +81,20 @@ export async function GET(req: NextRequest) {
 
     // 2. Update Product Variants Table
     const variantPriceUpdates = [
-      // Creatine 300g (32.37)
-      { sku: 'ASTRO-300G', price: 32.37, is_default: true, status: 'active' },
+      // Creatine 300g (23.27)
+      { sku: 'ASTRO-300G', price: 23.27, is_default: true, status: 'active' },
       { sku: 'ASTRO-500G', price: 49.0, is_default: false, status: 'active' },
-      // EAA 300g (45.37)
-      { sku: 'AMNO-MANGO-300G', price: 45.37, is_default: true, status: 'active' },
-      { sku: 'AMNO-BLUE-300G', price: 45.37, is_default: true, status: 'active' },
-      { sku: 'AMINO-MANGO', price: 45.37, is_default: false, status: 'active' },
-      // BLAST Pre-workout 300g (51.87)
-      { sku: 'BLAST-ENERGY-300G', price: 51.87, is_default: true, status: 'active' },
-      { sku: 'BLAST-BLUE-300G', price: 51.87, is_default: true, status: 'active' },
-      // Marine Collagen 300g (51.87)
-      { sku: 'COL-300G', price: 51.87, is_default: true, status: 'active' },
-      // Magnesium 90 caps (25.87)
-      { sku: 'SKU-MAGNESIUM-960', price: 25.87, is_default: true, status: 'active' },
+      // EAA 300g (32.37)
+      { sku: 'AMNO-MANGO-300G', price: 32.37, is_default: true, status: 'active' },
+      { sku: 'AMNO-BLUE-300G', price: 32.37, is_default: true, status: 'active' },
+      { sku: 'AMINO-MANGO', price: 32.37, is_default: false, status: 'active' },
+      // BLAST Pre-workout 300g (38.87)
+      { sku: 'BLAST-ENERGY-300G', price: 38.87, is_default: true, status: 'active' },
+      { sku: 'BLAST-BLUE-300G', price: 38.87, is_default: true, status: 'active' },
+      // Marine Collagen 300g (38.87)
+      { sku: 'COL-300G', price: 38.87, is_default: true, status: 'active' },
+      // Magnesium 90 caps (19.37)
+      { sku: 'SKU-MAGNESIUM-960', price: 19.37, is_default: true, status: 'active' },
     ]
 
     const updatedVariants: any[] = []

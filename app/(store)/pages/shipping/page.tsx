@@ -65,7 +65,7 @@ export default function ShippingPage() {
           {/* NutriFit Geneva Pickup */}
           <div className="card-glass p-6 border-alien-green/30 relative">
             <span className="absolute top-4 right-4 text-[10px] font-mono bg-alien-green text-space-950 font-bold rounded-full px-2.5 py-0.5">
-              2ND UNIT 50% OFF
+              FREE PICKUP
             </span>
             <div className="w-12 h-12 rounded-xl bg-alien-green/10 border border-alien-green/20 flex items-center justify-center mb-4">
               <CheckCircle2 className="w-5 h-5 text-alien-green" />
@@ -74,11 +74,11 @@ export default function ShippingPage() {
             <ul className="space-y-2">
               <li className="text-sm text-muted flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-alien-green shrink-0" />
-                <strong>100% FREE pickup</strong> (No fee)
+                <strong>100% FREE pickup</strong> (No shipping fee)
               </li>
               <li className="text-sm text-muted flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-alien-green shrink-0" />
-                <strong>50% off</strong> each second identical unit
+                <strong>Immediate notification</strong> when ready for collection
               </li>
               <li className="text-sm text-muted flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-alien-green shrink-0" />

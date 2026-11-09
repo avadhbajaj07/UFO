@@ -623,7 +623,7 @@ export default function CheckoutPage() {
                             <div className="font-bold text-sm text-white flex items-center gap-2">
                               <span>NutriFit Geneva Store Pickup</span>
                               <span className="text-[10px] font-mono bg-alien-green/30 text-alien-green px-1.5 py-0.5 rounded font-bold">
-                                2nd UNIT 50% OFF
+                                FREE PICKUP
                               </span>
                             </div>
                             <div className="text-xs text-gray-400 flex items-center gap-1 mt-0.5">
@@ -634,11 +634,6 @@ export default function CheckoutPage() {
                         </div>
                         <div className="text-right">
                           <span className="font-mono text-xs font-bold text-alien-green block">FREE PICKUP</span>
-                          {nutrifitDiscount > 0 && (
-                            <span className="text-[10px] font-mono text-alien-green">
-                              −{formatCurrencyPrice(nutrifitDiscount, currency)} saved
-                            </span>
-                          )}
                         </div>
                       </div>
 
@@ -972,19 +967,7 @@ export default function CheckoutPage() {
                   ))}
                 </div>
 
-                {/* Discount callout: Stack or NutriFit Geneva */}
-                {discountResolution.appliedDiscountType === 'nutrifit_pickup' && primaryDiscount > 0 && (
-                  <div className="bg-alien-green/10 border border-alien-green/30 p-3 rounded-xl flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-1.5 text-alien-green font-bold">
-                      <Sparkles className="w-4 h-4 shrink-0" />
-                      <span>NutriFit Geneva 2nd Unit 50% Off:</span>
-                    </div>
-                    <span className="font-mono font-bold text-alien-green">
-                      −{formatCurrencyPrice(primaryDiscount, currency)}
-                    </span>
-                  </div>
-                )}
-
+                {/* Discount callout: Stack Volume Discount */}
                 {discountResolution.appliedDiscountType === 'stack_tier' && primaryDiscount > 0 && (
                   <div className="bg-alien-green/10 border border-alien-green/30 p-3 rounded-xl flex items-center justify-between text-xs">
                     <div className="flex items-center gap-1.5 text-alien-green font-bold">
@@ -1043,12 +1026,6 @@ export default function CheckoutPage() {
                     </div>
                   )}
 
-                  {discountResolution.appliedDiscountType === 'nutrifit_pickup' && primaryDiscount > 0 && (
-                    <div className="flex justify-between text-alien-green font-semibold">
-                      <span>NutriFit Store Pickup Discount</span>
-                      <span>−{formatCurrencyPrice(primaryDiscount, currency)}</span>
-                    </div>
-                  )}
 
                   {finalDiscount > 0 && (
                     <div className="flex justify-between text-alien-green font-semibold">

@@ -65,8 +65,8 @@ export default function MarqueeBanner() {
         <div className="flex items-center gap-3">
           <Rocket className="h-6 w-6 shrink-0 text-nebula-400" />
           <p className="font-display text-lg tracking-wider text-white sm:text-xl">
-            PRE-ORDER BATCH 01 · GENEVA PICKUP:{' '}
-            <span className="text-alien-green text-glow-green">2ND UNIT 50% OFF</span>
+            PRE-ORDER BATCH 01 · BUNDLE &amp; SAVE:{' '}
+            <span className="text-alien-green text-glow-green">UP TO 15% OFF WITH CUSTOM STACKS</span>
           </p>
         </div>
 

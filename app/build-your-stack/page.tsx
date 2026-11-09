@@ -53,7 +53,7 @@ const DEFAULT_STACK_PRODUCTS: StackProductCardItem[] = [
     name: 'Astro Creatine Pure',
     tagline: '100% Pure Micronized Creatine Monohydrate for ATP Saturation',
     category: 'Daily Essentials',
-    basePrice: 32.37,
+    basePrice: 23.27,
     color: '#00FF88',
     imageUrl:
       'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782667544/UFO1_p28j7v.png',
@@ -68,7 +68,7 @@ const DEFAULT_STACK_PRODUCTS: StackProductCardItem[] = [
     name: 'Amino Fuel EAA 300g',
     tagline: 'Fermented Full-Spectrum EAAs & Cellular Electrolytes',
     category: 'Amino Acids',
-    basePrice: 45.37,
+    basePrice: 32.37,
     color: '#FF8C00',
     imageUrl:
       'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782667544/UFO5_l42elt.png',
@@ -98,7 +98,7 @@ const DEFAULT_STACK_PRODUCTS: StackProductCardItem[] = [
     name: 'Blast Pre-Workout 300g',
     tagline: 'High-Impact Neuro-Drive, Nitric Oxide Pumps & Zero Crash',
     category: 'Pre-Workout',
-    basePrice: 51.87,
+    basePrice: 38.87,
     color: '#FF2244',
     imageUrl:
       'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782667544/UFO3_bfwhlr.png',
@@ -128,7 +128,7 @@ const DEFAULT_STACK_PRODUCTS: StackProductCardItem[] = [
     name: 'Astro Collagen Peptide 300g',
     tagline: 'Hydrolyzed Bioactive Marine Collagen Peptides',
     category: 'Recovery & Joint',
-    basePrice: 51.87,
+    basePrice: 38.87,
     color: '#9B30FF',
     imageUrl:
       'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782667544/UFO4_nuzyls.png',
@@ -143,7 +143,7 @@ const DEFAULT_STACK_PRODUCTS: StackProductCardItem[] = [
     name: 'Magnesium 90 Capsules',
     tagline: 'Chelated Bisglycinate for Neuromuscular Rest & Deep Sleep',
     category: 'Daily Essentials',
-    basePrice: 25.87,
+    basePrice: 19.37,
     color: '#00FF88',
     imageUrl:
       'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1783922575/mangnasiumbig_mywri7.png',

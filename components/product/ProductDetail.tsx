@@ -893,7 +893,7 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
                   <span>{PREORDER_CONFIG.estimatedShipNotice}</span>
                 </div>
                 <p className="text-[11px] text-gray-400 leading-relaxed">
-                  Geneva Pickup Option: Free collection at NutriFit store + <strong className="text-white">50% off each 2nd identical unit</strong>.
+                  Geneva Pickup Option: Free in-store collection at NutriFit Geneva.
                 </p>
               </div>
 

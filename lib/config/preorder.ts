@@ -42,7 +42,7 @@ export const PREORDER_CONFIG = {
       {
         heading: 'NutriFit Geneva Store Pickup',
         description:
-          'If you select NutriFit Geneva Pickup, your order ships directly to NutriFit (Geneva). You will receive an immediate SMS/email notification when it is ready for collection, plus your 50% discount on each second identical product.',
+          'If you select NutriFit Geneva Pickup, your order ships directly to NutriFit (Geneva). You will receive an immediate SMS/email notification when it is ready for 100% free collection.',
       },
     ],
   },
