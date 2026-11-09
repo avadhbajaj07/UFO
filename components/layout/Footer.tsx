@@ -3,6 +3,7 @@ import Link from 'next/link'
 
 const shopLinks = [
   { href: '/products', label: 'All Products' },
+  { href: '/build-your-stack', label: 'Build Your Stack (Save 15%)' },
   { href: '/products/category/creatine', label: 'Creatine' },
   { href: '/products/category/pre-workout', label: 'Pre Workout' },
   { href: '/products/category/amino-acids', label: 'Amino Acids' },

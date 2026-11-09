@@ -5,7 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { 
   Trash2, Minus, Plus, ShoppingBag, ArrowRight, ShieldCheck, 
-  Truck, CornerUpLeft, Lock, ArrowLeft, Shield 
+  Truck, CornerUpLeft, Lock, ArrowLeft, Shield, Sparkles 
 } from 'lucide-react'
 import { useCart } from '@/hooks/useCart'
 import { formatPrice } from '@/lib/utils/pricing'
@@ -37,8 +37,9 @@ export default function CartPage() {
   }
 
   const freeThreshold = SHIPPING_CONFIG.switzerland.freeThreshold
-  const shippingProgress = Math.min(100, (breakdown.subtotal / freeThreshold) * 100)
-  const remaining = Math.max(0, freeThreshold - breakdown.subtotal)
+  const discountedSubtotal = Math.max(0, breakdown.subtotal - (breakdown.stack_discount || 0))
+  const shippingProgress = Math.min(100, (discountedSubtotal / freeThreshold) * 100)
+  const remaining = Math.max(0, freeThreshold - discountedSubtotal)
 
   return (
     <div className="relative pt-28 pb-20 min-h-screen">
@@ -234,13 +235,27 @@ export default function CartPage() {
                   </span>
                 </div>
 
+                {/* Stack volume discount banner / nudge */}
+                <div className="bg-space-950/80 border border-white/10 rounded-xl p-3 text-xs text-gray-300 flex items-center justify-between">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Sparkles className="w-4 h-4 text-alien-green shrink-0" />
+                    <span className="font-mono text-[11px] truncate">{breakdown.nudge_message}</span>
+                  </div>
+                  <Link
+                    href="/build-your-stack"
+                    className="text-alien-green font-bold text-[10px] hover:underline uppercase shrink-0 font-mono ml-2"
+                  >
+                    Build Stack &rarr;
+                  </Link>
+                </div>
+
                 <div className="bg-space-950/80 border border-alien-green/20 rounded-xl p-3 text-xs text-gray-300 space-y-1">
                   <div className="text-alien-green font-bold flex items-center gap-1.5">
                     <Truck className="w-3.5 h-3.5" />
                     <span>{PREORDER_CONFIG.estimatedShipDate}</span>
                   </div>
                   <p className="text-[11px] text-gray-400">
-                    Pickup at NutriFit Geneva: <strong>50% off second identical unit</strong> applied at checkout.
+                    NutriFit Geneva Pickup: <strong>50% off second identical unit</strong> or stack savings applied at checkout.
                   </p>
                 </div>
 
@@ -249,10 +264,16 @@ export default function CartPage() {
                     <span>Pre-order Subtotal</span>
                     <span className="font-mono text-white font-semibold">{formatPrice(breakdown.subtotal)}</span>
                   </div>
-                  {breakdown.discount_amount > 0 && (
+                  {breakdown.stack_discount > 0 && (
+                    <div className="flex justify-between text-alien-green font-semibold">
+                      <span>Stack Volume Discount ({breakdown.stack_discount_percent}%)</span>
+                      <span className="font-mono">−{formatPrice(breakdown.stack_discount)}</span>
+                    </div>
+                  )}
+                  {breakdown.coupon_discount > 0 && (
                     <div className="flex justify-between text-alien-green">
-                      <span>Formula Discounts</span>
-                      <span className="font-mono font-semibold">−{formatPrice(breakdown.discount_amount)}</span>
+                      <span>Coupon Discount</span>
+                      <span className="font-mono font-semibold">−{formatPrice(breakdown.coupon_discount)}</span>
                     </div>
                   )}
                   <div className="flex justify-between text-muted">

@@ -3,7 +3,7 @@
 import { useEffect, useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { X, Trash2, Minus, Plus, ShoppingBag, ArrowRight, Shield, Truck } from 'lucide-react'
+import { X, Trash2, Minus, Plus, ShoppingBag, ArrowRight, Shield, Truck, Sparkles, Layers } from 'lucide-react'
 import { useCart } from '@/hooks/useCart'
 import { formatPrice } from '@/lib/utils/pricing'
 import { getCanonicalUnitPrice, SHIPPING_CONFIG } from '@/lib/config/pricing'
@@ -29,8 +29,9 @@ export default function CartDrawer() {
   }, [isOpen])
 
   const freeThreshold = SHIPPING_CONFIG.switzerland.freeThreshold
-  const shippingProgress = Math.min(100, (breakdown.subtotal / freeThreshold) * 100)
-  const remaining = Math.max(0, freeThreshold - breakdown.subtotal)
+  const discountedSubtotal = Math.max(0, breakdown.subtotal - (breakdown.stack_discount || 0))
+  const shippingProgress = Math.min(100, (discountedSubtotal / freeThreshold) * 100)
+  const remaining = Math.max(0, freeThreshold - discountedSubtotal)
 
   return (
     <>
@@ -107,12 +108,23 @@ export default function CartDrawer() {
                 <ShoppingBag className="w-7 h-7 text-alien-green/50" />
               </div>
               <p className="text-muted mb-2">Your cart is empty</p>
-              <p className="text-xs text-muted/60 mb-6">Add some alien-grade supplements</p>
-              <button onClick={closeCart}>
-                <Link href="/products" className="btn-primary text-sm">
-                  Shop Now <ArrowRight className="w-4 h-4" />
+              <p className="text-xs text-muted/60 mb-6">Build your custom stack or shop individual formulas</p>
+              <div className="flex flex-col gap-2.5 w-full max-w-xs">
+                <Link
+                  href="/build-your-stack"
+                  onClick={closeCart}
+                  className="btn-primary text-xs py-3 justify-center shadow-glow-green"
+                >
+                  <Sparkles className="w-4 h-4" /> Build Your Stack (Save 15%)
                 </Link>
-              </button>
+                <Link
+                  href="/products"
+                  onClick={closeCart}
+                  className="btn-ghost text-xs py-2 text-muted hover:text-white justify-center border border-white/5"
+                >
+                  Browse All Products <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
             </div>
           ) : (
             items.map((item) => {
@@ -197,9 +209,24 @@ export default function CartDrawer() {
         {/* Footer */}
         {items.length > 0 && (
           <div className="border-t border-muted/10 px-5 py-4 space-y-3">
+            {/* Stack tier discount nudge banner */}
+            <div className="bg-space-800/90 border border-white/10 rounded-xl p-2.5 flex items-center justify-between text-xs">
+              <span className="text-gray-300 font-mono text-[11px] flex items-center gap-1.5 min-w-0">
+                <Sparkles className="w-3.5 h-3.5 text-alien-green shrink-0" />
+                <span className="truncate">{breakdown.nudge_message}</span>
+              </span>
+              <Link
+                href="/build-your-stack"
+                onClick={closeCart}
+                className="text-alien-green font-bold text-[10px] hover:underline uppercase shrink-0 font-mono ml-2"
+              >
+                Stack Page &rarr;
+              </Link>
+            </div>
+
             {/* NutriFit Geneva Pickup notice */}
             <div className="bg-space-800/60 border border-alien-green/20 rounded-xl p-2.5 text-[11px] text-gray-300">
-              <span className="text-alien-green font-bold">NutriFit Geneva Pickup:</span> Second identical unit is 50% off + free collection at checkout.
+              <span className="text-alien-green font-bold">NutriFit Geneva Pickup:</span> 50% off each 2nd identical unit or stack savings applied at checkout.
             </div>
 
             {/* Summary */}
@@ -208,6 +235,12 @@ export default function CartDrawer() {
                 <span>Subtotal</span>
                 <span>{formatPrice(breakdown.subtotal)}</span>
               </div>
+              {breakdown.stack_discount > 0 && (
+                <div className="flex justify-between text-alien-green font-semibold">
+                  <span>Stack discount ({breakdown.stack_discount_percent}%)</span>
+                  <span>−{formatPrice(breakdown.stack_discount)}</span>
+                </div>
+              )}
               {breakdown.coupon_discount > 0 && (
                 <div className="flex justify-between text-alien-green">
                   <span>Coupon discount</span>

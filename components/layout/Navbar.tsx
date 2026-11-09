@@ -8,10 +8,11 @@ import { useAuthStore } from '@/store/auth'
 import { cn } from '@/lib/utils'
 
 const navLinks = [
-  { href: '/',         label: 'Home' },
+  { href: '/', label: 'Home' },
+  { href: '/build-your-stack', label: 'Build Your Stack', badge: 'Save 15%' },
   { href: '/products', label: 'Shop' },
   { href: '/pages/about', label: 'About' },
-  { href: '/pages/faq',   label: 'FAQ' },
+  { href: '/pages/faq', label: 'FAQ' },
   { href: '/pages/contact', label: 'Contact' },
 ]
 

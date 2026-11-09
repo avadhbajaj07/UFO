@@ -230,6 +230,9 @@ export async function POST(req: NextRequest) {
     const newOrderId = crypto.randomUUID()
 
     let internalNote = `Pre-order batch allocation confirmed. Expected dispatch: ${PREORDER_CONFIG.estimatedShipDate}.`
+    if (serverTotals.stackDiscountAmount > 0) {
+      internalNote += ` [Stack Volume Discount: -${serverTotals.stackDiscountAmount.toFixed(2)} ${serverTotals.currency} (${serverTotals.stackDiscountPercent}%)]`
+    }
     if (normalizedDeliveryMethod === 'pickup_nutrifit') {
       internalNote += ` [NutriFit Geneva Store Pickup: ${NUTRIFIT_STORE_INFO.address}]`
       if (serverTotals.nutrifitDiscountAmount > 0) {

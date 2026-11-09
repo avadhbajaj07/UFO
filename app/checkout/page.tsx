@@ -27,6 +27,7 @@ import {
   SHIPPING_CONFIG,
   NUTRIFIT_STORE_INFO,
 } from '@/lib/config/pricing'
+import { calculateStackDiscount, resolveBestDiscount } from '@/lib/config/stack'
 import { PREORDER_CONFIG } from '@/lib/config/preorder'
 import { getLocalizedField } from '@/types'
 import { cn } from '@/lib/utils'
@@ -172,28 +173,52 @@ export default function CheckoutPage() {
 
   const nutrifitDiscount = nutrifitCalc.discountTotal
 
-  // Shipping Fee calculation
+  // Stack Volume Tier Discount (2 items = 10%, 3+ items = 15%)
+  const stackCalc = useMemo(() => {
+    return calculateStackDiscount({
+      items: mappedItems.map((item) => ({
+        slug: item.slug,
+        sku: item.sku,
+        quantity: item.quantity,
+        unitPrice: item.canonicalPrice,
+      })),
+      currency,
+    })
+  }, [mappedItems, currency])
+
+  // Resolve best discount between NutriFit 50% pickup and Stack Volume discount (they do not stack)
+  const discountResolution = useMemo(() => {
+    return resolveBestDiscount({
+      deliveryMethod: deliveryMethod === 'pickup_nutrifit' ? 'pickup_nutrifit' : 'shipping',
+      nutrifitDiscount,
+      stackDiscount: stackCalc.discountAmount,
+    })
+  }, [deliveryMethod, nutrifitDiscount, stackCalc.discountAmount])
+
+  const primaryDiscount = discountResolution.appliedDiscount
+  const discountedSubtotal = Math.max(0, subtotal - primaryDiscount)
+
+  // Shipping Fee calculation (evaluated on discountedSubtotal)
   const shippingCost = useMemo(() => {
     if (deliveryMethod === 'pickup_nutrifit') return 0.0
     if (deliveryMethod === 'shipping_ch') {
       if (shippingSpeed === 'priority') return 15.0
-      return subtotal >= SHIPPING_CONFIG.switzerland.freeThreshold ? 0.0 : SHIPPING_CONFIG.switzerland.standardFee
+      return discountedSubtotal >= SHIPPING_CONFIG.switzerland.freeThreshold ? 0.0 : SHIPPING_CONFIG.switzerland.standardFee
     }
     // EU shipping
     return calculateShippingFee({
       deliveryMethod: 'shipping',
       country: euCountry,
-      subtotal,
+      subtotal: discountedSubtotal,
       currency,
     })
-  }, [deliveryMethod, shippingSpeed, subtotal, euCountry, currency])
+  }, [deliveryMethod, shippingSpeed, discountedSubtotal, euCountry, currency])
 
   const offsetCost = carbonOffset ? 1.5 : 0
-  const subtotalAfterNutrifit = Math.max(0, subtotal - nutrifitDiscount)
-  const finalDiscount = Math.min(subtotalAfterNutrifit, couponDiscount)
+  const finalDiscount = Math.min(discountedSubtotal, couponDiscount)
   const finalTotal = Math.max(
     0,
-    Math.round((subtotalAfterNutrifit - finalDiscount + shippingCost + offsetCost) * 100) / 100
+    Math.round((discountedSubtotal - finalDiscount + shippingCost + offsetCost) * 100) / 100
   )
   const taxAmount = Math.round(finalTotal * (8.1 / 108.1) * 100) / 100
   const loyaltyPoints = Math.round(finalTotal * 5)
@@ -205,17 +230,17 @@ export default function CheckoutPage() {
     const code = couponCode.trim().toUpperCase()
 
     if (code === 'UFO99' || code === 'ALIEN99') {
-      const discount = subtotalAfterNutrifit * 0.99
+      const discount = discountedSubtotal * 0.99
       setCouponDiscount(discount)
       setAppliedCoupon(`${code} (99% Off)`)
       setCouponCode('')
     } else if (code === 'ALIEN10') {
-      const discount = subtotalAfterNutrifit * 0.1
+      const discount = discountedSubtotal * 0.1
       setCouponDiscount(discount)
       setAppliedCoupon('ALIEN10 (10% Off)')
       setCouponCode('')
     } else if (code === 'WELCOME10') {
-      const discount = Math.min(10, subtotalAfterNutrifit)
+      const discount = Math.min(10, discountedSubtotal)
       setCouponDiscount(discount)
       setAppliedCoupon(`WELCOME10 (${currency} 10.00 Off)`)
       setCouponCode('')
@@ -270,7 +295,11 @@ export default function CheckoutPage() {
         quantity: item.quantity,
       })),
       subtotal,
-      discountAmount: nutrifitDiscount + couponDiscount,
+      discountAmount: primaryDiscount + couponDiscount,
+      stackDiscountAmount: stackCalc.discountAmount,
+      stackDiscountPercent: stackCalc.discountPercent,
+      appliedDiscountType: discountResolution.appliedDiscountType,
+      appliedDiscountNote: discountResolution.appliedDiscountNote,
       shippingAmount: shippingCost,
       total: finalTotal,
       carbonOffset,
@@ -943,17 +972,35 @@ export default function CheckoutPage() {
                   ))}
                 </div>
 
-                {/* NutriFit Geneva 50% discount callout */}
-                {deliveryMethod === 'pickup_nutrifit' && nutrifitDiscount > 0 && (
+                {/* Discount callout: Stack or NutriFit Geneva */}
+                {discountResolution.appliedDiscountType === 'nutrifit_pickup' && primaryDiscount > 0 && (
                   <div className="bg-alien-green/10 border border-alien-green/30 p-3 rounded-xl flex items-center justify-between text-xs">
                     <div className="flex items-center gap-1.5 text-alien-green font-bold">
                       <Sparkles className="w-4 h-4 shrink-0" />
                       <span>NutriFit Geneva 2nd Unit 50% Off:</span>
                     </div>
                     <span className="font-mono font-bold text-alien-green">
-                      −{formatCurrencyPrice(nutrifitDiscount, currency)}
+                      −{formatCurrencyPrice(primaryDiscount, currency)}
                     </span>
                   </div>
+                )}
+
+                {discountResolution.appliedDiscountType === 'stack_tier' && primaryDiscount > 0 && (
+                  <div className="bg-alien-green/10 border border-alien-green/30 p-3 rounded-xl flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-1.5 text-alien-green font-bold">
+                      <Sparkles className="w-4 h-4 shrink-0" />
+                      <span>Stack Volume Discount ({stackCalc.discountPercent}% Off):</span>
+                    </div>
+                    <span className="font-mono font-bold text-alien-green">
+                      −{formatCurrencyPrice(primaryDiscount, currency)}
+                    </span>
+                  </div>
+                )}
+
+                {deliveryMethod === 'pickup_nutrifit' && discountResolution.appliedDiscountNote && (
+                  <p className="text-[10px] text-gray-400 font-mono italic">
+                    ℹ️ {discountResolution.appliedDiscountNote}
+                  </p>
                 )}
 
                 {/* Coupon input */}
@@ -989,10 +1036,17 @@ export default function CheckoutPage() {
                     <span>{formatCurrencyPrice(subtotal, currency)}</span>
                   </div>
 
-                  {nutrifitDiscount > 0 && (
+                  {discountResolution.appliedDiscountType === 'stack_tier' && primaryDiscount > 0 && (
+                    <div className="flex justify-between text-alien-green font-semibold">
+                      <span>Stack Volume Discount ({stackCalc.discountPercent}%)</span>
+                      <span>−{formatCurrencyPrice(primaryDiscount, currency)}</span>
+                    </div>
+                  )}
+
+                  {discountResolution.appliedDiscountType === 'nutrifit_pickup' && primaryDiscount > 0 && (
                     <div className="flex justify-between text-alien-green font-semibold">
                       <span>NutriFit Store Pickup Discount</span>
-                      <span>−{formatCurrencyPrice(nutrifitDiscount, currency)}</span>
+                      <span>−{formatCurrencyPrice(primaryDiscount, currency)}</span>
                     </div>
                   )}
 

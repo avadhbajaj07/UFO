@@ -10,7 +10,11 @@ interface CartState {
   isLoading: boolean
   openCart: () => void
   closeCart: () => void
-  addItem: (variantId: string, qty?: number, itemData?: { product: any; variant: any }) => Promise<void>
+  addItem: (
+    variantId: string,
+    qty?: number,
+    itemData?: { product: any; variant: any; source?: string; stack_id?: string }
+  ) => Promise<void>
   removeItem: (itemId: string) => Promise<void>
   updateQuantity: (itemId: string, qty: number) => Promise<void>
   clearCart: () => void
@@ -94,6 +98,8 @@ export const useCartStore = create<CartState>()(
                 ...foundVariant,
                 product: foundProduct,
               },
+              source: itemData?.source || 'shop',
+              stack_id: itemData?.stack_id,
             })
           }
         }

@@ -89,16 +89,19 @@ export async function POST(req: NextRequest) {
     const discounts: { coupon: string }[] = []
 
     if (totals.discountAmount > 0) {
+      const discountName =
+        totals.appliedDiscountNote ||
+        (totals.stackDiscountPercent > 0
+          ? `UFO LABZ ${totals.stackDiscountPercent}% Stack Discount`
+          : couponCode
+          ? `UFO LABZ ${couponCode}`
+          : 'UFO LABZ Checkout Discount')
+
       const coupon = await stripe.coupons.create({
         amount_off: toStripeAmount(totals.discountAmount),
         currency: stripeCurrency,
         duration: 'once',
-        name:
-          totals.nutrifitDiscountAmount > 0
-            ? 'NutriFit Geneva 2nd Unit 50% Off'
-            : couponCode
-            ? `UFO LABZ ${couponCode}`
-            : 'UFO LABZ checkout discount',
+        name: discountName,
       })
       discounts.push({ coupon: coupon.id })
     }
@@ -122,8 +125,12 @@ export async function POST(req: NextRequest) {
         preorder: 'true',
         preorder_mode: String(PREORDER_CONFIG.isPreorderMode),
         estimated_ship_date: PREORDER_CONFIG.estimatedShipDate,
+        stack_tier_percent: String(totals.stackDiscountPercent),
+        stack_discount_amount: String(totals.stackDiscountAmount),
+        applied_discount_type: totals.appliedDiscountType,
         nutrifit_discount: String(totals.nutrifitDiscountAmount),
         coupon_code: couponCode || '',
+        stack_id: String(body.stackId || ''),
       },
       payment_intent_data: {
         metadata: {
@@ -133,6 +140,8 @@ export async function POST(req: NextRequest) {
           preorder: 'true',
           estimated_ship_date: PREORDER_CONFIG.estimatedShipDate,
           delivery_method: totals.deliveryMethod,
+          stack_tier_percent: String(totals.stackDiscountPercent),
+          stack_discount_amount: String(totals.stackDiscountAmount),
         },
       },
     }

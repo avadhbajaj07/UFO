@@ -8,6 +8,11 @@ import {
   NUTRIFIT_STORE_INFO,
 } from '@/lib/config/pricing'
 import { PREORDER_CONFIG } from '@/lib/config/preorder'
+import {
+  calculateStackDiscount,
+  resolveBestDiscount,
+  StackDiscountResult,
+} from '@/lib/config/stack'
 
 export type CheckoutShippingMethod = 'standard' | 'priority'
 export type CheckoutDeliveryMethod = 'shipping' | 'pickup_nutrifit'
@@ -51,7 +56,11 @@ export interface CheckoutTotals {
   currency: SupportedCurrency
   deliveryMethod: CheckoutDeliveryMethod
   validatedSubtotal: number
+  stackDiscountAmount: number
+  stackDiscountPercent: number
   nutrifitDiscountAmount: number
+  appliedDiscountType: 'none' | 'stack_tier' | 'nutrifit_pickup' | 'coupon'
+  appliedDiscountNote: string
   couponDiscountAmount: number
   discountAmount: number
   shippingAmount: number
@@ -59,6 +68,7 @@ export interface CheckoutTotals {
   total: number
   taxAmount: number
   orderItemsToInsert: ValidatedOrderItem[]
+  stackCalc: StackDiscountResult
 }
 
 export function toStripeAmount(amount: number): number {
@@ -147,7 +157,17 @@ export async function buildValidatedCheckoutTotals(
     })
   }
 
-  // 1. NutriFit Pickup BOGO 50% discount on second identical units
+  // 1. Stack volume discount (10% for 2 units, 15% for 3+ units)
+  const stackCalc = calculateStackDiscount(
+    orderItemsToInsert.map((item) => ({
+      slug: item.sku,
+      quantity: item.quantity,
+      unitPrice: item.unit_price,
+    })),
+    currency
+  )
+
+  // 2. NutriFit Geneva Pickup BOGO 50% discount on second identical units
   let nutrifitDiscountAmount = 0
   if (deliveryMethod === 'pickup_nutrifit') {
     const nutrifitCalc = calculateNutrifitPickupDiscount(
@@ -162,23 +182,32 @@ export async function buildValidatedCheckoutTotals(
     nutrifitDiscountAmount = nutrifitCalc.discountTotal
   }
 
-  // 2. Coupon discount
-  const subtotalAfterNutrifit = Math.max(0, validatedSubtotal - nutrifitDiscountAmount)
+  // 3. Resolve best single discount between NutriFit Pickup 50% vs Stack Discount (no double-stacking)
+  const bestDiscount = resolveBestDiscount({
+    deliveryMethod,
+    nutrifitDiscount: nutrifitDiscountAmount,
+    stackDiscount: stackCalc.discountAmount,
+  })
+
+  // 4. Coupon discount (applied to remaining amount if any)
+  const subtotalAfterBestDiscount = Math.max(0, validatedSubtotal - bestDiscount.appliedDiscount)
   const couponDiscountAmount = Math.min(
     Math.max(
       0,
       resolveCouponDiscountAmount(
-        subtotalAfterNutrifit,
+        subtotalAfterBestDiscount,
         input.discountAmount,
         input.couponCode
       )
     ),
-    subtotalAfterNutrifit
+    subtotalAfterBestDiscount
   )
 
-  const discountAmount = Math.round((nutrifitDiscountAmount + couponDiscountAmount) * 100) / 100
+  const discountAmount =
+    Math.round((bestDiscount.appliedDiscount + couponDiscountAmount) * 100) / 100
 
-  // 3. Shipping fee
+  // 5. Shipping fee (evaluated on subtotal AFTER discount as per pricing rules)
+  const subtotalForShipping = Math.max(0, validatedSubtotal - discountAmount)
   let shippingAmount = 0
   if (deliveryMethod === 'pickup_nutrifit') {
     shippingAmount = 0.0
@@ -188,7 +217,7 @@ export async function buildValidatedCheckoutTotals(
     shippingAmount = calculateShippingFee({
       deliveryMethod: 'shipping',
       country,
-      subtotal: validatedSubtotal,
+      subtotal: subtotalForShipping,
       currency,
     })
   }
@@ -207,7 +236,11 @@ export async function buildValidatedCheckoutTotals(
     currency,
     deliveryMethod,
     validatedSubtotal: Math.round(validatedSubtotal * 100) / 100,
+    stackDiscountAmount: stackCalc.discountAmount,
+    stackDiscountPercent: stackCalc.discountPercent,
     nutrifitDiscountAmount,
+    appliedDiscountType: bestDiscount.appliedDiscountType,
+    appliedDiscountNote: bestDiscount.appliedDiscountNote,
     couponDiscountAmount,
     discountAmount,
     shippingAmount,
@@ -215,6 +248,7 @@ export async function buildValidatedCheckoutTotals(
     total,
     taxAmount,
     orderItemsToInsert,
+    stackCalc,
   }
 }
 

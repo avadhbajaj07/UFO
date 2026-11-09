@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Star, ShoppingBag, SlidersHorizontal } from 'lucide-react'
+import { Star, ShoppingBag, SlidersHorizontal, Layers } from 'lucide-react'
 import { formatPrice } from '@/lib/utils/pricing'
 import { getCanonicalUnitPrice } from '@/lib/config/pricing'
 import { PREORDER_CONFIG } from '@/lib/config/preorder'
@@ -58,10 +58,34 @@ export default function ProductsClient({
   return (
     <div className="max-w-7xl mx-auto container-px py-10">
       {/* Header */}
-      <div className="mb-8">
+      <div className="mb-6">
         <h1 className="font-display text-5xl tracking-wider text-white mb-2">{heading}</h1>
         {intro && <p className="text-muted max-w-3xl leading-relaxed mb-2">{intro}</p>}
         <p className="text-muted">{products.length} products</p>
+      </div>
+
+      {/* Build Your Stack Hero Banner */}
+      <div className="mb-8 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-space-850 via-space-800 to-space-850 border border-alien-green/30 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="flex items-center gap-3.5">
+          <div className="w-10 h-10 rounded-xl bg-alien-green/20 border border-alien-green/40 flex items-center justify-center shrink-0">
+            <Layers className="w-5 h-5 text-alien-green" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-xs uppercase tracking-wider text-alien-green font-bold">Bundle Engine</span>
+              <span className="text-[10px] bg-alien-green text-space-950 font-bold px-2 py-0.5 rounded-full font-mono">Save up to 15%</span>
+            </div>
+            <p className="text-white text-xs sm:text-sm font-semibold mt-0.5">
+              Build your custom stack — pick any 2 products for 10% off, 3+ for 15% off.
+            </p>
+          </div>
+        </div>
+        <Link
+          href="/build-your-stack"
+          className="whitespace-nowrap px-4 py-2 rounded-xl bg-alien-green text-space-950 font-mono text-xs font-bold hover:bg-alien-green/90 transition-transform active:scale-95 shadow-[0_0_20px_rgba(0,255,136,0.25)]"
+        >
+          Build Your Stack →
+        </Link>
       </div>
 
       {/* Filters */}
@@ -147,6 +171,12 @@ export default function ProductsClient({
                 {/* Badges overlay */}
                 <div className="absolute top-2 left-2 flex flex-col gap-1">
                   <span className="badge bg-alien-green/20 border border-alien-green/50 text-alien-green text-[9px] font-mono font-bold uppercase">Pre-order</span>
+                  <Link
+                    href="/build-your-stack"
+                    className="badge bg-space-900/90 border border-alien-green/40 text-alien-green text-[9px] font-mono hover:bg-alien-green hover:text-space-950 transition-colors"
+                  >
+                    Stack & Save 15%
+                  </Link>
                   {product.is_new && <span className="badge bg-alien-green/20 border border-alien-green/30 text-alien-green text-[9px]">New</span>}
                   {savings > 0 && <span className="badge text-[9px]" style={{ background: `${color}20`, border: `1px solid ${color}40`, color }}>−{savings}%</span>}
                 </div>
@@ -204,6 +234,22 @@ export default function ProductsClient({
                   >
                     <ShoppingBag className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-space-900" />
                     <span>{PREORDER_CONFIG.actionButtonText}</span>
+                  </button>
+
+                  <button
+                    onClick={() =>
+                      variant &&
+                      addItem(variant.id, 1, {
+                        product,
+                        variant: { ...variant, price: canonicalPrice },
+                        source: 'stack',
+                      })
+                    }
+                    disabled={isLoading || !variant}
+                    className="w-full py-1.5 px-2.5 rounded-lg border border-alien-green/30 hover:border-alien-green/60 text-alien-green hover:bg-alien-green/10 text-center font-mono text-[10px] font-semibold transition-all flex items-center justify-center gap-1"
+                    aria-label={`Add ${name} to stack`}
+                  >
+                    <span>⚡ Add to Custom Stack</span>
                   </button>
                   <p className="text-[9px] text-muted/70 text-center font-mono">
                     {PREORDER_CONFIG.estimatedShipDate}

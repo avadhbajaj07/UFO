@@ -30,6 +30,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const staticPages = [
     '',
+    '/build-your-stack',
     '/products',
     '/pages/about',
     '/pages/shipping',
@@ -44,7 +45,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     url: `${baseUrl}${route}`,
     lastModified: new Date(),
     changeFrequency: 'daily' as const,
-    priority: route === '' ? 1.0 : 0.6,
+    priority: route === '' ? 1.0 : route === '/build-your-stack' ? 0.9 : 0.6,
   }))
 
   return [...staticPages, ...categoryUrls, ...productUrls]

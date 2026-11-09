@@ -35,6 +35,8 @@ export interface CartItem {
   variant_id: string
   quantity: number
   variant: ProductVariant & { product: Product }
+  source?: string
+  stack_id?: string
 }
 
 export interface Cart {
