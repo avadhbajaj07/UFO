@@ -12,6 +12,7 @@ import {
 import { formatPrice, getPricedForQuantity } from '@/lib/utils/pricing'
 import { getCanonicalUnitPrice } from '@/lib/config/pricing'
 import { PREORDER_CONFIG } from '@/lib/config/preorder'
+import { getProductFlavors } from '@/lib/config/flavors'
 import { getLocalizedField } from '@/types'
 import { useCart } from '@/hooks/useCart'
 import { cn } from '@/lib/utils'
@@ -280,6 +281,9 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
   const selectedVariant = product.variants?.find((v: any) => v.id === selectedVariantId) ?? product.variants?.[0]
   const canonicalPrice = getCanonicalUnitPrice(product.slug, 'CHF', selectedVariant?.price ?? product.base_price)
 
+  const flavorInfo = getProductFlavors(slug || product.slug)
+  const { hasMultipleFlavors, flavors, currentFlavor } = flavorInfo
+
   const pricingRules = (product.pricing_rules ?? []).filter((r: any) => r.is_active)
 
   // Subtotal calculations driven by single source of truth
@@ -511,24 +515,66 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
 
                 {activeSlide === 2 && (
                   <div className="space-y-4 animate-fade-in">
-                    <span className="text-xs text-alien-green font-mono uppercase tracking-widest bg-alien-green/10 border border-alien-green/20 px-2 py-0.5 rounded-full">Fixed Product</span>
+                    <span
+                      className="text-xs font-mono uppercase tracking-widest px-2.5 py-0.5 rounded-full inline-block"
+                      style={{
+                        backgroundColor: `${color}20`,
+                        color: color,
+                        border: `1px solid ${color}40`,
+                      }}
+                    >
+                      {hasMultipleFlavors ? 'Signature Swiss Flavors' : 'Pure Formula'}
+                    </span>
                     <h2 className="font-display text-4xl md:text-5xl text-white tracking-wide uppercase leading-tight">
-                      ONE FORMULA
+                      {currentFlavor?.flavorName || name}
                     </h2>
                     <p className="text-gray-300 text-sm max-w-lg leading-relaxed">
-                      One carefully engineered product with a fixed quantity and no size selection required.
+                      {currentFlavor?.description ||
+                        shortDesc ||
+                        'Engineered for maximum bio-availability, rapid cellular uptake, and clinical efficacy.'}
                     </p>
 
-                    <div
-                      className="flex items-center justify-between max-w-sm p-4 rounded-xl border bg-white/5"
-                      style={{ borderColor: color }}
-                    >
-                      <div className="flex items-center gap-3">
-                        <CheckCircle2 className="w-4 h-4" style={{ color }} />
-                        <span className="font-bold text-sm">Single fixed product</span>
+                    {hasMultipleFlavors ? (
+                      <div className="space-y-3 max-w-md pt-2">
+                        <div className="text-xs font-mono uppercase text-gray-400 tracking-wider flex items-center justify-between">
+                          <span>Available Flavors ({flavors.length})</span>
+                          <span className="text-[10px] text-gray-500 font-sans">Click to view flavor profile</span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          {flavors.map((flv) => (
+                            <Link
+                              key={flv.slug}
+                              href={`/products/${flv.slug}`}
+                              scroll={false}
+                              className={cn(
+                                "flex items-center gap-2.5 p-3 rounded-xl border transition-all duration-200 group",
+                                flv.isCurrent
+                                  ? "bg-white/10 text-white font-bold shadow-lg"
+                                  : "bg-space-900 border-white/5 text-gray-400 hover:border-white/20 hover:text-white"
+                              )}
+                              style={flv.isCurrent ? { borderColor: flv.color, boxShadow: `0 0 15px ${flv.color}25` } : {}}
+                            >
+                              <span
+                                className="w-3.5 h-3.5 rounded-full shrink-0 border border-white/20"
+                                style={{ backgroundColor: flv.color }}
+                              />
+                              <span className="text-xs truncate">{flv.flavorName}</span>
+                            </Link>
+                          ))}
+                        </div>
                       </div>
-                      <span className="text-xs font-mono font-bold">{formatPrice(selectedVariant?.price ?? product.base_price)}</span>
-                    </div>
+                    ) : (
+                      <div
+                        className="flex items-center justify-between max-w-sm p-4 rounded-xl border bg-white/5"
+                        style={{ borderColor: color }}
+                      >
+                        <div className="flex items-center gap-3">
+                          <CheckCircle2 className="w-4 h-4" style={{ color }} />
+                          <span className="font-bold text-sm">Pure Active Concentration</span>
+                        </div>
+                        <span className="text-xs font-mono font-bold">{formatPrice(canonicalPrice)}</span>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -732,7 +778,11 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
               <div className="flex items-center justify-between pb-4 border-b border-white/5">
                 <div>
                   <h4 className="font-bold text-white text-lg">{name}</h4>
-                  <p className="text-xs text-gray-400">Single fixed product</p>
+                  <p className="text-xs text-gray-400">
+                    {hasMultipleFlavors && currentFlavor
+                      ? `Flavor: ${currentFlavor.flavorName} · 300g (30 Servings)`
+                      : 'Swiss Formulation · 300g'}
+                  </p>
                 </div>
                 {/* Pre-order indicator */}
                 <div className="flex items-center gap-2">
@@ -741,6 +791,100 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
                   </span>
                 </div>
               </div>
+
+              {/* Flavor Selector (shown when product has more than one flavor) */}
+              {hasMultipleFlavors && (
+                <div className="space-y-3 pb-5 border-b border-white/5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-mono uppercase tracking-wider text-gray-400 font-semibold flex items-center gap-1.5">
+                      <span>Select Flavor</span>
+                      <span className="text-[10px] text-gray-500 font-sans font-normal">
+                        ({flavors.length} options)
+                      </span>
+                    </span>
+                    <span className="text-xs font-bold text-white flex items-center gap-1.5 font-mono">
+                      <span
+                        className="w-2.5 h-2.5 rounded-full animate-pulse shrink-0"
+                        style={{ backgroundColor: currentFlavor?.color || color }}
+                      />
+                      <span>{currentFlavor?.flavorName}</span>
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    {flavors.map((flv) => {
+                      const isSelected = flv.isCurrent
+                      return (
+                        <Link
+                          key={flv.slug}
+                          href={`/products/${flv.slug}`}
+                          scroll={false}
+                          className={cn(
+                            "relative flex items-center gap-3 p-3 rounded-2xl border transition-all duration-300 text-left group",
+                            isSelected
+                              ? "bg-white/[0.08] text-white shadow-xl"
+                              : "bg-space-900/60 border-white/5 text-gray-400 hover:border-white/20 hover:bg-space-900/90 hover:text-white"
+                          )}
+                          style={
+                            isSelected
+                              ? {
+                                  borderColor: flv.color,
+                                  boxShadow: `0 0 20px ${flv.color}25`,
+                                }
+                              : {}
+                          }
+                        >
+                          {/* Miniature canister preview */}
+                          <div
+                            className={cn(
+                              "relative w-10 h-10 rounded-xl overflow-hidden bg-space-950/80 border p-1 shrink-0 flex items-center justify-center transition-transform group-hover:scale-105",
+                              isSelected ? "border-white/20" : "border-white/5"
+                            )}
+                          >
+                            {flv.imageUrl ? (
+                              <Image
+                                src={flv.imageUrl}
+                                alt={flv.flavorName}
+                                width={36}
+                                height={36}
+                                className="object-contain max-h-full"
+                              />
+                            ) : (
+                              <div
+                                className="w-4 h-4 rounded-full"
+                                style={{ backgroundColor: flv.color }}
+                              />
+                            )}
+                          </div>
+
+                          {/* Flavor label */}
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center justify-between gap-1">
+                              <span
+                                className={cn(
+                                  "text-xs font-bold truncate",
+                                  isSelected ? "text-white" : "group-hover:text-white"
+                                )}
+                              >
+                                {flv.flavorName}
+                              </span>
+                              {isSelected && (
+                                <span
+                                  className="w-2 h-2 rounded-full shrink-0"
+                                  style={{ backgroundColor: flv.color }}
+                                />
+                              )}
+                            </div>
+                            <span className="text-[10px] text-gray-400 block truncate font-mono mt-0.5">
+                              {flv.badge || '300g Powder'}
+                            </span>
+                          </div>
+                        </Link>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
 
               {/* Pre-order Dispatch & NutriFit Geneva Pickup notice */}
               <div className="bg-space-900 border border-alien-green/20 p-3.5 rounded-2xl space-y-1.5">

@@ -8,6 +8,7 @@ import { Star, ShoppingBag, SlidersHorizontal } from 'lucide-react'
 import { formatPrice } from '@/lib/utils/pricing'
 import { getCanonicalUnitPrice } from '@/lib/config/pricing'
 import { PREORDER_CONFIG } from '@/lib/config/preorder'
+import { getProductFlavors } from '@/lib/config/flavors'
 import { getLocalizedField } from '@/types'
 import { useCart } from '@/hooks/useCart'
 import { cn } from '@/lib/utils'
@@ -121,6 +122,7 @@ export default function ProductsClient({
           const price   = canonicalPrice
           const compare = variant?.compare_at_price ?? product.compare_at_price
           const savings = compare && compare > price ? Math.round(((compare - price) / compare) * 100) : 0
+          const { hasMultipleFlavors, flavors } = getProductFlavors(product.slug)
 
           return (
             <div
@@ -165,9 +167,27 @@ export default function ProductsClient({
                   </Link>
                 </div>
                 <div className="mt-auto pt-3 border-t border-white/[0.03] flex flex-col gap-2">
-                  <div className="flex items-baseline gap-1.5 flex-wrap min-h-[24px]">
-                    <span className="text-sm sm:text-base font-bold text-white">{formatPrice(price)}</span>
-                    {compare && <span className="text-[10px] sm:text-xs text-muted/60 line-through">{formatPrice(compare)}</span>}
+                  <div className="flex items-baseline justify-between gap-1.5 flex-wrap min-h-[24px]">
+                    <div className="flex items-baseline gap-1.5">
+                      <span className="text-sm sm:text-base font-bold text-white">{formatPrice(price)}</span>
+                      {compare && <span className="text-[10px] sm:text-xs text-muted/60 line-through">{formatPrice(compare)}</span>}
+                    </div>
+
+                    {hasMultipleFlavors && (
+                      <div className="flex items-center gap-1 text-[10px] font-mono text-gray-400">
+                        <div className="flex items-center -space-x-1">
+                          {flavors.map((flv) => (
+                            <span
+                              key={flv.slug}
+                              className="w-2.5 h-2.5 rounded-full border border-space-950 inline-block shrink-0"
+                              style={{ backgroundColor: flv.color }}
+                              title={flv.flavorName}
+                            />
+                          ))}
+                        </div>
+                        <span>{flavors.length} Flavors</span>
+                      </div>
+                    )}
                   </div>
                   <button
                     onClick={() =>
