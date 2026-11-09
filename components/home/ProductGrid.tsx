@@ -4,6 +4,8 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Star, ShoppingBag, Zap } from 'lucide-react'
 import { formatPrice } from '@/lib/utils/pricing'
+import { getCanonicalUnitPrice } from '@/lib/config/pricing'
+import { PREORDER_CONFIG } from '@/lib/config/preorder'
 import { getLocalizedField } from '@/types'
 import { useCart } from '@/hooks/useCart'
 import { cn } from '@/lib/utils'
@@ -37,10 +39,10 @@ function ProductCard({ product }: { product: Product }) {
   const primary  = product.images?.find((i) => i.is_primary) ?? product.images?.[0]
   const secondary = product.images?.find((i) => !i.is_primary && i.sort_order === 2)
   const variant  = product.variants?.find((v) => v.is_default) ?? product.variants?.[0]
-  const price    = variant?.price ?? product.base_price
+  const canonicalPrice = getCanonicalUnitPrice(product.slug, 'CHF', variant?.price ?? product.base_price)
+  const price    = canonicalPrice
   const compare  = variant?.compare_at_price ?? product.compare_at_price
-  const inStock  = (variant?.stock ?? 0) > 0
-  const savings  = compare ? Math.round(((compare - price) / compare) * 100) : 0
+  const savings  = compare && compare > price ? Math.round(((compare - price) / compare) * 100) : 0
 
   return (
     <div
@@ -55,6 +57,9 @@ function ProductCard({ product }: { product: Product }) {
 
       {/* Badges */}
       <div className="absolute top-3 left-3 z-10 flex flex-col gap-1.5">
+        <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-alien-green/20 border border-alien-green/50 text-alien-green text-[10px] font-mono font-bold tracking-wider uppercase backdrop-blur-sm shadow-sm">
+          Pre-order
+        </span>
         {product.is_new && (
           <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-nebula-400/15 border border-nebula-400/30 text-nebula-400 text-[10px] font-mono tracking-wider uppercase backdrop-blur-sm">
             New
@@ -169,20 +174,24 @@ function ProductCard({ product }: { product: Product }) {
           </div>
 
           <button
-            onClick={() => variant && addItem(variant.id, 1, { product, variant })}
-            disabled={!inStock || isLoading || !variant}
-            className={cn(
-              'w-full py-2 px-3 rounded-lg transition-all duration-200 flex items-center justify-center gap-1.5 font-mono text-[10px] sm:text-xs font-bold',
-              inStock
-                ? 'text-space-900 hover:shadow-lg active:scale-95'
-                : 'bg-muted/20 text-muted cursor-not-allowed'
-            )}
-            style={inStock ? { backgroundColor: color, boxShadow: `0 4px 12px ${color}20` } : undefined}
-            aria-label={inStock ? `Add ${name} to cart` : 'Out of stock'}
+            onClick={() =>
+              variant &&
+              addItem(variant.id, 1, {
+                product,
+                variant: { ...variant, price: canonicalPrice },
+              })
+            }
+            disabled={isLoading || !variant}
+            className="w-full py-2.5 px-3 rounded-lg transition-all duration-200 flex items-center justify-center gap-1.5 font-mono text-[11px] sm:text-xs font-bold text-space-900 hover:shadow-lg active:scale-95"
+            style={{ backgroundColor: color, boxShadow: `0 4px 12px ${color}30` }}
+            aria-label={`Pre-order ${name}`}
           >
             <ShoppingBag className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-            <span>{inStock ? 'Add to Cart' : 'Out of Stock'}</span>
+            <span>{PREORDER_CONFIG.actionButtonText}</span>
           </button>
+          <p className="text-[10px] text-muted/70 text-center font-mono">
+            {PREORDER_CONFIG.estimatedShipDate}
+          </p>
         </div>
       </div>
     </div>

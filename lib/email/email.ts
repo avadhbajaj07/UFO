@@ -86,10 +86,14 @@ export const emailService = {
         from: FROM_EMAIL,
         to: orderData.email,
         replyTo: 'hello@ufolabz.com',
-        subject: 'Your UFO LABZ Order is Confirmed 🎉',
+        subject: `Your UFO LABZ Pre-Order #${orderData.order_number} is Confirmed 🚀`,
         react: React.createElement(OrderConfirmation, {
           orderNumber: orderData.order_number,
           customerName: shippingAddress.fullName || 'Valued Customer',
+          isPreorder: true,
+          estimatedShipDate: orderData.estimated_ship_date || 'Late March 2027 (Batch 01)',
+          isPickupNutrifit: orderData.delivery_method === 'pickup_nutrifit' || orderData.pickup_nutrifit === true,
+          pickupAddress: 'NutriFit Store, Rue de Genève, 1200 Genève, Switzerland',
           shippingAddress: {
             fullName: shippingAddress.fullName || '',
             addressLine1: shippingAddress.addressLine1 || '',

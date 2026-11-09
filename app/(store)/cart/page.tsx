@@ -5,13 +5,14 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { 
   Trash2, Minus, Plus, ShoppingBag, ArrowRight, ShieldCheck, 
-  Truck, CornerUpLeft, Lock, ArrowLeft 
+  Truck, CornerUpLeft, Lock, ArrowLeft, Shield 
 } from 'lucide-react'
 import { useCart } from '@/hooks/useCart'
 import { formatPrice } from '@/lib/utils/pricing'
+import { getCanonicalUnitPrice, SHIPPING_CONFIG } from '@/lib/config/pricing'
+import { PREORDER_CONFIG } from '@/lib/config/preorder'
 import { getLocalizedField } from '@/types'
 import { cn } from '@/lib/utils'
-import { FREE_SHIPPING_THRESHOLD } from '@/config/client'
 
 export default function CartPage() {
   const { items, breakdown, isLoading, updateQuantity, removeItem } = useCart()
@@ -35,8 +36,9 @@ export default function CartPage() {
     )
   }
 
-  const shippingProgress = Math.min(100, (breakdown.subtotal / FREE_SHIPPING_THRESHOLD) * 100)
-  const remaining = Math.max(0, FREE_SHIPPING_THRESHOLD - breakdown.subtotal)
+  const freeThreshold = SHIPPING_CONFIG.switzerland.freeThreshold
+  const shippingProgress = Math.min(100, (breakdown.subtotal / freeThreshold) * 100)
+  const remaining = Math.max(0, freeThreshold - breakdown.subtotal)
 
   return (
     <div className="relative pt-28 pb-20 min-h-screen">
@@ -48,10 +50,15 @@ export default function CartPage() {
         {/* Title Area */}
         <div className="mb-10 flex items-center justify-between border-b border-white/5 pb-6">
           <div>
-            <span className="font-mono text-xs text-alien-green tracking-widest uppercase">System Check / Cargo</span>
+            <span className="font-mono text-xs text-alien-green tracking-widest uppercase">
+              PRE-ORDER CARGO · BATCH 01
+            </span>
             <h1 className="font-display text-4xl sm:text-5xl tracking-wider text-white mt-1">
-              YOUR CARGO BAY
+              PRE-ORDER RESERVATION
             </h1>
+            <p className="text-xs text-muted mt-1 font-mono">
+              {PREORDER_CONFIG.estimatedShipNotice}
+            </p>
           </div>
           <Link 
             href="/products" 
@@ -93,7 +100,8 @@ export default function CartPage() {
                 const name = getLocalizedField(product?.name)
                 const color = product?.product_color ?? '#00FF88'
                 
-                const unitPrice = item.variant.price
+                const canonicalUnitPrice = getCanonicalUnitPrice(product?.slug || '', 'CHF', item.variant.price)
+                const unitPrice = canonicalUnitPrice
                 const comparePrice = item.variant.compare_at_price ?? product?.compare_at_price
                 const hasSavings = comparePrice && comparePrice > unitPrice
                 const savingsPct = hasSavings ? Math.round(((comparePrice - unitPrice) / comparePrice) * 100) : 0
@@ -130,7 +138,9 @@ export default function CartPage() {
                           <Link href={`/products/${product?.slug}`}>
                             <h3 className="font-bold text-base text-white hover:text-alien-green transition-colors truncate">{name}</h3>
                           </Link>
-                          <p className="text-xs text-muted mt-1 uppercase font-mono tracking-wider">Fixed product</p>
+                          <span className="inline-block text-[10px] text-alien-green font-mono uppercase font-bold tracking-wider mt-1">
+                            PRE-ORDER RESERVATION
+                          </span>
                         </div>
                         <button 
                           onClick={() => removeItem(item.id)}
@@ -209,19 +219,34 @@ export default function CartPage() {
                   />
                 </div>
                 <p className="text-[10px] text-muted/60 leading-relaxed">
-                  We ship directly from our Swiss performance laboratory. Free priority delivery on orders exceeding CHF {FREE_SHIPPING_THRESHOLD}.-
+                  We ship directly from our Swiss performance laboratory. Free delivery in Switzerland on orders exceeding CHF {freeThreshold}.- Free pickup at NutriFit Geneva.
                 </p>
               </div>
 
               {/* Summary details */}
               <div className="card-glass p-6 space-y-6">
-                <h2 className="font-display text-xl tracking-wider text-white pb-3 border-b border-white/5 uppercase">
-                  ORDER BRIEFING
-                </h2>
+                <div className="flex justify-between items-center pb-3 border-b border-white/5">
+                  <h2 className="font-display text-xl tracking-wider text-white uppercase">
+                    PRE-ORDER BRIEFING
+                  </h2>
+                  <span className="text-[10px] font-mono bg-alien-green/20 text-alien-green border border-alien-green/40 px-2 py-0.5 rounded-full font-bold uppercase">
+                    BATCH 01
+                  </span>
+                </div>
+
+                <div className="bg-space-950/80 border border-alien-green/20 rounded-xl p-3 text-xs text-gray-300 space-y-1">
+                  <div className="text-alien-green font-bold flex items-center gap-1.5">
+                    <Truck className="w-3.5 h-3.5" />
+                    <span>{PREORDER_CONFIG.estimatedShipDate}</span>
+                  </div>
+                  <p className="text-[11px] text-gray-400">
+                    Pickup at NutriFit Geneva: <strong>50% off second identical unit</strong> applied at checkout.
+                  </p>
+                </div>
 
                 <div className="space-y-3 text-sm">
                   <div className="flex justify-between text-muted">
-                    <span>Subtotal</span>
+                    <span>Pre-order Subtotal</span>
                     <span className="font-mono text-white font-semibold">{formatPrice(breakdown.subtotal)}</span>
                   </div>
                   {breakdown.discount_amount > 0 && (
@@ -250,11 +275,17 @@ export default function CartPage() {
                 <div className="pt-2">
                   <Link 
                     href="/checkout"
-                    className="btn-primary w-full justify-center text-lg py-4 shadow-glow-green group"
+                    className="btn-primary w-full justify-center text-lg py-4 shadow-glow-green group font-bold tracking-wide"
                   >
-                    PROCEED TO CHECKOUT
+                    PROCEED TO PRE-ORDER CHECKOUT
                     <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                   </Link>
+                </div>
+
+                {/* Pre-order guarantee notice */}
+                <div className="pt-3 border-t border-white/5 flex items-center justify-center gap-2 text-xs text-muted">
+                  <Shield className="w-4 h-4 text-alien-green shrink-0" />
+                  <span>100% Full Refund Guarantee prior to dispatch · <Link href="/pages/pre-order" className="text-alien-green hover:underline">Policy</Link></span>
                 </div>
               </div>
 

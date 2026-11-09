@@ -5,6 +5,8 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Star, ShoppingBag, Search } from 'lucide-react'
 import { formatPrice } from '@/lib/utils/pricing'
+import { getCanonicalUnitPrice } from '@/lib/config/pricing'
+import { PREORDER_CONFIG } from '@/lib/config/preorder'
 import { getLocalizedField } from '@/types'
 import { useCart } from '@/hooks/useCart'
 
@@ -65,10 +67,10 @@ export default function SearchClient({ initialProducts }: Props) {
           const tagline = getLocalizedField(product.tagline)
           const image   = product.images?.find((i: any) => i.is_primary) ?? product.images?.[0]
           const variant = product.variants?.find((v: any) => v.is_default) ?? product.variants?.[0]
-          const price   = variant?.price ?? product.base_price
+          const canonicalPrice = getCanonicalUnitPrice(product.slug, 'CHF', variant?.price ?? product.base_price)
+          const price   = canonicalPrice
           const compare = variant?.compare_at_price ?? product.compare_at_price
-          const inStock = (variant?.stock ?? 0) > 0
-          const savings = compare ? Math.round(((compare - price) / compare) * 100) : 0
+          const savings = compare && compare > price ? Math.round(((compare - price) / compare) * 100) : 0
 
           return (
             <div
@@ -98,6 +100,7 @@ export default function SearchClient({ initialProducts }: Props) {
 
                 {/* Badges overlay */}
                 <div className="absolute top-2 left-2 flex flex-col gap-1">
+                  <span className="badge bg-alien-green/20 border border-alien-green/50 text-alien-green text-[9px] font-mono font-bold uppercase">Pre-order</span>
                   {product.is_new && <span className="badge bg-alien-green/20 border border-alien-green/30 text-alien-green text-[9px]">New</span>}
                   {savings > 0 && <span className="badge text-[9px]" style={{ background: `${color}20`, border: `1px solid ${color}40`, color }}>−{savings}%</span>}
                 </div>
@@ -123,15 +126,24 @@ export default function SearchClient({ initialProducts }: Props) {
                     {compare && <span className="text-[10px] sm:text-xs text-muted/60 line-through">{formatPrice(compare)}</span>}
                   </div>
                   <button
-                    onClick={() => variant && addItem(variant.id, 1, { product, variant })}
-                    disabled={!inStock || isLoading || !variant}
-                    className="w-full py-2 px-3 rounded-lg transition-all duration-200 flex items-center justify-center gap-1.5 font-mono text-[10px] sm:text-xs font-bold text-space-900 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
-                    style={inStock ? { backgroundColor: color, boxShadow: `0 4px 12px ${color}20` } : { backgroundColor: 'rgba(119,119,170,0.2)' }}
-                    aria-label={`Add ${name} to cart`}
+                    onClick={() =>
+                      variant &&
+                      addItem(variant.id, 1, {
+                        product,
+                        variant: { ...variant, price: canonicalPrice },
+                      })
+                    }
+                    disabled={isLoading || !variant}
+                    className="w-full py-2.5 px-3 rounded-lg transition-all duration-200 flex items-center justify-center gap-1.5 font-mono text-[10px] sm:text-xs font-bold text-space-900 active:scale-95 shrink-0"
+                    style={{ backgroundColor: color, boxShadow: `0 4px 12px ${color}30` }}
+                    aria-label={`Pre-order ${name}`}
                   >
                     <ShoppingBag className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-space-900" />
-                    <span>{inStock ? 'Add to Cart' : 'Out of Stock'}</span>
+                    <span>{PREORDER_CONFIG.actionButtonText}</span>
                   </button>
+                  <p className="text-[9px] text-muted/70 text-center font-mono">
+                    {PREORDER_CONFIG.estimatedShipDate}
+                  </p>
                 </div>
               </div>
             </div>

@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-// ── Temporary Coming Soon Flag ──────────────────────────────────────────
-// Set this to `false` when you are ready to make the full website live.
-const COMING_SOON = true
+// ── Pre-launch Coming Soon Flag ──────────────────────────────────────────
+// Set to `false` for LIVE PRE-ORDER store.
+const COMING_SOON = false
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl

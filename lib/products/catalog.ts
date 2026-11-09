@@ -4,6 +4,8 @@ export const PUBLIC_PRODUCT_ORDER = [
   'amino-fuel-blue-raspberry',
   'blast-pre-workout-energy',
   'blast-pre-workout-blue',
+  'astro-collagen-peptide',
+  'astro-collagen',
   'magnesium',
 ]
 

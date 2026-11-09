@@ -34,30 +34,55 @@ export default function ShippingPage() {
       {/* Shipping Zones */}
       <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <h2 className="font-display text-3xl text-white mb-8 text-center">
-          SHIPPING INFORMATION
+          SHIPPING RATES &amp; PICKUP
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Switzerland */}
           <div className="card-glass p-6 relative">
             <span className="absolute top-4 right-4 text-[10px] font-mono bg-alien-green/10 text-alien-green border border-alien-green/20 rounded-full px-2.5 py-0.5">
-              MOST POPULAR
+              SWITZERLAND
             </span>
             <div className="w-12 h-12 rounded-xl bg-nebula-800/30 border border-nebula-600/20 flex items-center justify-center mb-4">
               <Truck className="w-5 h-5 text-nebula-400" />
             </div>
-            <h3 className="font-display text-xl text-white mb-3">Switzerland</h3>
+            <h3 className="font-display text-xl text-white mb-3">CH Home Delivery</h3>
             <ul className="space-y-2">
               <li className="text-sm text-muted flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-alien-green shrink-0" />
-                Free over CHF 99
+                <strong>FREE</strong> on orders CHF 50+
               </li>
               <li className="text-sm text-muted flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-alien-green shrink-0" />
-                CHF 7.90 flat rate
+                CHF 10.00 standard (under CHF 50)
               </li>
               <li className="text-sm text-muted flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-alien-green shrink-0" />
-                2–3 business days
+                Tracked Swiss Post delivery
+              </li>
+            </ul>
+          </div>
+
+          {/* NutriFit Geneva Pickup */}
+          <div className="card-glass p-6 border-alien-green/30 relative">
+            <span className="absolute top-4 right-4 text-[10px] font-mono bg-alien-green text-space-950 font-bold rounded-full px-2.5 py-0.5">
+              2ND UNIT 50% OFF
+            </span>
+            <div className="w-12 h-12 rounded-xl bg-alien-green/10 border border-alien-green/20 flex items-center justify-center mb-4">
+              <CheckCircle2 className="w-5 h-5 text-alien-green" />
+            </div>
+            <h3 className="font-display text-xl text-white mb-3">NutriFit Geneva Pickup</h3>
+            <ul className="space-y-2">
+              <li className="text-sm text-muted flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-alien-green shrink-0" />
+                <strong>100% FREE pickup</strong> (No fee)
+              </li>
+              <li className="text-sm text-muted flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-alien-green shrink-0" />
+                <strong>50% off</strong> each second identical unit
+              </li>
+              <li className="text-sm text-muted flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-alien-green shrink-0" />
+                Rue de Genève, 1200 Genève
               </li>
             </ul>
           </div>
@@ -67,41 +92,19 @@ export default function ShippingPage() {
             <div className="w-12 h-12 rounded-xl bg-nebula-800/30 border border-nebula-600/20 flex items-center justify-center mb-4">
               <Globe className="w-5 h-5 text-nebula-400" />
             </div>
-            <h3 className="font-display text-xl text-white mb-3">EU Countries</h3>
+            <h3 className="font-display text-xl text-white mb-3">European Union</h3>
             <ul className="space-y-2">
               <li className="text-sm text-muted flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-alien-green shrink-0" />
-                From CHF 12.90
+                <strong>FREE</strong> on orders EUR 60+
               </li>
               <li className="text-sm text-muted flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-alien-green shrink-0" />
-                5–7 business days
+                From €9.90 (under EUR 60)
               </li>
               <li className="text-sm text-muted flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-alien-green shrink-0" />
-                Tracked delivery
-              </li>
-            </ul>
-          </div>
-
-          {/* International */}
-          <div className="card-glass p-6">
-            <div className="w-12 h-12 rounded-xl bg-nebula-800/30 border border-nebula-600/20 flex items-center justify-center mb-4">
-              <Send className="w-5 h-5 text-nebula-400" />
-            </div>
-            <h3 className="font-display text-xl text-white mb-3">International</h3>
-            <ul className="space-y-2">
-              <li className="text-sm text-muted flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-alien-green shrink-0" />
-                From CHF 19.90
-              </li>
-              <li className="text-sm text-muted flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-alien-green shrink-0" />
-                7–14 business days
-              </li>
-              <li className="text-sm text-muted flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-alien-green shrink-0" />
-                Express available
+                Priority tracked cross-border
               </li>
             </ul>
           </div>
@@ -116,7 +119,13 @@ export default function ShippingPage() {
             <div className="flex items-start gap-3">
               <CheckCircle2 className="w-5 h-5 text-alien-green shrink-0 mt-0.5" />
               <p className="text-sm text-muted">
-                Orders placed before 2:00 PM CET are shipped the same business day
+                Pre-order Batch 01 dispatch starts Late March 2027 with direct email notification and tracking.
+              </p>
+            </div>
+            <div className="flex items-start gap-3">
+              <CheckCircle2 className="w-5 h-5 text-alien-green shrink-0 mt-0.5" />
+              <p className="text-sm text-muted">
+                Pre-order cancellations and 100% full refunds are supported anytime prior to package dispatch.
               </p>
             </div>
             <div className="flex items-start gap-3">

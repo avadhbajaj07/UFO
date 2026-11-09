@@ -48,7 +48,7 @@ export default function HeroSection() {
           style={{ animationDelay: '0.15s' }}
         >
           <span className="font-mono text-xs md:text-sm tracking-[0.3em] text-alien-green uppercase font-semibold">
-            FUEL FROM SPACE
+            PRE-ORDER BATCH 01 · SWISS FORMULATION
           </span>
         </div>
 
@@ -82,7 +82,7 @@ export default function HeroSection() {
             href="/products"
             className="w-full sm:w-auto text-center bg-gradient-to-r from-[#00FF88] to-[#9B30FF] text-space-950 font-bold font-mono text-xs uppercase tracking-wider px-8 py-4 rounded-xl hover:shadow-[0_0_30px_rgba(0,255,136,0.4)] transition-all duration-300 transform hover:scale-[1.02]"
           >
-            Explore the Universe
+            Pre-Order Batch 01
           </Link>
           <Link
             href="/affiliate"

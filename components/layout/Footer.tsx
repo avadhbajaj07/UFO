@@ -29,6 +29,7 @@ const socials = [
 ]
 
 const legalLinks = [
+  { href: '/pages/pre-order', label: 'Pre-Order Policy' },
   { href: '/pages/privacy', label: 'Privacy Policy' },
   { href: '/pages/terms', label: 'Terms of Service' },
   { href: '/pages/refund', label: 'Refund Policy' },

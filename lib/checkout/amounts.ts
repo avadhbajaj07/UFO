@@ -1,18 +1,28 @@
 import type Stripe from 'stripe'
-
-const STANDARD_SHIPPING_AMOUNT = 9
-const PRIORITY_SHIPPING_AMOUNT = 15
-const FREE_SHIPPING_THRESHOLD = 99
-const CARBON_OFFSET_AMOUNT = 1.5
+import {
+  SupportedCurrency,
+  getCanonicalUnitPrice,
+  calculateNutrifitPickupDiscount,
+  calculateShippingFee,
+  SHIPPING_CONFIG,
+  NUTRIFIT_STORE_INFO,
+} from '@/lib/config/pricing'
+import { PREORDER_CONFIG } from '@/lib/config/preorder'
 
 export type CheckoutShippingMethod = 'standard' | 'priority'
+export type CheckoutDeliveryMethod = 'shipping' | 'pickup_nutrifit'
+
+const CARBON_OFFSET_AMOUNT = 1.5
 
 export interface CheckoutItemInput {
+  productId?: string
   variantId?: string
-  variant?: { id?: string }
+  variant?: { id?: string; sku?: string; name?: string; price?: number; product?: any }
+  slug?: string
   name?: string
   variantName?: string
   quantity?: number
+  price?: number
 }
 
 export interface ValidatedOrderItem {
@@ -28,6 +38,9 @@ export interface ValidatedOrderItem {
 
 export interface CheckoutTotalsInput {
   items: CheckoutItemInput[]
+  currency?: SupportedCurrency
+  deliveryMethod?: CheckoutDeliveryMethod
+  country?: string
   shippingMethod?: CheckoutShippingMethod
   discountAmount?: number
   couponCode?: string | null
@@ -35,7 +48,11 @@ export interface CheckoutTotalsInput {
 }
 
 export interface CheckoutTotals {
+  currency: SupportedCurrency
+  deliveryMethod: CheckoutDeliveryMethod
   validatedSubtotal: number
+  nutrifitDiscountAmount: number
+  couponDiscountAmount: number
   discountAmount: number
   shippingAmount: number
   carbonOffsetAmount: number
@@ -44,15 +61,15 @@ export interface CheckoutTotals {
   orderItemsToInsert: ValidatedOrderItem[]
 }
 
-export function toStripeAmount(amount: number) {
+export function toStripeAmount(amount: number): number {
   return Math.round(Number(amount || 0) * 100)
 }
 
-function resolveDiscountAmount(
+function resolveCouponDiscountAmount(
   subtotal: number,
   requestedDiscountAmount?: number,
   couponCode?: string | null
-) {
+): number {
   const code = couponCode?.trim().toUpperCase()
 
   if (code === 'UFO99' || code === 'ALIEN99') return subtotal * 0.99
@@ -72,6 +89,11 @@ export async function buildValidatedCheckoutTotals(
     throw new Error('Checkout requires at least one item.')
   }
 
+  const currency: SupportedCurrency = input.currency === 'EUR' ? 'EUR' : 'CHF'
+  const deliveryMethod: CheckoutDeliveryMethod =
+    input.deliveryMethod === 'pickup_nutrifit' ? 'pickup_nutrifit' : 'shipping'
+  const country = input.country || (currency === 'EUR' ? 'FR' : 'CH')
+
   let validatedSubtotal = 0
   const orderItemsToInsert: ValidatedOrderItem[] = []
 
@@ -81,59 +103,112 @@ export async function buildValidatedCheckoutTotals(
       throw new Error('Product variant ID is missing.')
     }
 
-    const { data: dbVariant, error: variantError } = await supabaseAdmin
-      .from('product_variants')
-      .select('price, sku, name, product_id')
-      .eq('id', variantId)
-      .single()
+    let dbVariant: any = null
+    let dbProduct: any = null
 
-    if (variantError || !dbVariant) {
-      throw new Error(`Invalid variant database lookup for ID: ${variantId}`)
+    if (supabaseAdmin) {
+      const { data: vData } = await supabaseAdmin
+        .from('product_variants')
+        .select('price, sku, name, product_id, products(id, name, slug, base_price)')
+        .eq('id', variantId)
+        .maybeSingle()
+
+      if (vData) {
+        dbVariant = vData
+        dbProduct = vData.products
+      }
     }
 
-    const unitPrice = Number(dbVariant.price)
-    const quantity = Math.max(1, Number(item.quantity || 1))
-    const lineTotal = unitPrice * quantity
+    const slug = item.slug || (item.variant as any)?.product?.slug || dbProduct?.slug || ''
+    const sku = item.variant?.sku || dbVariant?.sku || ''
+    const productName = item.name || dbProduct?.name?.en || 'UFO Supplement'
+    const variantName = item.variantName || dbVariant?.name || 'Standard size'
+
+    // Canonical unit price strictly driven by central single source of truth
+    const canonicalPrice = getCanonicalUnitPrice(
+      slug || sku || variantId,
+      currency,
+      dbVariant?.price || item.price || 0
+    )
+
+    const quantity = Math.max(1, Math.floor(Number(item.quantity || 1)))
+    const lineTotal = Math.round(canonicalPrice * quantity * 100) / 100
     validatedSubtotal += lineTotal
 
     orderItemsToInsert.push({
-      product_id: dbVariant.product_id,
+      product_id: dbVariant?.product_id || item.productId || 'canonical-prod',
       variant_id: variantId,
-      product_name: { en: item.name || 'UFO Supplement' },
-      variant_name: item.variantName || dbVariant.name || 'Standard size',
-      sku: dbVariant.sku || 'N/A',
+      product_name: { en: productName },
+      variant_name: variantName,
+      sku: sku || 'N/A',
       quantity,
-      unit_price: unitPrice,
+      unit_price: canonicalPrice,
       total: lineTotal,
     })
   }
 
-  const discountAmount = Math.min(
+  // 1. NutriFit Pickup BOGO 50% discount on second identical units
+  let nutrifitDiscountAmount = 0
+  if (deliveryMethod === 'pickup_nutrifit') {
+    const nutrifitCalc = calculateNutrifitPickupDiscount(
+      orderItemsToInsert.map((item) => ({
+        variantId: item.variant_id,
+        sku: item.sku,
+        name: item.product_name.en,
+        quantity: item.quantity,
+        unitPrice: item.unit_price,
+      }))
+    )
+    nutrifitDiscountAmount = nutrifitCalc.discountTotal
+  }
+
+  // 2. Coupon discount
+  const subtotalAfterNutrifit = Math.max(0, validatedSubtotal - nutrifitDiscountAmount)
+  const couponDiscountAmount = Math.min(
     Math.max(
       0,
-      resolveDiscountAmount(
-        validatedSubtotal,
+      resolveCouponDiscountAmount(
+        subtotalAfterNutrifit,
         input.discountAmount,
         input.couponCode
       )
     ),
-    validatedSubtotal
+    subtotalAfterNutrifit
   )
-  const shippingAmount =
-    input.shippingMethod === 'priority'
-      ? PRIORITY_SHIPPING_AMOUNT
-      : validatedSubtotal >= FREE_SHIPPING_THRESHOLD
-        ? 0
-        : STANDARD_SHIPPING_AMOUNT
+
+  const discountAmount = Math.round((nutrifitDiscountAmount + couponDiscountAmount) * 100) / 100
+
+  // 3. Shipping fee
+  let shippingAmount = 0
+  if (deliveryMethod === 'pickup_nutrifit') {
+    shippingAmount = 0.0
+  } else if (input.shippingMethod === 'priority' && currency === 'CHF') {
+    shippingAmount = 15.0
+  } else {
+    shippingAmount = calculateShippingFee({
+      deliveryMethod: 'shipping',
+      country,
+      subtotal: validatedSubtotal,
+      currency,
+    })
+  }
+
   const carbonOffsetAmount = input.carbonOffset ? CARBON_OFFSET_AMOUNT : 0
   const total = Math.max(
     0,
-    validatedSubtotal - discountAmount + shippingAmount + carbonOffsetAmount
+    Math.round((validatedSubtotal - discountAmount + shippingAmount + carbonOffsetAmount) * 100) /
+      100
   )
-  const taxAmount = total * (8.1 / 108.1)
+
+  // VAT (e.g. 8.1% for Swiss display)
+  const taxAmount = Math.round(total * (8.1 / 108.1) * 100) / 100
 
   return {
-    validatedSubtotal,
+    currency,
+    deliveryMethod,
+    validatedSubtotal: Math.round(validatedSubtotal * 100) / 100,
+    nutrifitDiscountAmount,
+    couponDiscountAmount,
     discountAmount,
     shippingAmount,
     carbonOffsetAmount,
@@ -146,12 +221,15 @@ export async function buildValidatedCheckoutTotals(
 export function buildStripeLineItems(
   totals: CheckoutTotals
 ): Stripe.Checkout.SessionCreateParams.LineItem[] {
+  const stripeCurrency = totals.currency.toLowerCase()
+
   const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] =
     totals.orderItemsToInsert.map((item) => ({
       price_data: {
-        currency: 'chf',
+        currency: stripeCurrency,
         product_data: {
-          name: `${item.product_name.en} - ${item.variant_name}`,
+          name: `[PRE-ORDER] ${item.product_name.en} - ${item.variant_name}`,
+          description: `Laboratory formulation reserved. ${PREORDER_CONFIG.estimatedShipNotice}`,
         },
         unit_amount: toStripeAmount(item.unit_price),
       },
@@ -161,9 +239,10 @@ export function buildStripeLineItems(
   if (totals.shippingAmount > 0) {
     lineItems.push({
       price_data: {
-        currency: 'chf',
+        currency: stripeCurrency,
         product_data: {
-          name: 'Swiss shipping',
+          name: totals.currency === 'CHF' ? 'Swiss Pre-Order Shipping' : 'EU Pre-Order Shipping',
+          description: 'Insured laboratory delivery',
         },
         unit_amount: toStripeAmount(totals.shippingAmount),
       },
@@ -174,9 +253,10 @@ export function buildStripeLineItems(
   if (totals.carbonOffsetAmount > 0) {
     lineItems.push({
       price_data: {
-        currency: 'chf',
+        currency: stripeCurrency,
         product_data: {
-          name: 'Carbon-neutral offset',
+          name: 'Carbon-Neutral Offset',
+          description: '100% verified climate offset project',
         },
         unit_amount: toStripeAmount(totals.carbonOffsetAmount),
       },

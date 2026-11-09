@@ -3,12 +3,13 @@
 import { useEffect, useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { X, Trash2, Minus, Plus, ShoppingBag, ArrowRight } from 'lucide-react'
+import { X, Trash2, Minus, Plus, ShoppingBag, ArrowRight, Shield, Truck } from 'lucide-react'
 import { useCart } from '@/hooks/useCart'
 import { formatPrice } from '@/lib/utils/pricing'
+import { getCanonicalUnitPrice, SHIPPING_CONFIG } from '@/lib/config/pricing'
+import { PREORDER_CONFIG } from '@/lib/config/preorder'
 import { getLocalizedField } from '@/types'
 import { cn } from '@/lib/utils'
-import { FREE_SHIPPING_THRESHOLD } from '@/config/client'
 
 export default function CartDrawer() {
   const { items, breakdown, isOpen, isLoading, closeCart, updateQuantity, removeItem } = useCart()
@@ -27,8 +28,9 @@ export default function CartDrawer() {
     return () => { document.body.style.overflow = '' }
   }, [isOpen])
 
-  const shippingProgress = Math.min(100, (breakdown.subtotal / FREE_SHIPPING_THRESHOLD) * 100)
-  const remaining = Math.max(0, FREE_SHIPPING_THRESHOLD - breakdown.subtotal)
+  const freeThreshold = SHIPPING_CONFIG.switzerland.freeThreshold
+  const shippingProgress = Math.min(100, (breakdown.subtotal / freeThreshold) * 100)
+  const remaining = Math.max(0, freeThreshold - breakdown.subtotal)
 
   return (
     <>
@@ -57,7 +59,7 @@ export default function CartDrawer() {
         <div className="flex items-center justify-between px-5 py-4 border-b border-muted/10">
           <div className="flex items-center gap-2">
             <ShoppingBag className="w-5 h-5 text-alien-green" />
-            <span className="font-semibold text-white">Cart</span>
+            <span className="font-semibold text-white">Pre-order Cart</span>
             {items.length > 0 && (
               <span className="text-xs text-muted">({items.reduce((s, i) => s + i.quantity, 0)} items)</span>
             )}
@@ -69,6 +71,12 @@ export default function CartDrawer() {
           >
             <X className="w-5 h-5" />
           </button>
+        </div>
+
+        {/* Pre-order notification */}
+        <div className="px-5 py-2.5 bg-space-800/80 border-b border-muted/10 flex items-center justify-between text-[11px]">
+          <span className="text-muted">Batch 01 Pre-order</span>
+          <span className="text-alien-green font-mono font-medium">{PREORDER_CONFIG.estimatedShipDate}</span>
         </div>
 
         {/* Free shipping progress */}
@@ -138,7 +146,9 @@ export default function CartDrawer() {
                     <Link href={`/products/${product?.slug}`} onClick={closeCart}>
                       <p className="text-sm font-medium text-white truncate">{name}</p>
                     </Link>
-                    <p className="text-xs text-muted mb-2">Fixed product</p>
+                    <span className="inline-block text-[10px] text-alien-green font-mono uppercase font-bold mb-2">
+                      PRE-ORDER ONLY
+                    </span>
 
                     <div className="flex items-center justify-between">
                       {/* Qty controls */}
@@ -164,7 +174,9 @@ export default function CartDrawer() {
 
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-semibold text-white">
-                          {formatPrice(item.variant.price * item.quantity)}
+                          {formatPrice(
+                            getCanonicalUnitPrice(product?.slug || '', 'CHF', item.variant.price) * item.quantity
+                          )}
                         </span>
                         <button
                           onClick={() => removeItem(item.id)}
@@ -185,6 +197,11 @@ export default function CartDrawer() {
         {/* Footer */}
         {items.length > 0 && (
           <div className="border-t border-muted/10 px-5 py-4 space-y-3">
+            {/* NutriFit Geneva Pickup notice */}
+            <div className="bg-space-800/60 border border-alien-green/20 rounded-xl p-2.5 text-[11px] text-gray-300">
+              <span className="text-alien-green font-bold">NutriFit Geneva Pickup:</span> Second identical unit is 50% off + free collection at checkout.
+            </div>
+
             {/* Summary */}
             <div className="space-y-1.5 text-sm">
               <div className="flex justify-between text-muted">
@@ -198,7 +215,7 @@ export default function CartDrawer() {
                 </div>
               )}
               <div className="flex justify-between text-muted">
-                <span>Shipping</span>
+                <span>Estimated Shipping</span>
                 <span>{breakdown.is_free_shipping ? 'FREE' : formatPrice(breakdown.shipping_amount)}</span>
               </div>
               <div className="flex justify-between text-xs text-muted/60">
@@ -206,7 +223,7 @@ export default function CartDrawer() {
                 <span>{formatPrice(breakdown.tax_amount)}</span>
               </div>
               <div className="flex justify-between font-bold text-white text-base pt-1.5 border-t border-muted/10">
-                <span>Total</span>
+                <span>Estimated Total</span>
                 <span>{formatPrice(breakdown.total)}</span>
               </div>
             </div>
@@ -214,17 +231,25 @@ export default function CartDrawer() {
             <Link
               href="/checkout"
               onClick={closeCart}
-              className="btn-primary w-full justify-center text-sm py-3.5 shadow-glow-green"
+              className="btn-primary w-full justify-center text-sm py-3.5 shadow-glow-green font-bold"
             >
-              Checkout <ArrowRight className="w-4 h-4" />
+              Pre-order Checkout <ArrowRight className="w-4 h-4" />
             </Link>
             <Link
               href="/cart"
               onClick={closeCart}
-              className="btn-ghost w-full justify-center text-xs py-2"
+              className="btn-ghost w-full justify-center text-xs py-2 text-muted hover:text-white"
             >
-              View full cart
+              View Pre-order Cart
             </Link>
+
+            <div className="pt-1 text-[10px] text-gray-500 text-center flex items-center justify-center gap-1">
+              <Shield className="w-3 h-3 text-alien-green shrink-0" />
+              <span>100% Refundable before dispatch · </span>
+              <Link href="/pages/pre-order" onClick={closeCart} className="text-alien-green hover:underline">
+                Pre-Order Policy
+              </Link>
+            </div>
           </div>
         )}
       </div>

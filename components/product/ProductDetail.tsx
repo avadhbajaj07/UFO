@@ -10,6 +10,8 @@ import {
   Truck, ArrowRight, Award, Flame, Info, Check, MessageCircle, HelpCircle, Phone, Send
 } from 'lucide-react'
 import { formatPrice, getPricedForQuantity } from '@/lib/utils/pricing'
+import { getCanonicalUnitPrice } from '@/lib/config/pricing'
+import { PREORDER_CONFIG } from '@/lib/config/preorder'
 import { getLocalizedField } from '@/types'
 import { useCart } from '@/hooks/useCart'
 import { cn } from '@/lib/utils'
@@ -275,21 +277,19 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
         'Vegan, GMP, HACCP, and gluten-free positioning where shown on pack.'
       ]
 
-  const selectedVariant = product.variants?.find((v: any) => v.id === selectedVariantId)
-  const inStock = (selectedVariant?.stock ?? 0) > 0
-  const isLowStock = inStock && (selectedVariant?.stock ?? 0) < 50
+  const selectedVariant = product.variants?.find((v: any) => v.id === selectedVariantId) ?? product.variants?.[0]
+  const canonicalPrice = getCanonicalUnitPrice(product.slug, 'CHF', selectedVariant?.price ?? product.base_price)
 
   const pricingRules = (product.pricing_rules ?? []).filter((r: any) => r.is_active)
 
-  // Subtotal calculations
-  const { price: basePrice, savingsPct } = selectedVariant
-    ? getPricedForQuantity(selectedVariant.price, quantity, pricingRules)
-    : { price: 0, savingsPct: 0 }
+  // Subtotal calculations driven by single source of truth
+  const basePrice = canonicalPrice
+  const savingsPct = 0
 
   // 15% discount for subscriptions
   const subscriptionDiscount = 0.15
   const finalPricePerUnit = isSubscribed ? basePrice * (1 - subscriptionDiscount) : basePrice
-  const totalOriginalPrice = (selectedVariant?.compare_at_price ?? selectedVariant?.price ?? 0) * quantity
+  const totalOriginalPrice = (selectedVariant?.compare_at_price ?? basePrice) * quantity
   const totalFinalPrice = finalPricePerUnit * quantity
 
   // Alien points earn metric
@@ -312,25 +312,40 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
   }
 
   const handleAddToCart = async () => {
-    if (!selectedVariant || !inStock) return
-    await addItem(selectedVariant.id, quantity, { product, variant: selectedVariant })
+    if (!selectedVariant) return
+    await addItem(selectedVariant.id, quantity, {
+      product,
+      variant: { ...selectedVariant, price: canonicalPrice },
+    })
   }
 
   const handleBuyNow = async () => {
-    if (!selectedVariant || !inStock) return
-    await addItem(selectedVariant.id, quantity, { product, variant: selectedVariant })
+    if (!selectedVariant) return
+    await addItem(selectedVariant.id, quantity, {
+      product,
+      variant: { ...selectedVariant, price: canonicalPrice },
+    })
     router.push('/checkout')
   }
 
   const handleAddBundleToCart = async () => {
     // Add main item
-    await addItem(selectedVariant.id, quantity, { product, variant: selectedVariant })
+    await addItem(selectedVariant.id, quantity, {
+      product,
+      variant: { ...selectedVariant, price: canonicalPrice },
+    })
     // Add stack items
     for (let i = 0; i < stacks.length; i++) {
       if (bundleChecked[i]) {
         const stackItem = stacks[i]
-        const stackVariant = stackItem.stack_product.variants?.[0] || { id: stackItem.stack_product.id, price: stackItem.stack_product.base_price }
-        await addItem(stackVariant.id, 1, { product: stackItem.stack_product, variant: stackVariant })
+        const stackVariant = stackItem.stack_product.variants?.[0] || {
+          id: stackItem.stack_product.id,
+          price: stackItem.stack_product.base_price,
+        }
+        await addItem(stackVariant.id, 1, {
+          product: stackItem.stack_product,
+          variant: stackVariant,
+        })
       }
     }
   }
@@ -719,28 +734,29 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
                   <h4 className="font-bold text-white text-lg">{name}</h4>
                   <p className="text-xs text-gray-400">Single fixed product</p>
                 </div>
-                {/* Stock indicator */}
-                <div>
-                  {isLowStock ? (
-                    <span className="text-xs font-mono bg-red-500/10 border border-red-500/20 text-red-500 px-3 py-1 rounded-full animate-pulse font-bold">
-                      LOW STOCK (Only {selectedVariant.stock} left!)
-                    </span>
-                  ) : inStock ? (
-                    <span className="text-xs font-mono bg-alien-green/10 border border-alien-green/20 text-alien-green px-3 py-1 rounded-full font-bold">
-                      IN STOCK
-                    </span>
-                  ) : (
-                    <span className="text-xs font-mono bg-white/5 border border-white/10 text-gray-400 px-3 py-1 rounded-full font-bold">
-                      OUT OF STOCK
-                    </span>
-                  )}
+                {/* Pre-order indicator */}
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-mono bg-alien-green/20 border border-alien-green/50 text-alien-green px-3 py-1 rounded-full font-bold uppercase tracking-wider shadow-sm">
+                    PRE-ORDER ONLY
+                  </span>
                 </div>
+              </div>
+
+              {/* Pre-order Dispatch & NutriFit Geneva Pickup notice */}
+              <div className="bg-space-900 border border-alien-green/20 p-3.5 rounded-2xl space-y-1.5">
+                <div className="flex items-center gap-2 text-xs font-semibold text-alien-green">
+                  <Truck className="w-4 h-4 text-alien-green shrink-0" />
+                  <span>{PREORDER_CONFIG.estimatedShipNotice}</span>
+                </div>
+                <p className="text-[11px] text-gray-400 leading-relaxed">
+                  Geneva Pickup Option: Free collection at NutriFit store + <strong className="text-white">50% off each 2nd identical unit</strong>.
+                </p>
               </div>
 
               {/* Price Breakdown */}
               <div className="space-y-2.5 text-sm">
                 <div className="flex justify-between text-gray-400">
-                  <span>Unit Price</span>
+                  <span>Pre-order Unit Price</span>
                   <span>{formatPrice(finalPricePerUnit)}</span>
                 </div>
                 <div className="flex justify-between text-gray-400">
@@ -791,31 +807,40 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
                     </button>
                   </div>
 
-                  {/* Add to Cart */}
+                  {/* Pre-order Action Button */}
                   <button
                     onClick={handleAddToCart}
-                    disabled={!inStock || isLoading}
-                    className={cn(
-                      "flex-1 h-14 flex items-center justify-center gap-2 font-bold rounded-xl transition-all duration-200 text-space-900 text-base",
-                      inStock ? "hover:shadow-glow-green active:scale-98" : "bg-white/5 text-gray-500 cursor-not-allowed border border-white/5"
-                    )}
-                    style={inStock ? { backgroundColor: color } : {}}
+                    disabled={isLoading}
+                    className="flex-1 h-14 flex items-center justify-center gap-2 font-bold rounded-xl transition-all duration-200 text-space-900 text-base hover:shadow-glow-green active:scale-98"
+                    style={{ backgroundColor: color }}
                   >
                     <ShoppingBag className="w-5 h-5" />
-                    {isLoading ? 'Adding...' : inStock ? 'Add to Cart' : 'Out of Stock'}
+                    {isLoading ? 'Reserving...' : PREORDER_CONFIG.actionButtonText}
                   </button>
                 </div>
 
-                {/* Buy Now (Direct Checkout) */}
-                {inStock && (
-                  <button
-                    onClick={handleBuyNow}
-                    className="w-full h-14 bg-white hover:bg-gray-100 text-space-950 font-bold rounded-xl transition-all active:scale-98 flex items-center justify-center gap-2 text-base shadow-lg"
-                  >
-                    <span>Instant checkout</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
-                )}
+                {/* Pre-order Checkout (Direct Checkout) */}
+                <button
+                  onClick={handleBuyNow}
+                  className="w-full h-14 bg-white hover:bg-gray-100 text-space-950 font-bold rounded-xl transition-all active:scale-98 flex items-center justify-center gap-2 text-base shadow-lg"
+                >
+                  <span>Pre-order Checkout</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+
+                {/* Pre-Order Policy Block */}
+                <div className="pt-3 border-t border-white/5 space-y-1.5">
+                  <div className="flex items-center gap-2 text-xs font-bold text-white uppercase tracking-wider">
+                    <Shield className="w-4 h-4 text-alien-green" />
+                    <span>100% Risk-Free Pre-Order Guarantee</span>
+                  </div>
+                  <p className="text-[11px] text-gray-400 leading-relaxed">
+                    Cancel anytime before shipment for a 100% full refund with zero penalty. Batch allocation reserved immediately upon order placement.
+                  </p>
+                  <Link href="/pages/pre-order" className="text-[11px] text-alien-green hover:underline inline-flex items-center gap-1 font-mono">
+                    View Pre-Order Policy &rarr;
+                  </Link>
+                </div>
 
                 {/* Wishlist & Compare Toggles */}
                 <div className="flex items-center justify-center gap-4 pt-2">
@@ -1213,7 +1238,7 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
                   className="btn-primary px-8 py-3.5 h-12 justify-center text-sm font-bold text-space-950 font-sans shadow-glow-green"
                   style={{ backgroundColor: color }}
                 >
-                  Add Bundle to Cart
+                  Pre-order Bundle
                 </button>
               </div>
 

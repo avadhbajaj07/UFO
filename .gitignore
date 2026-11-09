@@ -16,6 +16,8 @@ build
 # misc
 .DS_Store
 *.pem
+/scratch/
+/tmp/
 
 # debug
 npm-debug.log*

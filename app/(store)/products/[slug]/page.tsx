@@ -7,6 +7,9 @@ import type { Metadata } from 'next'
 import { isExcludedPublicProductSlug } from '@/lib/products/catalog'
 import { getProductSeo, SITE_URL } from '@/lib/seo/catalog'
 
+import { getCanonicalUnitPrice } from '@/lib/config/pricing'
+import { PREORDER_CONFIG } from '@/lib/config/preorder'
+
 export const revalidate = 0
 
 interface Props {
@@ -114,12 +117,13 @@ export default async function ProductPage({ params }: Props) {
     : prod.category?.name
 
   const images = (prod.images as any[] ?? []).map((img) => img.url)
+  const canonicalUnitPrice = getCanonicalUnitPrice(prod.slug, 'CHF', prod.base_price)
   const offersList = (prod.variants as any[] ?? []).map((v) => ({
     '@type': 'Offer',
-    price: v.price,
+    price: getCanonicalUnitPrice(prod.slug, 'CHF', v.price),
     priceCurrency: 'CHF',
     itemCondition: 'https://schema.org/NewCondition',
-    availability: v.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+    availability: 'https://schema.org/PreOrder',
     sku: v.sku,
     url: `${SITE_URL}/products/${prod.slug}`,
   }))
@@ -147,9 +151,9 @@ export default async function ProductPage({ params }: Props) {
     } : {}),
     offers: offersList.length > 0 ? (offersList.length === 1 ? offersList[0] : offersList) : {
       '@type': 'Offer',
-      price: prod.base_price,
+      price: canonicalUnitPrice,
       priceCurrency: 'CHF',
-      availability: 'https://schema.org/InStock',
+      availability: 'https://schema.org/PreOrder',
       url: `${SITE_URL}/products/${prod.slug}`,
     }
   }

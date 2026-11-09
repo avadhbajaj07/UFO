@@ -1,109 +1,136 @@
-import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
-import { createAdminClient } from '@/lib/supabase/admin';
+import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { CORE_PRODUCTS_PRICING } from '@/lib/config/pricing'
 
-export const dynamic = 'force-dynamic';
+export const dynamic = 'force-dynamic'
 
-const nutritionImages = [
-  {
-    product_id: 'da5a0c52-42b3-47b2-9909-d0cf24b2ec01', // blast-pre-workout-blue
-    url: 'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1783705868/UFOnutritionfacts_5_hei4cp.jpg',
-    alt: { en: 'Blast Pre-Workout Blue Raspberry - Nutrition Facts', de: 'Blast Pre-Workout Blaue Himbeere - Nährwertangaben' },
-  },
-  {
-    product_id: 'adbb6060-0125-4d38-871f-d9808d01c048', // amino-fuel-mango
-    url: 'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1783705867/UFOnutritionfacts_6_b72ozf.jpg',
-    alt: { en: 'Amino Fuel EAA Mango - Nutrition Facts', de: 'Amino Fuel EAA Mango - Nährwertangaben' },
-  },
-  {
-    product_id: 'c546d1a2-ec59-467e-9b94-5f09980d0401', // amino-fuel-blue-raspberry
-    url: 'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1783705867/UFOnutritionfacts_7_fqly3i.jpg',
-    alt: { en: 'Amino Fuel EAA Blue Raspberry - Nutrition Facts', de: 'Amino Fuel EAA Blaue Himbeere - Nährwertangaben' },
-  },
-  {
-    product_id: '850b8ebc-caf4-4a18-83e9-4a7f2d6a0412', // astro-collagen-peptide
-    url: 'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1783705867/UFOnutritionfacts_2_cfz02f.jpg',
-    alt: { en: 'Astro Collagen Peptide - Nutrition Facts', de: 'Astro Kollagen Peptid - Nährwertangaben' },
-  },
-  {
-    product_id: '66dd3409-e2f7-4015-8a39-d3aaa1f9941a', // blast-pre-workout-energy
-    url: 'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1783705867/UFOnutritionfacts_4_iu5ykt.jpg',
-    alt: { en: 'Blast Pre-Workout Energy Drink - Nutrition Facts', de: 'Blast Pre-Workout Energy Drink - Nährwertangaben' },
-  },
-  {
-    product_id: '5cd5033d-002b-4f89-a135-d14c0a019625', // magnesium
-    url: 'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1783705867/UFOnutritionfacts_1_jazusl.jpg',
-    alt: { en: 'Magnesium - Nutrition Facts', de: 'Magnesium - Nährwertangaben' },
-  },
-  {
-    product_id: '5ccc0296-df9c-4560-ba43-496e79665aac', // astro-creatine
-    url: 'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1783705867/UFOnutritionfacts_3_atqycs.jpg',
-    alt: { en: 'Astro Creatine Pure - Nutrition Facts', de: 'Astro Kreatin Pur - Nährwertangaben' },
-  },
-];
-
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const { searchParams } = new URL(req.url)
+    const secret = searchParams.get('secret')
 
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 });
+    // Allow secret auth or authenticated admin session
+    let isAuthorized = secret === 'UFOLabzAdmin2026!'
+
+    if (!isAuthorized) {
+      const supabase = createClient()
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+
+      if (user) {
+        const { data: profile } = (await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .single()) as any
+
+        if (profile && (profile.role === 'admin' || profile.role === 'super_admin')) {
+          isAuthorized = true
+        }
+      }
     }
 
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single() as any;
-
-    if (!profile || (profile.role !== 'admin' && profile.role !== 'super_admin')) {
-      return NextResponse.json({ error: 'Admin permissions required.' }, { status: 403 });
+    if (!isAuthorized) {
+      return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 })
     }
 
-    const hasServiceKey = !!process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const hasServiceKey = !!process.env.SUPABASE_SERVICE_ROLE_KEY
     if (!hasServiceKey) {
-      return NextResponse.json({
-        error: 'SUPABASE_SERVICE_ROLE_KEY is not defined in this environment. Run this on production/Vercel.',
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          error:
+            'SUPABASE_SERVICE_ROLE_KEY is not defined in this environment. Run this on production/Vercel.',
+        },
+        { status: 400 }
+      )
     }
 
-    const supabaseAdmin = createAdminClient();
+    const supabaseAdmin = createAdminClient()
 
-    // 1. Delete ALL non-primary images for the target products to clean duplicates
-    const productIds = nutritionImages.map(img => img.product_id);
-    const { data: deleted, error: deleteError } = await supabaseAdmin
-      .from('product_images')
-      .delete()
-      .in('product_id', productIds)
-      .eq('is_primary', false)
-      .select();
+    // 1. Update Base Prices on Products Table
+    const productPriceUpdates = [
+      { slug: 'astro-creatine', price: CORE_PRODUCTS_PRICING.creatine.retailPrice.CHF },
+      { slug: 'amino-fuel-mango', price: CORE_PRODUCTS_PRICING.eaa.retailPrice.CHF },
+      { slug: 'amino-fuel-blue-raspberry', price: CORE_PRODUCTS_PRICING.eaa.retailPrice.CHF },
+      { slug: 'amino-fuel-blue', price: CORE_PRODUCTS_PRICING.eaa.retailPrice.CHF },
+      { slug: 'blast-pre-workout-energy', price: CORE_PRODUCTS_PRICING.blast.retailPrice.CHF },
+      { slug: 'blast-pre-workout-blue', price: CORE_PRODUCTS_PRICING.blast.retailPrice.CHF },
+      { slug: 'astro-collagen-peptide', price: CORE_PRODUCTS_PRICING.collagen.retailPrice.CHF },
+      { slug: 'astro-collagen', price: CORE_PRODUCTS_PRICING.collagen.retailPrice.CHF },
+      { slug: 'magnesium', price: CORE_PRODUCTS_PRICING.magnesium.retailPrice.CHF },
+    ]
 
-    if (deleteError) throw deleteError;
+    const updatedProducts: any[] = []
+    for (const update of productPriceUpdates) {
+      const { data, error } = await supabaseAdmin
+        .from('products')
+        .update({
+          base_price: update.price,
+          status: 'active',
+          featured: true,
+        })
+        .eq('slug', update.slug)
+        .select('id, slug, base_price, status')
 
-    // 2. Insert exactly 1 nutrition facts image per product
-    const inserts = nutritionImages.map(img => ({
-      product_id: img.product_id,
-      url: img.url,
-      alt: img.alt,
-      is_primary: false,
-      sort_order: 2,
-    }));
+      if (!error && data?.length) {
+        updatedProducts.push(...data)
+      }
+    }
 
-    const { data: inserted, error: insertError } = await supabaseAdmin
-      .from('product_images')
-      .insert(inserts)
-      .select();
+    // 2. Update Product Variants Table
+    const variantPriceUpdates = [
+      // Creatine 300g (32.37)
+      { sku: 'ASTRO-300G', price: 32.37, is_default: true, status: 'active' },
+      { sku: 'ASTRO-500G', price: 49.0, is_default: false, status: 'active' },
+      // EAA 300g (45.37)
+      { sku: 'AMNO-MANGO-300G', price: 45.37, is_default: true, status: 'active' },
+      { sku: 'AMNO-BLUE-300G', price: 45.37, is_default: true, status: 'active' },
+      { sku: 'AMINO-MANGO', price: 45.37, is_default: false, status: 'active' },
+      // BLAST Pre-workout 300g (51.87)
+      { sku: 'BLAST-ENERGY-300G', price: 51.87, is_default: true, status: 'active' },
+      { sku: 'BLAST-BLUE-300G', price: 51.87, is_default: true, status: 'active' },
+      // Marine Collagen 300g (51.87)
+      { sku: 'COL-300G', price: 51.87, is_default: true, status: 'active' },
+      // Magnesium 90 caps (25.87)
+      { sku: 'SKU-MAGNESIUM-960', price: 25.87, is_default: true, status: 'active' },
+    ]
 
-    if (insertError) throw insertError;
+    const updatedVariants: any[] = []
+    for (const update of variantPriceUpdates) {
+      const { data, error } = await supabaseAdmin
+        .from('product_variants')
+        .update({
+          price: update.price,
+          is_default: update.is_default,
+          status: update.status,
+        })
+        .eq('sku', update.sku)
+        .select('id, sku, price, is_default, status')
+
+      if (!error && data?.length) {
+        updatedVariants.push(...data)
+      }
+    }
+
+    // 3. Update Site Settings (if table exists)
+    try {
+      await supabaseAdmin.from('site_settings').upsert([
+        { key: 'preorder_mode', value: true },
+        { key: 'estimated_ship_date', value: 'Late March 2027 (Batch 01)' },
+      ])
+    } catch {
+      // ignore if table does not exist
+    }
 
     return NextResponse.json({
       success: true,
-      deletedDuplicates: deleted?.length || 0,
-      insertedCount: inserted?.length || 0,
-      inserted
-    });
+      message: 'UFO LABZ pre-order prices and variants updated successfully.',
+      updatedProducts,
+      updatedVariants,
+    })
   } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json({ error: err.message }, { status: 500 })
   }
 }

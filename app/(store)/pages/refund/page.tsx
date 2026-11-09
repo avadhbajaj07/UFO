@@ -28,10 +28,17 @@ export default function RefundPage() {
       {/* Main Content */}
       <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 space-y-12 text-left">
         <div className="card-glass p-8 space-y-6">
+          <div className="bg-alien-green/10 border border-alien-green/30 rounded-2xl p-6 mb-6">
+            <h2 className="font-display text-xl text-alien-green mb-2">100% PRE-ORDER MONEY-BACK GUARANTEE</h2>
+            <p className="text-sm text-gray-300 leading-relaxed">
+              For all pre-order reservations (Batch 01), you are entitled to cancel your pre-order at any time <strong>prior to shipment dispatch</strong> for a 100% full refund with zero fees or penalties. Email <strong>support@ufolabz.com</strong> with your order reference number to cancel instantly.
+            </p>
+          </div>
+
           <div>
-            <h2 className="font-display text-2xl text-white mb-3">NO REFUNDS OR RETURNS</h2>
+            <h2 className="font-display text-2xl text-white mb-3">POST-DELIVERY REFUNDS &amp; RETURNS</h2>
             <p className="text-sm text-muted leading-relaxed">
-              We operate under a strict <strong>No Refunds and No Returns</strong> policy on all orders. All sales of supplement cargo are final.
+              Once an order has been dispatched and delivered, we operate under a strict <strong>Final Sale / No Returns</strong> policy on dietary supplements due to health, safety, and hygiene standards.
             </p>
           </div>
 

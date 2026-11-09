@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import type Stripe from 'stripe'
-import { buildStripeLineItems, buildValidatedCheckoutTotals, toStripeAmount } from '@/lib/checkout/amounts'
+import {
+  buildStripeLineItems,
+  buildValidatedCheckoutTotals,
+  toStripeAmount,
+} from '@/lib/checkout/amounts'
 import { isStripeConfigured, stripe } from '@/lib/stripe'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { PREORDER_CONFIG } from '@/lib/config/preorder'
 
 function getBaseUrl(req: NextRequest) {
   const configuredUrl = process.env.NEXT_PUBLIC_APP_URL
@@ -34,12 +39,16 @@ export async function POST(req: NextRequest) {
       email,
       fullName,
       paymentMethod,
+      currency = 'CHF',
+      deliveryMethod = 'shipping',
+      country,
       items,
       shippingMethod,
       discountAmount,
       carbonOffset,
       couponCode,
     } = body
+
     requestedPaymentMethod = paymentMethod
 
     if (!orderNumber || !email || !items?.length) {
@@ -49,28 +58,47 @@ export async function POST(req: NextRequest) {
       )
     }
 
+    const normalizedCurrency = (currency || 'CHF').toUpperCase() === 'EUR' ? 'EUR' : 'CHF'
+
     if (!['twint', 'card'].includes(paymentMethod)) {
       return NextResponse.json(
-        { error: 'Stripe Checkout only supports TWINT and card payments here.' },
+        { error: 'Stripe Checkout supports Card (CHF & EUR) and TWINT (CHF only).' },
+        { status: 400 }
+      )
+    }
+
+    if (paymentMethod === 'twint' && normalizedCurrency === 'EUR') {
+      return NextResponse.json(
+        { error: 'TWINT payment is only available for Swiss Francs (CHF). Please select Card for EUR payments.' },
         { status: 400 }
       )
     }
 
     const totals = await buildValidatedCheckoutTotals(supabaseAdmin, {
       items,
+      currency: normalizedCurrency,
+      deliveryMethod,
+      country,
       shippingMethod,
       discountAmount,
       couponCode,
       carbonOffset,
     })
 
+    const stripeCurrency = totals.currency.toLowerCase()
     const discounts: { coupon: string }[] = []
+
     if (totals.discountAmount > 0) {
       const coupon = await stripe.coupons.create({
         amount_off: toStripeAmount(totals.discountAmount),
-        currency: 'chf',
+        currency: stripeCurrency,
         duration: 'once',
-        name: couponCode ? `UFO LABZ ${couponCode}` : 'UFO LABZ checkout discount',
+        name:
+          totals.nutrifitDiscountAmount > 0
+            ? 'NutriFit Geneva 2nd Unit 50% Off'
+            : couponCode
+            ? `UFO LABZ ${couponCode}`
+            : 'UFO LABZ checkout discount',
       })
       discounts.push({ coupon: coupon.id })
     }
@@ -78,7 +106,8 @@ export async function POST(req: NextRequest) {
     const baseUrl = getBaseUrl(req)
     const sessionParams: Stripe.Checkout.SessionCreateParams = {
       mode: 'payment',
-      payment_method_types: paymentMethod === 'twint' ? ['twint'] : ['card'],
+      payment_method_types:
+        paymentMethod === 'twint' && stripeCurrency === 'chf' ? ['twint'] : ['card'],
       customer_email: email,
       line_items: buildStripeLineItems(totals),
       discounts,
@@ -88,6 +117,12 @@ export async function POST(req: NextRequest) {
       metadata: {
         order_number: orderNumber,
         requested_payment_method: paymentMethod,
+        currency: totals.currency,
+        delivery_method: totals.deliveryMethod,
+        preorder: 'true',
+        preorder_mode: String(PREORDER_CONFIG.isPreorderMode),
+        estimated_ship_date: PREORDER_CONFIG.estimatedShipDate,
+        nutrifit_discount: String(totals.nutrifitDiscountAmount),
         coupon_code: couponCode || '',
       },
       payment_intent_data: {
@@ -95,6 +130,9 @@ export async function POST(req: NextRequest) {
           order_number: orderNumber,
           customer_name: fullName || '',
           requested_payment_method: paymentMethod,
+          preorder: 'true',
+          estimated_ship_date: PREORDER_CONFIG.estimatedShipDate,
+          delivery_method: totals.deliveryMethod,
         },
       },
     }

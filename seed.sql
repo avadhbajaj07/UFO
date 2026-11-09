@@ -50,7 +50,7 @@ INSERT INTO products (
   '{"en":"Premium hydrolyzed grass-fed collagen peptides optimized for rapid absorption, joint strength, and skin elasticity.","de":"Premium hydrolysierte Kollagenpeptide aus Weidehaltung, optimiert für schnelle Absorption, Gelenkstärke und Hautelastizität."}',
   (SELECT id FROM categories WHERE slug = 'marine-collagen'),
   'active', true, '#9B30FF', 'cosmic-purple',
-  34.00, 8.1, true, 1,
+  51.87, 8.1, true, 1,
   '{"key_benefits": ["Rebuilds Joint Cartilage & Connective Tissue", "Promotes Skin Hydration & Youthful Elasticity", "Hydrolyzed Peptides for Near-Instant Absorption", "Swiss Laboratory Quality Assured"]}'::jsonb
 ) ON CONFLICT (slug) DO UPDATE SET
   name = EXCLUDED.name,
@@ -81,7 +81,7 @@ INSERT INTO products (
   '{"en":"Explosive energy and laser focus formula for extreme pre-workout performance in refreshing citrus energy drink flavor.","de":"Explosive Energie und Laserfokus-Formel für extreme Pre-Workout-Leistung im erfrischenden Zitrus-Energy-Drink-Geschmack."}',
   (SELECT id FROM categories WHERE slug = 'pre-workout'),
   'active', true, '#FF2244', 'electric-red',
-  24.00, 8.1, true, 2,
+  51.87, 8.1, true, 2,
   '{"key_benefits": ["Absolute Nitric Oxide Boost (Muscle Pumps)", "Promotes High-Intensity Endurance & Buffers Acid", "Clean, Sustainable Energy without Crashing", "Swiss Lab Certified Purity"]}'::jsonb
 ) ON CONFLICT (slug) DO UPDATE SET
   name = EXCLUDED.name,
@@ -112,7 +112,7 @@ INSERT INTO products (
   '{"en":"Premium 100% micronized creatine monohydrate for explosive power, muscle hypertrophy, and cellular recovery.","de":"Premium 100% mikronisiertes Kreatin-Monohydrat für explosive Kraft, Muskelhypertrophie und zelluläre Erholung."}',
   (SELECT id FROM categories WHERE slug = 'creatine'),
   'active', true, '#00FF88', 'alien-green',
-  19.00, 8.1, true, 3,
+  32.37, 8.1, true, 3,
   '{"key_benefits": ["Increases Explosive Strength & Peak Power", "Accelerates Muscle Growth & Hydration", "Promotes Rapid ATP Resynthesis", "Swiss Laboratory Tested for 99.9% Purity"]}'::jsonb
 ) ON CONFLICT (slug) DO UPDATE SET
   name = EXCLUDED.name,
@@ -143,7 +143,7 @@ INSERT INTO products (
   '{"en":"Complete Essential Amino Acids (EAA) matrix with added hydration electrolytes in delicious mango flavor.","de":"Vollständige Matrix essenzieller Aminosäuren (EAA) mit zusätzlichen Hydratationselektrolyten in köstlichem Mango-Geschmack."}',
   (SELECT id FROM categories WHERE slug = 'amino-acids'),
   'active', true, '#FF8C00', 'mango-orange',
-  17.90, 8.1, true, 4,
+  45.37, 8.1, true, 4,
   '{"key_benefits": ["Triggers Muscle Protein Synthesis & Hypertrophy", "Reduces Muscle Soreness & Accelerates Healing", "Enhances Intra-Workout Hydration with Electrolytes", "100% Vegan Fermented Amino Acids"]}'::jsonb
 ) ON CONFLICT (slug) DO UPDATE SET
   name = EXCLUDED.name,
@@ -174,7 +174,7 @@ INSERT INTO products (
   '{"en":"Extreme pre-workout energy and focus formula featuring an electric blue raspberry flavor profile.","de":"Extreme Pre-Workout-Energie- und Fokusformel mit einem elektrisierenden blauen Himbeer-Geschmacksprofil."}',
   (SELECT id FROM categories WHERE slug = 'pre-workout'),
   'active', true, '#00CFFF', 'neon-blue',
-  24.00, 8.1, true, 5,
+  51.87, 8.1, true, 5,
   '{"key_benefits": ["Massive Nitric Oxide Influx (Vascularity)", "Buffers Muscular Lactic Acid Accumulation", "Heightened Mind-Muscle Connection", "100% Transparent Formula, Swiss Quality"]}'::jsonb
 ) ON CONFLICT (slug) DO UPDATE SET
   name = EXCLUDED.name,
@@ -205,7 +205,7 @@ INSERT INTO products (
   '{"en":"Full essential amino acids matrix paired with advanced electrolytes in a cold blue raspberry flavor.","de":"Vollständige Matrix essenzieller Aminosäuren gepaart mit fortschrittlichen Elektrolyten in erfrischendem blauen Himbeer-Geschmack."}',
   (SELECT id FROM categories WHERE slug = 'amino-acids'),
   'active', true, '#00CFFF', 'neon-blue',
-  17.90, 8.1, true, 6,
+  45.37, 8.1, true, 6,
   '{"key_benefits": ["Maximizes Recovery Rates & Muscle Preservation", "Combats Hydration Depletion & Fatigue", "Formulated with Ultra-Pure Plant-Based Aminos", "Lab Tested at Swiss Scientific Standards"]}'::jsonb
 ) ON CONFLICT (slug) DO UPDATE SET
   name = EXCLUDED.name,
@@ -226,7 +226,7 @@ INSERT INTO products (
 -- ─── PRODUCT VARIANTS ─────────────────────────────────────────
 INSERT INTO product_variants (product_id, name, sku, price, compare_at_price, weight_grams, serving_size, servings, stock, is_default, sort_order)
 VALUES 
-  ((SELECT id FROM products WHERE slug = 'astro-collagen'), '300g / 30 Servings', 'COL-300G', 34.00, 42.00, 300, '10g', 30, 500, true, 1)
+  ((SELECT id FROM products WHERE slug = 'astro-collagen'), '300g / 30 Servings', 'COL-300G', 51.87, NULL, 300, '10g', 30, 500, true, 1)
 ON CONFLICT (sku) DO UPDATE SET
   price = EXCLUDED.price,
   compare_at_price = EXCLUDED.compare_at_price,
@@ -239,7 +239,7 @@ ON CONFLICT (sku) DO UPDATE SET
 
 INSERT INTO product_variants (product_id, name, sku, price, compare_at_price, weight_grams, serving_size, servings, stock, is_default, sort_order)
 VALUES 
-  ((SELECT id FROM products WHERE slug = 'blast-pre-workout-energy'), '300g / 30 Servings', 'BLAST-ENERGY-300G', 24.00, 29.00, 300, '10g', 30, 400, true, 1)
+  ((SELECT id FROM products WHERE slug = 'blast-pre-workout-energy'), '300g / 30 Servings', 'BLAST-ENERGY-300G', 51.87, NULL, 300, '10g', 30, 400, true, 1)
 ON CONFLICT (sku) DO UPDATE SET
   price = EXCLUDED.price,
   compare_at_price = EXCLUDED.compare_at_price,
@@ -252,7 +252,7 @@ ON CONFLICT (sku) DO UPDATE SET
 
 INSERT INTO product_variants (product_id, name, sku, price, compare_at_price, weight_grams, serving_size, servings, stock, is_default, sort_order)
 VALUES 
-  ((SELECT id FROM products WHERE slug = 'astro-creatine'), '500g / 100 Servings', 'ASTRO-500G', 19.00, 24.00, 500, '5g', 100, 600, true, 1)
+  ((SELECT id FROM products WHERE slug = 'astro-creatine'), '300g / 60 Servings', 'ASTRO-300G', 32.37, NULL, 300, '5g', 60, 600, true, 1)
 ON CONFLICT (sku) DO UPDATE SET
   price = EXCLUDED.price,
   compare_at_price = EXCLUDED.compare_at_price,
@@ -265,7 +265,7 @@ ON CONFLICT (sku) DO UPDATE SET
 
 INSERT INTO product_variants (product_id, name, sku, price, compare_at_price, weight_grams, serving_size, servings, stock, is_default, sort_order)
 VALUES 
-  ((SELECT id FROM products WHERE slug = 'amino-fuel-mango'), '300g / 30 Servings', 'AMNO-MANGO-300G', 17.90, 21.90, 300, '10g', 30, 450, true, 1)
+  ((SELECT id FROM products WHERE slug = 'amino-fuel-mango'), '300g / 30 Servings', 'AMNO-MANGO-300G', 45.37, NULL, 300, '10g', 30, 450, true, 1)
 ON CONFLICT (sku) DO UPDATE SET
   price = EXCLUDED.price,
   compare_at_price = EXCLUDED.compare_at_price,
@@ -278,7 +278,7 @@ ON CONFLICT (sku) DO UPDATE SET
 
 INSERT INTO product_variants (product_id, name, sku, price, compare_at_price, weight_grams, serving_size, servings, stock, is_default, sort_order)
 VALUES 
-  ((SELECT id FROM products WHERE slug = 'blast-pre-workout-blue'), '300g / 30 Servings', 'BLAST-BLUE-300G', 24.00, 29.00, 300, '10g', 30, 350, true, 1)
+  ((SELECT id FROM products WHERE slug = 'blast-pre-workout-blue'), '300g / 30 Servings', 'BLAST-BLUE-300G', 51.87, NULL, 300, '10g', 30, 350, true, 1)
 ON CONFLICT (sku) DO UPDATE SET
   price = EXCLUDED.price,
   compare_at_price = EXCLUDED.compare_at_price,
@@ -291,7 +291,20 @@ ON CONFLICT (sku) DO UPDATE SET
 
 INSERT INTO product_variants (product_id, name, sku, price, compare_at_price, weight_grams, serving_size, servings, stock, is_default, sort_order)
 VALUES 
-  ((SELECT id FROM products WHERE slug = 'amino-fuel-blue-raspberry'), '300g / 30 Servings', 'AMNO-BLUE-300G', 17.90, 21.90, 300, '10g', 30, 350, true, 1)
+  ((SELECT id FROM products WHERE slug = 'amino-fuel-blue-raspberry'), '300g / 30 Servings', 'AMNO-BLUE-300G', 45.37, NULL, 300, '10g', 30, 350, true, 1)
+ON CONFLICT (sku) DO UPDATE SET
+  price = EXCLUDED.price,
+  compare_at_price = EXCLUDED.compare_at_price,
+  weight_grams = EXCLUDED.weight_grams,
+  serving_size = EXCLUDED.serving_size,
+  servings = EXCLUDED.servings,
+  stock = EXCLUDED.stock,
+  is_default = EXCLUDED.is_default,
+  sort_order = EXCLUDED.sort_order;
+
+INSERT INTO product_variants (product_id, name, sku, price, compare_at_price, weight_grams, serving_size, servings, stock, is_default, sort_order)
+VALUES 
+  ((SELECT id FROM products WHERE slug = 'magnesium'), '90 caps', 'SKU-MAGNESIUM-960', 25.87, NULL, 300, NULL, 30, 200, true, 1)
 ON CONFLICT (sku) DO UPDATE SET
   price = EXCLUDED.price,
   compare_at_price = EXCLUDED.compare_at_price,

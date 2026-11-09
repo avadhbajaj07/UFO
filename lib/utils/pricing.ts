@@ -1,9 +1,29 @@
-export function formatPrice(price: number): string {
-  // Swiss Franc formatting, e.g. "CHF 49.00" or similar
-  return new Intl.NumberFormat('de-CH', {
-    style: 'currency',
-    currency: 'CHF',
-  }).format(price)
+import {
+  SupportedCurrency,
+  formatCurrencyPrice,
+  getCanonicalUnitPrice,
+  getProductPricing,
+  calculateNutrifitPickupDiscount,
+  calculateShippingFee,
+  CORE_PRODUCTS_PRICING,
+  SHIPPING_CONFIG,
+  NUTRIFIT_STORE_INFO,
+} from '@/lib/config/pricing'
+
+export {
+  formatCurrencyPrice,
+  getCanonicalUnitPrice,
+  getProductPricing,
+  calculateNutrifitPickupDiscount,
+  calculateShippingFee,
+  CORE_PRODUCTS_PRICING,
+  SHIPPING_CONFIG,
+  NUTRIFIT_STORE_INFO,
+}
+export type { SupportedCurrency }
+
+export function formatPrice(price: number, currency: SupportedCurrency = 'CHF'): string {
+  return formatCurrencyPrice(price, currency)
 }
 
 export interface PricingRule {
