@@ -224,11 +224,6 @@ export default function CartDrawer() {
               </Link>
             </div>
 
-            {/* NutriFit Geneva Pickup notice */}
-            <div className="bg-space-800/60 border border-alien-green/20 rounded-xl p-2.5 text-[11px] text-gray-300">
-              <span className="text-alien-green font-bold">NutriFit Geneva Pickup:</span> Free in-store collection available at checkout.
-            </div>
-
             {/* Summary */}
             <div className="space-y-1.5 text-sm">
               <div className="flex justify-between text-muted">

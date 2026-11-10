@@ -14,8 +14,6 @@ interface OrderConfirmationProps {
   customerName: string;
   isPreorder?: boolean;
   estimatedShipDate?: string;
-  isPickupNutrifit?: boolean;
-  pickupAddress?: string;
   shippingAddress: {
     fullName: string;
     addressLine1: string;
@@ -53,8 +51,6 @@ export default function OrderConfirmation({
   customerName,
   isPreorder = true,
   estimatedShipDate = 'Late March 2027 (Batch 01)',
-  isPickupNutrifit = false,
-  pickupAddress = 'NutriFit Store, Rue de Genève, 1200 Genève, Switzerland',
   shippingAddress,
   billingAddress,
   items,
@@ -96,21 +92,6 @@ export default function OrderConfirmation({
           Formulation and precision packaging are actively underway in Switzerland. You will receive tracking notifications as your parcel enters dispatch.
         </Text>
       </Section>
-
-      {/* NutriFit Geneva Pickup Details */}
-      {isPickupNutrifit && (
-        <Section style={{ backgroundColor: '#13111f', border: '1px solid #7952f550', borderRadius: '14px', padding: '16px', margin: '0 0 24px 0' }}>
-          <Text style={{ margin: '0 0 6px 0', fontSize: '12px', fontWeight: '700', color: '#a78bfa', textTransform: 'uppercase', fontFamily: 'monospace' }}>
-            Store Collection Location: NutriFit Geneva
-          </Text>
-          <Text style={{ margin: '0', fontSize: '13px', color: '#ffffff', fontWeight: '600' }}>
-            {pickupAddress}
-          </Text>
-          <Text style={{ margin: '6px 0 0 0', fontSize: '12px', color: '#d1d1d6' }}>
-            Your order will be available for pickup at NutriFit Geneva the moment Batch 01 arrives. Simply present this email or order #{orderNumber}.
-          </Text>
-        </Section>
-      )}
 
       {/* Order Info Summary */}
       <Section style={{ backgroundColor: '#0b0b0f', border: '1px solid #1e1e26', borderRadius: '16px', padding: '16px', margin: '0 0 24px 0' }}>
@@ -181,7 +162,7 @@ export default function OrderConfirmation({
       <Row style={{ margin: '0 0 24px 0' }}>
         <Column style={{ width: '50%', paddingRight: '12px', verticalAlign: 'top' }}>
           <Text style={{ fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#ffffff', margin: '0 0 8px 0' }}>
-            {isPickupNutrifit ? 'Pickup Location' : 'Shipping Destination'}
+            Shipping Destination
           </Text>
           <Text style={{ fontSize: '12px', color: '#d1d1d6', lineHeight: '1.5', margin: '0' }}>
             {shippingAddress.fullName}<br />

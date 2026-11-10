@@ -282,53 +282,24 @@ export function calculateStackDiscount(
 }
 
 /**
- * Resolves whether the NutriFit Geneva Pickup BOGO 50% discount or
- * the Stack Tier Volume Discount gives the customer greater savings.
- * They do NOT stack. Whichever single discount is higher is applied.
+ * Resolves the Stack Tier Volume Discount.
  */
 export function resolveBestDiscount({
-  deliveryMethod,
-  nutrifitDiscount,
   stackDiscount,
 }: {
-  deliveryMethod: 'shipping' | 'pickup_nutrifit'
-  nutrifitDiscount: number
+  deliveryMethod?: string
+  nutrifitDiscount?: number
   stackDiscount: number
 }): {
   appliedDiscount: number
-  appliedDiscountType: 'none' | 'stack_tier' | 'nutrifit_pickup'
+  appliedDiscountType: 'none' | 'stack_tier'
   appliedDiscountNote: string
 } {
-  // If home delivery, NutriFit pickup discount is never eligible
-  if (deliveryMethod !== 'pickup_nutrifit') {
-    if (stackDiscount > 0) {
-      return {
-        appliedDiscount: stackDiscount,
-        appliedDiscountType: 'stack_tier',
-        appliedDiscountNote: 'Volume Stack Discount',
-      }
-    }
-    return {
-      appliedDiscount: 0,
-      appliedDiscountType: 'none',
-      appliedDiscountNote: '',
-    }
-  }
-
-  // For NutriFit pickup, compare both discounts and pick the higher savings
-  if (nutrifitDiscount > 0 && nutrifitDiscount >= stackDiscount) {
-    return {
-      appliedDiscount: Math.round(nutrifitDiscount * 100) / 100,
-      appliedDiscountType: 'nutrifit_pickup',
-      appliedDiscountNote: 'NutriFit Geneva In-Store 50% Off 2nd Unit (Best Value)',
-    }
-  }
-
   if (stackDiscount > 0) {
     return {
       appliedDiscount: Math.round(stackDiscount * 100) / 100,
       appliedDiscountType: 'stack_tier',
-      appliedDiscountNote: 'Volume Stack Discount (Best Value)',
+      appliedDiscountNote: 'Volume Stack Discount',
     }
   }
 

@@ -1,13 +1,13 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { ShieldCheck, Truck, RefreshCw, AlertCircle, MapPin, CheckCircle2 } from 'lucide-react'
+import { ShieldCheck, Truck, RefreshCw, AlertCircle, CheckCircle2 } from 'lucide-react'
 import { PREORDER_CONFIG } from '@/lib/config/preorder'
-import { SHIPPING_CONFIG, NUTRIFIT_STORE_INFO } from '@/lib/config/pricing'
+import { SHIPPING_CONFIG } from '@/lib/config/pricing'
 
 export const metadata: Metadata = {
   title: 'Pre-Order Policy & Guarantee | UFO LABZ Switzerland',
   description:
-    'Read the official UFO LABZ Pre-Order Terms, Batch 01 dispatch timelines, NutriFit Geneva pickup details, and our 100% full refund cancellation guarantee.',
+    'Read the official UFO LABZ Pre-Order Terms, Batch 01 dispatch timelines, Swiss shipping details, and our 100% full refund cancellation guarantee.',
 }
 
 export default function PreOrderPolicyPage() {
@@ -96,8 +96,8 @@ export default function PreOrderPolicyPage() {
                 <div className="p-4 bg-space-950 border border-white/5 rounded-xl space-y-1">
                   <div className="font-bold text-white text-xs font-mono uppercase">Switzerland (CHF)</div>
                   <p className="text-xs text-gray-300">• Free shipping for orders CHF {SHIPPING_CONFIG.switzerland.freeThreshold.toFixed(2)}+</p>
-                  <p className="text-xs text-gray-300">• CHF {SHIPPING_CONFIG.switzerland.standardFee.toFixed(2)} standard shipping under CHF 50</p>
-                  <p className="text-xs text-alien-green font-semibold">• Free pickup at NutriFit Geneva</p>
+                  <p className="text-xs text-gray-300">• CHF {SHIPPING_CONFIG.switzerland.standardFee.toFixed(2)} standard shipping under CHF 75</p>
+                  <p className="text-xs text-alien-green font-semibold">• Tracked Swiss Post dispatch</p>
                 </div>
                 <div className="p-4 bg-space-950 border border-white/5 rounded-xl space-y-1">
                   <div className="font-bold text-white text-xs font-mono uppercase">European Union (EUR)</div>
@@ -109,36 +109,11 @@ export default function PreOrderPolicyPage() {
             </div>
           </div>
 
-          {/* 4. NutriFit Geneva Pickup */}
+          {/* 4. Cancellation Process */}
           <div className="bg-space-900 border border-white/5 p-6 rounded-2xl space-y-3">
             <div className="flex items-center gap-3">
               <span className="w-7 h-7 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-alien-green font-mono text-xs font-bold">
                 04
-              </span>
-              <h3 className="font-bold text-lg text-white">NutriFit Store Geneva In-Store Pickup</h3>
-            </div>
-            <div className="pl-10 space-y-3 text-sm text-gray-400 leading-relaxed">
-              <p>
-                Customers in the Geneva region can select <strong>NutriFit Geneva Store Pickup</strong> at checkout.
-                This provides 100% free delivery with collection directly at the NutriFit retail storefront:
-              </p>
-              <div className="p-4 bg-alien-green/5 border border-alien-green/20 rounded-xl space-y-2 text-xs">
-                <div className="font-bold text-alien-green flex items-center gap-1.5">
-                  <MapPin className="w-4 h-4 shrink-0" />
-                  <span>Pickup Location: {NUTRIFIT_STORE_INFO.name} ({NUTRIFIT_STORE_INFO.address})</span>
-                </div>
-                <p className="text-gray-300">
-                  You will receive an automated notification (SMS &amp; Email) as soon as your batch arrives at NutriFit and is ready for collection.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* 5. Cancellation Process */}
-          <div className="bg-space-900 border border-white/5 p-6 rounded-2xl space-y-3">
-            <div className="flex items-center gap-3">
-              <span className="w-7 h-7 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-alien-green font-mono text-xs font-bold">
-                05
               </span>
               <h3 className="font-bold text-lg text-white">How to Cancel or Modify Your Pre-Order</h3>
             </div>

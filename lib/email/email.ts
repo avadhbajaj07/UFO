@@ -92,8 +92,6 @@ export const emailService = {
           customerName: shippingAddress.fullName || 'Valued Customer',
           isPreorder: true,
           estimatedShipDate: orderData.estimated_ship_date || 'Late March 2027 (Batch 01)',
-          isPickupNutrifit: orderData.delivery_method === 'pickup_nutrifit' || orderData.pickup_nutrifit === true,
-          pickupAddress: 'NutriFit Store, Rue de Genève, 1200 Genève, Switzerland',
           shippingAddress: {
             fullName: shippingAddress.fullName || '',
             addressLine1: shippingAddress.addressLine1 || '',

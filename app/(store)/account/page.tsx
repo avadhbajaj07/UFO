@@ -402,7 +402,6 @@ export default function AccountPage() {
   const tabs = [
     { id: 'dashboard', label: 'Dashboard', icon: User },
     { id: 'orders', label: 'Orders', icon: ShoppingBag },
-    { id: 'subscriptions', label: 'Subscriptions', icon: RefreshCw },
     { id: 'rewards', label: 'Rewards', icon: Award },
     { id: 'referrals', label: 'Refer & Earn', icon: Sparkles },
     { id: 'wallet', label: 'Wallet', icon: Shield },
@@ -498,12 +497,12 @@ export default function AccountPage() {
                     </div>
 
                     <div className="bg-space-950 border border-white/5 p-4 rounded-2xl">
-                      <span className="text-[10px] font-mono text-gray-400 uppercase">Subscriptions</span>
+                      <span className="text-[10px] font-mono text-gray-400 uppercase">Pre-Order Status</span>
                       <div className="text-2xl font-mono font-bold text-white mt-1">
-                        {dbSubscriptions.filter(s => s.status === 'active').length} Active
+                        Batch 01
                       </div>
-                      <span className="text-[9px] text-gray-500 truncate block max-w-full">
-                        {dbSubscriptions.length > 0 ? (dbSubscriptions[0].plan?.name?.en || 'UFO Supplement') : 'No active plans'}
+                      <span className="text-[9px] text-alien-green truncate block max-w-full">
+                        Priority Queue Active
                       </span>
                     </div>
 
@@ -530,7 +529,7 @@ export default function AccountPage() {
                       <div className="grid grid-cols-2 gap-2">
                         <button onClick={() => setActiveTab('schedule')} className="bg-white/5 hover:bg-white/10 text-white font-mono text-[10px] py-2 px-3 rounded-lg text-left transition-colors border border-white/5">📋 Log Supplement</button>
                         <button onClick={() => setActiveTab('rewards')} className="bg-white/5 hover:bg-white/10 text-white font-mono text-[10px] py-2 px-3 rounded-lg text-left transition-colors border border-white/5">🎁 Redeem Rewards</button>
-                        <button onClick={() => setActiveTab('subscriptions')} className="bg-white/5 hover:bg-white/10 text-white font-mono text-[10px] py-2 px-3 rounded-lg text-left transition-colors border border-white/5">🔁 Manage Sub</button>
+                        <button onClick={() => setActiveTab('orders')} className="bg-white/5 hover:bg-white/10 text-white font-mono text-[10px] py-2 px-3 rounded-lg text-left transition-colors border border-white/5">📦 View Pre-Orders</button>
                         <button onClick={() => setActiveTab('goals')} className="bg-white/5 hover:bg-white/10 text-white font-mono text-[10px] py-2 px-3 rounded-lg text-left transition-colors border border-white/5">🎯 Modify Fitness Goal</button>
                       </div>
                     </div>

@@ -40,9 +40,9 @@ export const PREORDER_CONFIG = {
           'You may modify or cancel your pre-order at any time prior to shipping for an instant 100% full refund with zero cancellation fees. Simply contact support@ufolabz.com.',
       },
       {
-        heading: 'NutriFit Geneva Store Pickup',
+        heading: 'Switzerland & European Union Direct Dispatch',
         description:
-          'If you select NutriFit Geneva Pickup, your order ships directly to NutriFit (Geneva). You will receive an immediate SMS/email notification when it is ready for 100% free collection.',
+          'Orders ship directly to your door with tracked precision shipping throughout Switzerland and the European Union. Free delivery on all orders from CHF 75 / €75.',
       },
     ],
   },

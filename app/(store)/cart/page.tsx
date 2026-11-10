@@ -220,7 +220,7 @@ export default function CartPage() {
                   />
                 </div>
                 <p className="text-[10px] text-muted/60 leading-relaxed">
-                  We ship directly from our Swiss performance laboratory. Free delivery in Switzerland on orders exceeding CHF {freeThreshold}.- Free pickup at NutriFit Geneva.
+                  We ship directly from our Swiss performance laboratory. Free delivery in Switzerland on orders exceeding CHF {freeThreshold}.
                 </p>
               </div>
 
@@ -255,7 +255,7 @@ export default function CartPage() {
                     <span>{PREORDER_CONFIG.estimatedShipDate}</span>
                   </div>
                   <p className="text-[11px] text-gray-400">
-                    NutriFit Geneva Pickup: <strong>Free in-store collection</strong> available at checkout.
+                    Tracked Swiss Priority Dispatch · Free shipping in Switzerland on orders from CHF {freeThreshold}.
                   </p>
                 </div>
 

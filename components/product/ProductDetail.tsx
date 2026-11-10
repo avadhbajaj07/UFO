@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
   Star, ShoppingBag, Plus, Minus, ChevronDown, ChevronUp,
-  Shield, FlaskConical, CheckCircle2, Heart, RefreshCw,
+  Shield, FlaskConical, CheckCircle2, Heart, RefreshCw, Sparkles,
   Truck, ArrowRight, Award, Flame, Info, Check, MessageCircle, HelpCircle, Phone, Send
 } from 'lucide-react'
 import { formatPrice, getPricedForQuantity } from '@/lib/utils/pricing'
@@ -120,9 +120,9 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
   useEffect(() => {
     const locations = ['Zurich', 'Geneva', 'Basel', 'Bern', 'Lausanne', 'Lugano', 'St. Gallen']
     const triggers = [
-      'just purchased Astro Creatine!',
-      'just subscribed to Blast Pre-Workout!',
-      'bought Amino Fuel Mango & Pre-Workout Bundle!',
+      'just pre-ordered Astro Creatine!',
+      'just pre-ordered Blast Pre-Workout!',
+      'reserved Amino Fuel Mango & Pre-Workout Stack!',
       'earned 250 Alien Points!'
     ]
 
@@ -292,11 +292,7 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
 
   // 25% Pre-Order Launching Offer discount
   const preorderLaunchPrice = Math.round(canonicalPrice * 0.75 * 100) / 100
-  // 15% discount for subscriptions
-  const subscriptionDiscount = 0.15
-  const finalPricePerUnit = isSubscribed
-    ? Math.round(preorderLaunchPrice * (1 - subscriptionDiscount) * 100) / 100
-    : preorderLaunchPrice
+  const finalPricePerUnit = preorderLaunchPrice
   const totalOriginalPrice = canonicalPrice * quantity
   const totalFinalPrice = finalPricePerUnit * quantity
 
@@ -692,86 +688,57 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
         <div className="max-w-7xl mx-auto container-px">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
 
-            {/* Purchase Options Selector */}
+            {/* Batch 01 Allocation & Delivery Guarantees */}
             <div className="space-y-6">
-              <h3 className="font-display text-3xl tracking-wide uppercase text-white">CHOOSE FREQUENCY</h3>
+              <h3 className="font-display text-3xl tracking-wide uppercase text-white">BATCH 01 ALLOCATION</h3>
 
-              {/* Option cards */}
-              <div className="space-y-3">
-                {/* One time */}
-                <div
-                  onClick={() => setIsSubscribed(false)}
-                  className={cn(
-                    "border-2 rounded-2xl p-4 flex items-center justify-between cursor-pointer transition-all",
-                    !isSubscribed ? "border-alien-green bg-white/5" : "border-white/5 hover:border-white/10"
-                  )}
-                  style={!isSubscribed ? { borderColor: color } : {}}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-5 h-5 rounded-full border border-white/20 flex items-center justify-center">
-                      {!isSubscribed && <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: color }} />}
-                    </div>
-                    <div>
-                      <div className="font-bold text-sm text-white">One-Time Purchase</div>
-                      <div className="text-xs text-gray-400">Standard direct checkout</div>
-                    </div>
+              <div className="bg-space-950 border border-white/5 rounded-2xl p-5 space-y-4">
+                <div className="flex items-start gap-3.5">
+                  <div className="w-9 h-9 rounded-xl bg-alien-green/10 border border-alien-green/20 flex items-center justify-center shrink-0 mt-0.5">
+                    <Sparkles className="w-4 h-4 text-alien-green" />
                   </div>
-                  <div className="text-right">
-                    <div className="font-bold text-base text-white">{formatPrice(basePrice)}</div>
+                  <div>
+                    <div className="font-bold text-sm text-white">Guaranteed Batch 01 Reservation</div>
+                    <div className="text-xs text-gray-400 mt-0.5">
+                      Your order locks in fresh clinical allocation directly from our first Swiss production run.
+                    </div>
                   </div>
                 </div>
 
-                {/* Subscription */}
-                <div
-                  onClick={() => setIsSubscribed(true)}
-                  className={cn(
-                    "border-2 rounded-2xl p-4 flex flex-col gap-3 cursor-pointer transition-all",
-                    isSubscribed ? "border-alien-green bg-white/5" : "border-white/5 hover:border-white/10"
-                  )}
-                  style={isSubscribed ? { borderColor: color } : {}}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-5 h-5 rounded-full border border-white/20 flex items-center justify-center">
-                        {isSubscribed && <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: color }} />}
-                      </div>
-                      <div>
-                        <div className="font-bold text-sm text-white">Subscribe & Save 15%</div>
-                        <div className="text-xs text-gray-400">Cancel anytime, lock in discount</div>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-bold text-base text-alien-green" style={{ color }}>{formatPrice(basePrice * 0.85)}</div>
-                      <div className="text-[10px] text-gray-400 line-through">{formatPrice(basePrice)}</div>
+                <div className="flex items-start gap-3.5 pt-3 border-t border-white/5">
+                  <div className="w-9 h-9 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center shrink-0 mt-0.5">
+                    <Shield className="w-4 h-4 text-cyan-400" />
+                  </div>
+                  <div>
+                    <div className="font-bold text-sm text-white">100% Refundable Anytime</div>
+                    <div className="text-xs text-gray-400 mt-0.5">
+                      Change your mind anytime before shipment for an immediate 100% full refund with zero penalty.
                     </div>
                   </div>
+                </div>
 
-                  {isSubscribed && (
-                    <div className="pt-2 border-t border-white/5 flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
-                      <span className="text-xs font-mono text-gray-400">Deliver every:</span>
-                      <select
-                        value={frequency}
-                        onChange={(e) => setFrequency(e.target.value)}
-                        className="bg-space-950 border border-white/10 rounded-lg text-xs p-1.5 text-white focus:outline-none"
-                      >
-                        <option value="monthly">30 Days (Recommended)</option>
-                        <option value="bimonthly">60 Days</option>
-                        <option value="quarterly">90 Days</option>
-                      </select>
+                <div className="flex items-start gap-3.5 pt-3 border-t border-white/5">
+                  <div className="w-9 h-9 rounded-xl bg-alien-green/10 border border-alien-green/20 flex items-center justify-center shrink-0 mt-0.5">
+                    <Truck className="w-4 h-4 text-alien-green" />
+                  </div>
+                  <div>
+                    <div className="font-bold text-sm text-white">Tracked Swiss Delivery</div>
+                    <div className="text-xs text-gray-400 mt-0.5">
+                      Direct tracked dispatch throughout Switzerland. Free Swiss delivery on orders from CHF 75.
                     </div>
-                  )}
+                  </div>
                 </div>
               </div>
 
               {/* Delivery Estimates */}
               <div className="bg-space-950 border border-white/5 p-4 rounded-2xl flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-alien-green/10 border border-alien-green/20 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-xl bg-alien-green/10 border border-alien-green/20 flex items-center justify-center shrink-0">
                   <Truck className="w-5 h-5 text-alien-green" />
                 </div>
                 <div className="text-left text-xs">
-                  <div className="font-bold text-white">Guaranteed Delivery Estimate</div>
+                  <div className="font-bold text-white">Batch 01 Dispatch Schedule</div>
                   <div className="text-gray-400">
-                    Order in the next <strong className="text-white font-mono">{timeLeft.hours}h {timeLeft.minutes}m</strong> to receive it by Tuesday, June 30.
+                    Expected shipment: <strong className="text-white font-mono">{PREORDER_CONFIG.estimatedShipDate}</strong>.
                   </div>
                 </div>
               </div>
@@ -914,14 +881,14 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
                 </div>
               )}
 
-              {/* Pre-order Dispatch & NutriFit Geneva Pickup notice */}
+              {/* Pre-order Dispatch Notice */}
               <div className="bg-space-900 border border-alien-green/20 p-3.5 rounded-2xl space-y-1.5">
                 <div className="flex items-center gap-2 text-xs font-semibold text-alien-green">
                   <Truck className="w-4 h-4 text-alien-green shrink-0" />
                   <span>{PREORDER_CONFIG.estimatedShipNotice}</span>
                 </div>
                 <p className="text-[11px] text-gray-400 leading-relaxed">
-                  Geneva Pickup Option: Free in-store collection at NutriFit Geneva.
+                  Tracked Swiss Priority Dispatch · Free shipping in Switzerland on orders from CHF 75.
                 </p>
               </div>
 

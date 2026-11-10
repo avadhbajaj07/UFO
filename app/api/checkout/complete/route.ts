@@ -6,7 +6,6 @@ import { emailService } from '@/lib/email/email'
 import { buildValidatedCheckoutTotals, toStripeAmount } from '@/lib/checkout/amounts'
 import { isStripeConfigured, stripe } from '@/lib/stripe'
 import { PREORDER_CONFIG } from '@/lib/config/preorder'
-import { NUTRIFIT_STORE_INFO } from '@/lib/config/pricing'
 import Stripe from 'stripe'
 
 export async function POST(req: NextRequest) {
@@ -161,8 +160,6 @@ export async function POST(req: NextRequest) {
 
     // 4. Server-Side Price & Total Re-Validation
     const normalizedCurrency = (currency || 'CHF').toUpperCase() === 'EUR' ? 'EUR' : 'CHF'
-    const normalizedDeliveryMethod =
-      deliveryMethod === 'pickup_nutrifit' ? 'pickup_nutrifit' : 'shipping'
     const country =
       shippingAddress?.canton ||
       shippingAddress?.country ||
@@ -171,7 +168,7 @@ export async function POST(req: NextRequest) {
     const serverTotals = await buildValidatedCheckoutTotals(supabaseAdmin, {
       items,
       currency: normalizedCurrency,
-      deliveryMethod: normalizedDeliveryMethod,
+      deliveryMethod: 'shipping',
       country,
       shippingMethod,
       discountAmount,
@@ -233,12 +230,6 @@ export async function POST(req: NextRequest) {
     if (serverTotals.stackDiscountAmount > 0) {
       internalNote += ` [Stack Volume Discount: -${serverTotals.stackDiscountAmount.toFixed(2)} ${serverTotals.currency} (${serverTotals.stackDiscountPercent}%)]`
     }
-    if (normalizedDeliveryMethod === 'pickup_nutrifit') {
-      internalNote += ` [NutriFit Geneva Store Pickup: ${NUTRIFIT_STORE_INFO.address}]`
-      if (serverTotals.nutrifitDiscountAmount > 0) {
-        internalNote += ` (NutriFit BOGO 50% discount: -${serverTotals.nutrifitDiscountAmount.toFixed(2)} ${serverTotals.currency})`
-      }
-    }
     if (serverTotals.carbonOffsetAmount > 0) {
       internalNote += ' (Carbon-neutral offset selected)'
     }
@@ -252,26 +243,11 @@ export async function POST(req: NextRequest) {
       shipping_address: {
         fullName,
         phone,
-        addressLine1:
-          normalizedDeliveryMethod === 'pickup_nutrifit'
-            ? NUTRIFIT_STORE_INFO.address
-            : shippingAddress?.addressLine1 || '',
-        addressLine2:
-          normalizedDeliveryMethod === 'pickup_nutrifit'
-            ? 'NutriFit Store Pickup'
-            : shippingAddress?.addressLine2 || '',
-        city:
-          normalizedDeliveryMethod === 'pickup_nutrifit'
-            ? 'Genève'
-            : shippingAddress?.city || '',
-        zipCode:
-          normalizedDeliveryMethod === 'pickup_nutrifit'
-            ? '1200'
-            : shippingAddress?.zipCode || '',
-        canton:
-          normalizedDeliveryMethod === 'pickup_nutrifit'
-            ? 'Geneva'
-            : shippingAddress?.canton || '',
+        addressLine1: shippingAddress?.addressLine1 || '',
+        addressLine2: shippingAddress?.addressLine2 || '',
+        city: shippingAddress?.city || '',
+        zipCode: shippingAddress?.zipCode || '',
+        canton: shippingAddress?.canton || '',
       },
       billing_address: billingAddress
         ? {
@@ -302,10 +278,7 @@ export async function POST(req: NextRequest) {
       coupon_id: couponId,
       coupon_code: couponCode || null,
       affiliate_id: orderAffiliateId,
-      shipping_method:
-        normalizedDeliveryMethod === 'pickup_nutrifit'
-          ? 'pickup_nutrifit'
-          : shippingMethod || 'standard',
+      shipping_method: shippingMethod || 'standard',
       estimated_delivery: null, // Pre-order mode has batch estimated date stored in notes & meta
       loyalty_points_earned: Math.round(serverTotals.total * 5),
       internal_note: internalNote,
@@ -412,8 +385,7 @@ export async function POST(req: NextRequest) {
       created_at: orderInsertData.paid_at || new Date().toISOString(),
       is_preorder: true,
       estimated_ship_date: PREORDER_CONFIG.estimatedShipDate,
-      delivery_method: normalizedDeliveryMethod,
-      pickup_nutrifit: normalizedDeliveryMethod === 'pickup_nutrifit',
+      delivery_method: 'shipping',
     }
 
     const [customerEmailResult, adminEmailResult] = await Promise.all([

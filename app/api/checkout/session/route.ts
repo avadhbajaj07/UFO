@@ -128,7 +128,6 @@ export async function POST(req: NextRequest) {
         stack_tier_percent: String(totals.stackDiscountPercent),
         stack_discount_amount: String(totals.stackDiscountAmount),
         applied_discount_type: totals.appliedDiscountType,
-        nutrifit_discount: String(totals.nutrifitDiscountAmount),
         coupon_code: couponCode || '',
         stack_id: String(body.stackId || ''),
       },

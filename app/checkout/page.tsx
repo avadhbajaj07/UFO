@@ -22,10 +22,8 @@ import {
   SupportedCurrency,
   formatCurrencyPrice,
   getCanonicalUnitPrice,
-  calculateNutrifitPickupDiscount,
   calculateShippingFee,
   SHIPPING_CONFIG,
-  NUTRIFIT_STORE_INFO,
 } from '@/lib/config/pricing'
 import { calculateStackDiscount, resolveBestDiscount } from '@/lib/config/stack'
 import { PREORDER_CONFIG } from '@/lib/config/preorder'
@@ -68,7 +66,7 @@ export default function CheckoutPage() {
   const { user } = useAuthStore()
 
   // Delivery method and currency
-  const [deliveryMethod, setDeliveryMethod] = useState<'shipping_ch' | 'pickup_nutrifit' | 'shipping_eu'>('shipping_ch')
+  const [deliveryMethod, setDeliveryMethod] = useState<'shipping_ch' | 'shipping_eu'>('shipping_ch')
   const [manualCurrency, setManualCurrency] = useState<SupportedCurrency | null>(null)
   const [euCountry, setEuCountry] = useState('FR')
 
@@ -154,25 +152,6 @@ export default function CheckoutPage() {
     return mappedItems.reduce((acc, i) => acc + i.lineTotal, 0)
   }, [mappedItems])
 
-  // NutriFit Geneva Pickup BOGO 50% discount
-  const nutrifitCalc = useMemo(() => {
-    if (deliveryMethod !== 'pickup_nutrifit') {
-      return { discountTotal: 0, lineDiscounts: [] }
-    }
-    return calculateNutrifitPickupDiscount(
-      mappedItems.map((item) => ({
-        variantId: item.variant_id,
-        sku: item.sku,
-        slug: item.slug,
-        name: item.name,
-        quantity: item.quantity,
-        unitPrice: item.canonicalPrice,
-      }))
-    )
-  }, [deliveryMethod, mappedItems])
-
-  const nutrifitDiscount = nutrifitCalc.discountTotal
-
   // Stack Volume Tier Discount (2 items = 10%, 3+ items = 15%)
   const stackCalc = useMemo(() => {
     return calculateStackDiscount({
@@ -189,21 +168,20 @@ export default function CheckoutPage() {
   // 1. Pre-Order Launching Offer (25% off)
   const preorderDiscount = Math.round(subtotal * 0.25 * 100) / 100
 
-  // 2. Resolve best discount between NutriFit pickup and Stack Volume discount
+  // 2. Stack Volume discount
+  const primaryDiscount = stackCalc.discountAmount
   const discountResolution = useMemo(() => {
-    return resolveBestDiscount({
-      deliveryMethod: deliveryMethod === 'pickup_nutrifit' ? 'pickup_nutrifit' : 'shipping',
-      nutrifitDiscount,
-      stackDiscount: stackCalc.discountAmount,
-    })
-  }, [deliveryMethod, nutrifitDiscount, stackCalc.discountAmount])
+    return {
+      appliedDiscount: stackCalc.discountAmount,
+      appliedDiscountType: (stackCalc.discountPercent > 0 ? 'stack_tier' : 'none') as 'stack_tier' | 'none',
+      appliedDiscountNote: stackCalc.discountPercent > 0 ? `${stackCalc.discountPercent}% Stack Volume Discount` : '',
+    }
+  }, [stackCalc.discountAmount, stackCalc.discountPercent])
 
-  const primaryDiscount = discountResolution.appliedDiscount
   const discountedSubtotal = Math.max(0, subtotal - preorderDiscount - primaryDiscount)
 
   // Shipping Fee calculation (evaluated on discountedSubtotal: Free from 75 CHF/EUR)
   const shippingCost = useMemo(() => {
-    if (deliveryMethod === 'pickup_nutrifit') return 0.0
     if (deliveryMethod === 'shipping_ch') {
       if (shippingSpeed === 'priority') return 15.0
       return discountedSubtotal >= SHIPPING_CONFIG.switzerland.freeThreshold ? 0.0 : SHIPPING_CONFIG.switzerland.standardFee
@@ -258,7 +236,6 @@ export default function CheckoutPage() {
   }
 
   const buildOrderPayload = (orderId: string) => {
-    const isPickup = deliveryMethod === 'pickup_nutrifit'
     const isEu = deliveryMethod === 'shipping_eu'
 
     return {
@@ -268,14 +245,14 @@ export default function CheckoutPage() {
       fullName,
       phone,
       currency,
-      deliveryMethod: isPickup ? 'pickup_nutrifit' : 'shipping',
-      country: isPickup ? 'CH' : isEu ? euCountry : 'CH',
+      deliveryMethod: 'shipping',
+      country: isEu ? euCountry : 'CH',
       shippingAddress: {
-        addressLine1: isPickup ? NUTRIFIT_STORE_INFO.address : address,
-        addressLine2: isPickup ? 'NutriFit Store Pickup' : address2 || '',
-        city: isPickup ? 'Genève' : city,
-        zipCode: isPickup ? '1200' : zip,
-        canton: isPickup ? 'Geneva' : isEu ? euCountry : canton,
+        addressLine1: address,
+        addressLine2: address2 || '',
+        city,
+        zipCode: zip,
+        canton: isEu ? euCountry : canton,
       },
       billingAddress: sameAsShipping
         ? null
@@ -286,7 +263,7 @@ export default function CheckoutPage() {
             zipCode: billZip,
             canton: billCanton,
           },
-      shippingMethod: isPickup ? 'pickup_nutrifit' : shippingSpeed,
+      shippingMethod: shippingSpeed,
       paymentMethod,
       items: mappedItems.map((item) => ({
         productId: (item.variant as any)?.product?.id,
@@ -407,9 +384,7 @@ export default function CheckoutPage() {
   const handleSubmitInfo = (e: React.FormEvent) => {
     e.preventDefault()
     if (!email || !fullName || !phone) return
-    if (deliveryMethod !== 'pickup_nutrifit') {
-      if (!address || !city || !zip) return
-    }
+    if (!address || !city || !zip) return
     setCheckoutStep('payment')
   }
 
@@ -441,16 +416,6 @@ export default function CheckoutPage() {
               <span className="text-xs text-gray-400 font-mono uppercase">Estimated Dispatch</span>
               <span className="text-sm font-bold text-alien-green font-mono">{PREORDER_CONFIG.estimatedShipDate}</span>
             </div>
-            {deliveryMethod === 'pickup_nutrifit' && (
-              <div className="flex items-start justify-between pb-3 border-b border-white/5 text-xs">
-                <span className="text-gray-400 font-mono uppercase">Pickup Store</span>
-                <span className="text-right text-white font-medium">
-                  {NUTRIFIT_STORE_INFO.name}
-                  <br />
-                  <span className="text-gray-400 text-[11px]">{NUTRIFIT_STORE_INFO.address}</span>
-                </span>
-              </div>
-            )}
             <div className="text-xs text-gray-400 leading-relaxed">
               A detailed confirmation email has been dispatched to <strong className="text-white">{email}</strong>.
               You will receive real-time updates as your batch enters synthesis and packaging.
@@ -606,42 +571,7 @@ export default function CheckoutPage() {
                         </span>
                       </div>
 
-                      {/* Option B: NutriFit Geneva Store Pickup (50% Off 2nd Unit!) */}
-                      <div
-                        onClick={() => {
-                          setDeliveryMethod('pickup_nutrifit')
-                          if (!manualCurrency) setManualCurrency('CHF')
-                        }}
-                        className={cn(
-                          'border-2 rounded-xl p-4 flex items-center justify-between cursor-pointer transition-all relative overflow-hidden',
-                          deliveryMethod === 'pickup_nutrifit'
-                            ? 'border-alien-green bg-alien-green/5 shadow-glow-green'
-                            : 'border-white/5 hover:border-white/10'
-                        )}
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="w-5 h-5 rounded-full border border-white/20 flex items-center justify-center">
-                            {deliveryMethod === 'pickup_nutrifit' && <div className="w-2.5 h-2.5 rounded-full bg-alien-green" />}
-                          </div>
-                          <div>
-                            <div className="font-bold text-sm text-white flex items-center gap-2">
-                              <span>NutriFit Geneva Store Pickup</span>
-                              <span className="text-[10px] font-mono bg-alien-green/30 text-alien-green px-1.5 py-0.5 rounded font-bold">
-                                FREE PICKUP
-                              </span>
-                            </div>
-                            <div className="text-xs text-gray-400 flex items-center gap-1 mt-0.5">
-                              <MapPin className="w-3.5 h-3.5 text-alien-green shrink-0" />
-                              <span>{NUTRIFIT_STORE_INFO.address}</span>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <span className="font-mono text-xs font-bold text-alien-green block">FREE PICKUP</span>
-                        </div>
-                      </div>
-
-                      {/* Option C: EU Home Delivery */}
+                      {/* Option B: EU Home Delivery */}
                       <div
                         onClick={() => {
                           setDeliveryMethod('shipping_eu')
@@ -675,9 +605,8 @@ export default function CheckoutPage() {
                     </div>
                   </div>
 
-                  {/* Address fields (only needed when home delivery is selected) */}
-                  {deliveryMethod !== 'pickup_nutrifit' && (
-                    <div className="bg-space-900 border border-white/5 rounded-2xl p-6 space-y-4">
+                  {/* Address fields */}
+                  <div className="bg-space-900 border border-white/5 rounded-2xl p-6 space-y-4">
                       <h3 className="text-xs font-mono font-bold tracking-widest text-gray-400 uppercase">
                         03. Shipping Address
                       </h3>
@@ -761,7 +690,6 @@ export default function CheckoutPage() {
                         </div>
                       </div>
                     </div>
-                  )}
 
                   {/* Speed & Carbon options for Swiss delivery */}
                   {deliveryMethod === 'shipping_ch' && (
@@ -984,12 +912,6 @@ export default function CheckoutPage() {
                   </div>
                 )}
 
-                {deliveryMethod === 'pickup_nutrifit' && discountResolution.appliedDiscountNote && (
-                  <p className="text-[10px] text-gray-400 font-mono italic">
-                    ℹ️ {discountResolution.appliedDiscountNote}
-                  </p>
-                )}
-
                 {/* Coupon input */}
                 <div className="pt-3 border-t border-white/5">
                   {appliedCoupon ? (
@@ -1045,9 +967,7 @@ export default function CheckoutPage() {
                   )}
 
                   <div className="flex justify-between text-gray-400">
-                    <span>
-                      {deliveryMethod === 'pickup_nutrifit' ? 'NutriFit Geneva Store Pickup' : 'Shipping'}
-                    </span>
+                    <span>Shipping</span>
                     <span className={shippingCost === 0 ? 'text-alien-green font-bold' : ''}>
                       {shippingCost === 0 ? 'FREE' : formatCurrencyPrice(shippingCost, currency)}
                     </span>
@@ -1091,7 +1011,7 @@ export default function CheckoutPage() {
                     • <strong>Batch Dispatch:</strong> Expected late March 2027. Full tracking will be provided.
                   </p>
                   <p className="text-[11px] text-gray-400 leading-relaxed">
-                    • <strong>NutriFit Geneva Collection:</strong> Present your confirmation email at NutriFit store counter when ready.
+                    • <strong>Direct Cargo Dispatch:</strong> Swiss Post Priority & EU tracked delivery with live shipment updates.
                   </p>
                 </div>
                 <Link href="/pages/pre-order" className="text-[11px] text-alien-green hover:underline inline-block font-mono">

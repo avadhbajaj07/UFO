@@ -2,15 +2,12 @@ import type Stripe from 'stripe'
 import {
   SupportedCurrency,
   getCanonicalUnitPrice,
-  calculateNutrifitPickupDiscount,
   calculateShippingFee,
   SHIPPING_CONFIG,
-  NUTRIFIT_STORE_INFO,
 } from '@/lib/config/pricing'
 import { PREORDER_CONFIG } from '@/lib/config/preorder'
 import {
   calculateStackDiscount,
-  resolveBestDiscount,
   StackDiscountResult,
 } from '@/lib/config/stack'
 
@@ -84,7 +81,7 @@ function resolveCouponDiscountAmount(
   const code = couponCode?.trim().toUpperCase()
 
   if (code === 'UFO99' || code === 'ALIEN99') return subtotal * 0.99
-  if (code === 'NUTRIFIT') return subtotal * 0.9
+  if (code === 'SWISS' || code === 'UFOLABZ') return subtotal * 0.9
   if (code === 'ALIEN10') return subtotal * 0.1
   if (code === 'WELCOME10') return Math.min(10, subtotal)
   if (code === 'WELCOME500') return Math.min(5, subtotal)
@@ -212,9 +209,7 @@ export async function buildValidatedCheckoutTotals(
   // 4. Shipping fee (evaluated on subtotal AFTER discount as per pricing rules: Free from 75 CHF/EUR)
   const subtotalForShipping = Math.max(0, validatedSubtotal - discountAmount)
   let shippingAmount = 0
-  if (deliveryMethod === 'pickup_nutrifit') {
-    shippingAmount = 0.0
-  } else if (input.shippingMethod === 'priority' && currency === 'CHF') {
+  if (input.shippingMethod === 'priority' && currency === 'CHF') {
     shippingAmount = 15.0
   } else {
     shippingAmount = calculateShippingFee({

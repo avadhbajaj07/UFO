@@ -32,11 +32,11 @@ export default function ShippingPage() {
       </section>
 
       {/* Shipping Zones */}
-      <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <h2 className="font-display text-3xl text-white mb-8 text-center">
-          SHIPPING RATES &amp; PICKUP
+          SHIPPING RATES &amp; DELIVERY
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Switzerland */}
           <div className="card-glass p-6 relative">
             <span className="absolute top-4 right-4 text-[10px] font-mono bg-alien-green/10 text-alien-green border border-alien-green/20 rounded-full px-2.5 py-0.5">
@@ -53,7 +53,7 @@ export default function ShippingPage() {
               </li>
               <li className="text-sm text-muted flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-alien-green shrink-0" />
-                CHF 10.00 standard (under CHF 50)
+                CHF 10.00 standard (under CHF 75)
               </li>
               <li className="text-sm text-muted flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-alien-green shrink-0" />
@@ -62,33 +62,11 @@ export default function ShippingPage() {
             </ul>
           </div>
 
-          {/* NutriFit Geneva Pickup */}
-          <div className="card-glass p-6 border-alien-green/30 relative">
-            <span className="absolute top-4 right-4 text-[10px] font-mono bg-alien-green text-space-950 font-bold rounded-full px-2.5 py-0.5">
-              FREE PICKUP
-            </span>
-            <div className="w-12 h-12 rounded-xl bg-alien-green/10 border border-alien-green/20 flex items-center justify-center mb-4">
-              <CheckCircle2 className="w-5 h-5 text-alien-green" />
-            </div>
-            <h3 className="font-display text-xl text-white mb-3">NutriFit Geneva Pickup</h3>
-            <ul className="space-y-2">
-              <li className="text-sm text-muted flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-alien-green shrink-0" />
-                <strong>100% FREE pickup</strong> (No shipping fee)
-              </li>
-              <li className="text-sm text-muted flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-alien-green shrink-0" />
-                <strong>Immediate notification</strong> when ready for collection
-              </li>
-              <li className="text-sm text-muted flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-alien-green shrink-0" />
-                Rue de Genève, 1200 Genève
-              </li>
-            </ul>
-          </div>
-
           {/* EU Countries */}
-          <div className="card-glass p-6">
+          <div className="card-glass p-6 relative">
+            <span className="absolute top-4 right-4 text-[10px] font-mono bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 rounded-full px-2.5 py-0.5">
+              EUROPEAN UNION
+            </span>
             <div className="w-12 h-12 rounded-xl bg-nebula-800/30 border border-nebula-600/20 flex items-center justify-center mb-4">
               <Globe className="w-5 h-5 text-nebula-400" />
             </div>
@@ -100,7 +78,7 @@ export default function ShippingPage() {
               </li>
               <li className="text-sm text-muted flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-alien-green shrink-0" />
-                From €9.90 (under EUR 60)
+                From €9.90 (under EUR 75)
               </li>
               <li className="text-sm text-muted flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-alien-green shrink-0" />
