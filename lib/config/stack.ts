@@ -58,7 +58,7 @@ export const DEFAULT_PRESET_STACKS: PresetStackDef[] = [
         flavorName: 'Pure Unflavored',
         color: '#00FF88',
         imageUrl:
-          'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782667544/UFO1_p28j7v.png',
+          'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782667544/UFO4_nuzyls.png',
       },
       {
         slug: 'amino-fuel-mango',
@@ -90,7 +90,7 @@ export const DEFAULT_PRESET_STACKS: PresetStackDef[] = [
         flavorName: '90 Vegan Caps',
         color: '#00FF88',
         imageUrl:
-          'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1783922575/mangnasiumbig_mywri7.png',
+          'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1794316725/Flacon_de_magne%CC%81sium_au_design_extraterrestre_1_oo2r28.png',
       },
       {
         slug: 'astro-collagen-peptide',
@@ -100,7 +100,7 @@ export const DEFAULT_PRESET_STACKS: PresetStackDef[] = [
         flavorName: 'Pure Neutral',
         color: '#9B30FF',
         imageUrl:
-          'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782667544/UFO4_nuzyls.png',
+          'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1794316727/NEW_NOVA_COLLAGEN_1_y4eyr2.png',
       },
     ],
   },
@@ -132,7 +132,7 @@ export const DEFAULT_PRESET_STACKS: PresetStackDef[] = [
         flavorName: 'Pure Unflavored',
         color: '#00FF88',
         imageUrl:
-          'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782667544/UFO1_p28j7v.png',
+          'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782667544/UFO4_nuzyls.png',
       },
       {
         slug: 'amino-fuel-mango',

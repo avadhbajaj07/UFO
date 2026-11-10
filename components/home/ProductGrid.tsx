@@ -1,8 +1,10 @@
 'use client'
-// components/home/ProductGrid.tsx
+
+import React, { useState, useMemo } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Star, ShoppingBag, Zap } from 'lucide-react'
+import { Product } from '@/types'
 import { formatPrice } from '@/lib/utils/pricing'
 import { getCanonicalUnitPrice } from '@/lib/config/pricing'
 import { PREORDER_CONFIG } from '@/lib/config/preorder'
@@ -11,117 +13,65 @@ import { getLocalizedField } from '@/types'
 import { useCart } from '@/hooks/useCart'
 import { cn } from '@/lib/utils'
 
-interface Product {
-  id: string
-  name: Record<string, string>
-  slug: string
-  tagline: Record<string, string>
-  product_color: string | null
-  color_name: string | null
-  base_price: number
-  compare_at_price: number | null
-  avg_rating: number
-  total_reviews: number
-  is_new: boolean
-  is_best_seller: boolean
-  images: { url: string; is_primary: boolean; sort_order: number }[]
-  variants: { id: string; price: number; compare_at_price: number | null; stock: number; is_default: boolean }[]
-}
-
 interface ProductGridProps {
   products: Product[]
 }
 
-function ProductCard({ product }: { product: Product }) {
+function ProductCard({ product }: { product: any }) {
   const { addItem, isLoading } = useCart()
-  const color    = product.product_color ?? '#00FF88'
-  const name     = getLocalizedField(product.name)
-  const tagline  = getLocalizedField(product.tagline)
-  const primary  = product.images?.find((i) => i.is_primary) ?? product.images?.[0]
-  const secondary = product.images?.find((i) => !i.is_primary && i.sort_order === 2)
-  const variant  = product.variants?.find((v) => v.is_default) ?? product.variants?.[0]
-  const canonicalPrice = getCanonicalUnitPrice(product.slug, 'CHF', variant?.price ?? product.base_price)
-  const price    = canonicalPrice
-  const compare  = variant?.compare_at_price ?? product.compare_at_price
-  const savings  = compare && compare > price ? Math.round(((compare - price) / compare) * 100) : 0
-
   const { hasMultipleFlavors, flavors } = getProductFlavors(product.slug)
+  const [selectedFlavorSlug, setSelectedFlavorSlug] = useState<string>(
+    flavors[0]?.slug ?? product.slug
+  )
+
+  const activeFlavor = hasMultipleFlavors
+    ? flavors.find((f) => f.slug === selectedFlavorSlug) ?? flavors[0]
+    : null
+
+  const color = activeFlavor?.color ?? product.product_color ?? '#00FF88'
+  const name = getLocalizedField(product.name)
+  const tagline = getLocalizedField(product.tagline)
+
+  // Resolve active canister image from selected flavor or primary image
+  const primary = activeFlavor?.imageUrl
+    ? { url: activeFlavor.imageUrl }
+    : product.images?.find((i: any) => i.is_primary) ?? product.images?.[0]
+
+  const targetSlug = activeFlavor?.slug ?? product.slug
+  const variant =
+    product.variants?.find((v: any) => v.is_default) ?? product.variants?.[0]
+  const canonicalPrice = getCanonicalUnitPrice(
+    targetSlug,
+    'CHF',
+    variant?.price ?? product.base_price
+  )
 
   return (
     <div
-      className="card-glass overflow-hidden hover:shadow-card-hover transition-all duration-500 group relative flex flex-col h-full"
+      className="card-glass overflow-hidden hover:shadow-card-hover transition-all duration-500 group relative flex flex-col h-full rounded-2xl border border-white/5 hover:border-alien-green/40"
       style={{ '--product-color': color } as React.CSSProperties}
     >
       {/* Top accent bar */}
       <div
         className="absolute top-0 left-0 right-0 h-[2px] opacity-70"
-        style={{ background: `linear-gradient(90deg, transparent, ${color}, transparent)` }}
+        style={{
+          background: `linear-gradient(90deg, transparent, ${color}, transparent)`,
+        }}
       />
 
-      {/* Badges */}
-      <div className="absolute top-3 left-3 z-10 flex flex-col gap-1.5">
-        <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-alien-green/20 border border-alien-green/50 text-alien-green text-[10px] font-mono font-bold tracking-wider uppercase backdrop-blur-sm shadow-sm">
-          Pre-order
-        </span>
-        <Link
-          href="/build-your-stack"
-          className="inline-flex items-center px-2 py-0.5 rounded-full bg-space-900/90 border border-alien-green/40 text-alien-green text-[9px] font-mono tracking-wider uppercase backdrop-blur-sm hover:bg-alien-green hover:text-space-950 transition-colors"
-        >
-          Stack & Save 15%
-        </Link>
-        {product.is_new && (
-          <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-nebula-400/15 border border-nebula-400/30 text-nebula-400 text-[10px] font-mono tracking-wider uppercase backdrop-blur-sm">
-            New
-          </span>
-        )}
-        {product.is_best_seller && (
-          <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-nebula-600/15 border border-nebula-600/30 text-nebula-400 text-[10px] font-mono tracking-wider uppercase backdrop-blur-sm">
-            Best Seller
-          </span>
-        )}
-        {savings > 0 && (
-          <span
-            className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-mono tracking-wider backdrop-blur-sm"
-            style={{
-              background: `${color}15`,
-              border: `1px solid ${color}30`,
-              color,
-            }}
-          >
-            −{savings}%
-          </span>
-        )}
-      </div>
-
-      {/* Image */}
+      {/* Image Container (overlay badges removed cleanly as requested) */}
       <Link
-        href={`/products/${product.slug}`}
+        href={`/products/${targetSlug}`}
         className="block relative aspect-square bg-space-900/50 overflow-hidden shrink-0"
       >
         {primary?.url ? (
-          <>
-            {/* Primary product image - visible by default, hidden on hover */}
-            <Image
-              src={primary.url}
-              alt={name}
-              fill
-              className={cn(
-                "object-contain p-0 sm:p-2 md:p-3 scale-[1.24] sm:scale-[1.16] md:scale-110 transition-all duration-500",
-                secondary?.url ? "group-hover:opacity-0 group-hover:scale-[1.16]" : "group-hover:scale-[1.3] sm:group-hover:scale-[1.22] md:group-hover:scale-[1.16]"
-              )}
-              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
-            />
-            {/* Secondary nutrition facts image - hidden by default, shown on hover */}
-            {secondary?.url && (
-              <Image
-                src={secondary.url}
-                alt={`${name} - Nutrition Facts`}
-                fill
-                className="object-contain p-1 sm:p-2 opacity-0 group-hover:opacity-100 scale-95 group-hover:scale-100 transition-all duration-500"
-                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
-              />
-            )}
-          </>
+          <Image
+            src={primary.url}
+            alt={name}
+            fill
+            className="object-contain p-2 sm:p-3 scale-[1.18] sm:scale-[1.14] md:scale-110 group-hover:scale-[1.24] transition-all duration-500"
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+          />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
             <div
@@ -161,78 +111,91 @@ function ProductCard({ product }: { product: Product }) {
             </div>
           )}
 
-          <Link href={`/products/${product.slug}`}>
-            <h3 className="font-display text-base sm:text-xl tracking-wider text-white group-hover:text-opacity-90 mb-0.5 sm:mb-1 transition-colors line-clamp-2">
+          <Link href={`/products/${targetSlug}`}>
+            <h3 className="font-display text-base sm:text-lg lg:text-xl tracking-wider text-white group-hover:text-alien-green mb-0.5 sm:mb-1 transition-colors line-clamp-2">
               {name}
             </h3>
-            <p className="text-[11px] sm:text-xs text-muted leading-relaxed line-clamp-1 sm:line-clamp-2 mb-2.5 sm:mb-4">
+            <p className="text-[11px] sm:text-xs text-muted leading-relaxed line-clamp-1 sm:line-clamp-2 mb-2 sm:mb-3">
               {tagline}
             </p>
           </Link>
+
+          {/* Interactive Flavor Selector on Product Card */}
+          {hasMultipleFlavors && (
+            <div className="my-2.5 space-y-1.5">
+              <div className="text-[10px] font-mono text-gray-400 uppercase tracking-wider flex justify-between items-center">
+                <span>Flavor:</span>
+                <span className="font-bold text-white text-[11px]">
+                  {activeFlavor?.flavorName}
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-1.5">
+                {flavors.map((flv) => {
+                  const isSelected = flv.slug === selectedFlavorSlug
+                  return (
+                    <button
+                      key={flv.slug}
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        setSelectedFlavorSlug(flv.slug)
+                      }}
+                      className={cn(
+                        'flex items-center gap-1.5 py-1.5 px-2 rounded-xl border text-[10px] sm:text-[11px] font-mono transition-all text-left',
+                        isSelected
+                          ? 'bg-white/10 text-white font-bold border-alien-green shadow-sm'
+                          : 'bg-space-950/60 border-white/10 text-gray-400 hover:text-white hover:border-white/20'
+                      )}
+                      style={isSelected ? { borderColor: flv.color } : {}}
+                    >
+                      <span
+                        className="w-2.5 h-2.5 rounded-full shrink-0 border border-white/20"
+                        style={{ backgroundColor: flv.color }}
+                      />
+                      <span className="truncate">{flv.flavorName}</span>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Price + CTA stacked to prevent overlaps */}
-        <div className="mt-auto pt-3 border-t border-white/[0.03] flex flex-col gap-2">
+        {/* Price + CTA stacked */}
+        <div className="mt-auto pt-3 border-t border-white/[0.04] flex flex-col gap-2">
           <div className="flex items-baseline justify-between gap-1.5 flex-wrap min-h-[24px]">
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-sm sm:text-base font-bold text-white">{formatPrice(price)}</span>
-              {compare && (
-                <span className="text-[10px] sm:text-xs text-muted/60 line-through">
-                  {formatPrice(compare)}
-                </span>
-              )}
-            </div>
-
-            {hasMultipleFlavors && (
-              <div className="flex items-center gap-1.5 text-[10px] font-mono text-gray-400">
-                <div className="flex items-center -space-x-1">
-                  {flavors.map((flv) => (
-                    <span
-                      key={flv.slug}
-                      className="w-2.5 h-2.5 rounded-full border border-space-950 inline-block shrink-0"
-                      style={{ backgroundColor: flv.color }}
-                      title={flv.flavorName}
-                    />
-                  ))}
-                </div>
-                <span>{flavors.length} Flavors</span>
-              </div>
-            )}
+            <span className="text-base sm:text-lg font-bold font-mono text-white">
+              {formatPrice(canonicalPrice)}
+            </span>
+            <span className="text-[10px] font-mono text-alien-green">
+              Batch 01 Pre-Order
+            </span>
           </div>
 
           <button
             onClick={() =>
               variant &&
               addItem(variant.id, 1, {
-                product,
+                product: { ...product, slug: targetSlug },
                 variant: { ...variant, price: canonicalPrice },
               })
             }
             disabled={isLoading || !variant}
-            className="w-full py-2.5 px-3 rounded-lg transition-all duration-200 flex items-center justify-center gap-1.5 font-mono text-[11px] sm:text-xs font-bold text-space-900 hover:shadow-lg active:scale-95"
-            style={{ backgroundColor: color, boxShadow: `0 4px 12px ${color}30` }}
+            className="w-full py-2.5 px-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-1.5 font-mono text-[11px] sm:text-xs font-bold text-space-950 active:scale-95 bg-alien-green hover:bg-alien-green/90 shadow-glow-green"
             aria-label={`Pre-order ${name}`}
           >
-            <ShoppingBag className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+            <ShoppingBag className="w-3.5 h-3.5 text-space-950" />
             <span>{PREORDER_CONFIG.actionButtonText}</span>
           </button>
 
-          <button
-            onClick={() =>
-              variant &&
-              addItem(variant.id, 1, {
-                product,
-                variant: { ...variant, price: canonicalPrice },
-                source: 'stack',
-              })
-            }
-            disabled={isLoading || !variant}
-            className="w-full py-1.5 px-2.5 rounded-lg border border-alien-green/30 hover:border-alien-green/60 text-alien-green hover:bg-alien-green/10 text-center font-mono text-[10px] font-semibold transition-all flex items-center justify-center gap-1"
-            aria-label={`Add ${name} to stack`}
+          <Link
+            href="/build-your-stack"
+            className="w-full py-1.5 px-2.5 rounded-xl border border-alien-green/30 hover:border-alien-green/60 text-alien-green hover:bg-alien-green/10 text-center font-mono text-[10px] sm:text-[11px] font-semibold transition-all flex items-center justify-center gap-1"
           >
             <span>⚡ Add to Custom Stack</span>
-          </button>
-          <p className="text-[10px] text-muted/70 text-center font-mono">
+          </Link>
+          <p className="text-[9px] text-muted/70 text-center font-mono">
             {PREORDER_CONFIG.estimatedShipDate}
           </p>
         </div>
@@ -242,6 +205,25 @@ function ProductCard({ product }: { product: Product }) {
 }
 
 export default function ProductGrid({ products }: ProductGridProps) {
+  // Deduplicate products by flavor family so customer sees 1 card per formulation with flavor selector
+  const groupedProducts = useMemo(() => {
+    const seenFamilies = new Set<string>()
+    const result: any[] = []
+
+    for (const p of products) {
+      const { familyTitle, hasMultipleFlavors } = getProductFlavors(p.slug)
+      if (hasMultipleFlavors && familyTitle) {
+        if (!seenFamilies.has(familyTitle)) {
+          seenFamilies.add(familyTitle)
+          result.push(p)
+        }
+      } else {
+        result.push(p)
+      }
+    }
+    return result
+  }, [products])
+
   return (
     <section className="section max-w-7xl mx-auto container-px">
       {/* Section header */}
@@ -252,14 +234,14 @@ export default function ProductGrid({ products }: ProductGridProps) {
             The Collection
           </span>
         </div>
-        <h2 className="font-display text-5xl md:text-6xl tracking-wider text-white mb-4">
+        <h2 className="font-display text-4xl sm:text-5xl lg:text-6xl tracking-wider text-white mb-4 uppercase">
           <span className="text-gradient-cosmic">STELLAR</span>
           <br />
-          PRODUCTS
+          FORMULATIONS
         </h2>
-        <p className="text-muted max-w-xl mx-auto">
-          Precision-engineered supplements. Each one designed for a specific mission.
-          All of them built to take you beyond your limits.
+        <p className="text-muted text-sm sm:text-base max-w-xl mx-auto">
+          Precision-engineered Swiss supplements. Each formula built for cellular impact
+          and maximum physiological results.
         </p>
       </div>
 
@@ -271,8 +253,12 @@ export default function ProductGrid({ products }: ProductGridProps) {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-mono text-xs uppercase tracking-wider text-alien-green font-bold">Bundle Engine</span>
-              <span className="text-[10px] bg-alien-green text-space-950 font-bold px-2 py-0.5 rounded-full font-mono">Save 10% – 15%</span>
+              <span className="font-mono text-xs uppercase tracking-wider text-alien-green font-bold">
+                Bundle Engine
+              </span>
+              <span className="text-[10px] bg-alien-green text-space-950 font-bold px-2 py-0.5 rounded-full font-mono">
+                Save 10% – 15%
+              </span>
             </div>
             <p className="text-white text-xs sm:text-sm font-semibold mt-0.5">
               Build your custom stack — pick any 2 products for 10% off, 3+ for 15% off.
@@ -287,20 +273,20 @@ export default function ProductGrid({ products }: ProductGridProps) {
         </Link>
       </div>
 
-      {/* Grid: Responsive grid showing up to 12 products */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
-        {products.slice(0, 12).map((product) => (
+      {/* Grid: Responsive grid showing all formulations cleanly */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+        {groupedProducts.map((product) => (
           <ProductCard key={product.id} product={product} />
         ))}
       </div>
 
       {/* View all */}
-      <div className="text-center mt-10">
+      <div className="text-center mt-12">
         <Link
           href="/products"
-          className="btn-outline border-nebula-600/30 hover:border-nebula-400/50"
+          className="btn-outline border-nebula-600/30 hover:border-nebula-400/50 text-xs sm:text-sm font-mono uppercase tracking-wider px-6 py-3"
         >
-          View All Products
+          View All Formulations
         </Link>
       </div>
     </section>

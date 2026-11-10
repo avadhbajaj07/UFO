@@ -20,7 +20,7 @@ const SEEDED_POS_PRODUCTS = [
 ]
 
 const SEEDED_CUSTOMERS = [
-  { id: 'cust-1', firstName: 'Shikha', lastName: 'Swiss', phone: '+41 79 123 45 67', email: 'shikha@ufolabz.ch', address: 'Bahnhofstrasse 12', city: 'Zurich', state: 'ZH', zip: '8001', loyaltyPoints: 2400, walletBalance: 150.00, avgSpend: 112.50 },
+  { id: 'cust-1', firstName: 'Shikha', lastName: 'Swiss', phone: '+41 79 123 45 67', email: 'shikha@ufolabz.ch', address: 'Route de Chêne 12', city: 'Genève', state: 'GE', zip: '1207', loyaltyPoints: 2400, walletBalance: 150.00, avgSpend: 112.50 },
   { id: 'cust-2', firstName: 'John', lastName: 'Zurich', phone: '+41 79 987 65 43', email: 'john@zurich.ch', address: 'Rua de la Tour 4', city: 'Geneva', state: 'GE', zip: '1201', loyaltyPoints: 595, walletBalance: 0.00, avgSpend: 59.00 }
 ]
 

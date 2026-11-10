@@ -451,14 +451,14 @@ export default function BuildYourStackClient({
               </span>
             </div>
 
-            {/* Category Filter Chips */}
-            <div className="flex flex-wrap gap-2">
+            {/* Category Filter Chips: Horizontally scrollable on mobile */}
+            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap">
               {categories.map((cat) => (
                 <button
                   key={cat}
                   onClick={() => setSelectedCategory(cat)}
                   className={cn(
-                    'px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold tracking-wider transition-all duration-200 uppercase',
+                    'px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold tracking-wider transition-all duration-200 uppercase whitespace-nowrap shrink-0',
                     selectedCategory === cat
                       ? 'bg-alien-green text-space-950 shadow-glow-green'
                       : 'bg-space-900 border border-white/5 text-gray-400 hover:text-white hover:border-white/20'
@@ -540,10 +540,10 @@ export default function BuildYourStackClient({
                       </div>
 
                       {/* Product Titles */}
-                      <h3 className="font-display text-lg text-white tracking-wide uppercase line-clamp-1 mb-1">
+                      <h3 className="font-display text-base sm:text-lg lg:text-xl text-white tracking-wide uppercase line-clamp-1 mb-1">
                         {product.name}
                       </h3>
-                      <p className="text-[11px] text-gray-400 leading-snug line-clamp-2 mb-3">
+                      <p className="text-[11px] sm:text-xs text-gray-400 leading-snug line-clamp-2 mb-3">
                         {product.tagline}
                       </p>
 
@@ -588,10 +588,10 @@ export default function BuildYourStackClient({
                     {/* Bottom Pricing & Add Action */}
                     <div className="pt-3 border-t border-white/5 flex items-center justify-between gap-2 mt-auto">
                       <div>
-                        <div className="font-mono text-sm font-bold text-white">
+                        <div className="font-mono text-base sm:text-lg font-bold text-white">
                           {formatPrice(canonicalPrice)}
                         </div>
-                        <span className="text-[9px] font-mono text-alien-green">
+                        <span className="text-[10px] font-mono text-alien-green">
                           Save up to 15% in stack
                         </span>
                       </div>
@@ -912,12 +912,12 @@ export default function BuildYourStackClient({
       </section>
 
       {/* ─── 4. MOBILE FLOATING BOTTOM BAR & DRAWER ─── */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-space-900/95 border-t border-white/10 backdrop-blur-xl p-4 flex items-center justify-between shadow-2xl">
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-space-950/95 border-t border-white/10 backdrop-blur-xl p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] flex items-center justify-between shadow-2xl">
         <div>
-          <div className="text-xs font-mono text-gray-400">
+          <div className="text-[11px] font-mono text-gray-400">
             {calculation.totalUnits} {calculation.totalUnits === 1 ? 'item' : 'items'} in stack
           </div>
-          <div className="font-mono text-lg font-bold text-alien-green">
+          <div className="font-mono text-lg sm:text-xl font-bold text-alien-green">
             {formatPrice(estimatedTotal)}
           </div>
         </div>
@@ -925,10 +925,10 @@ export default function BuildYourStackClient({
         <button
           type="button"
           onClick={() => setIsMobileDrawerOpen(true)}
-          className="px-6 py-3 rounded-xl bg-alien-green text-space-950 font-bold font-mono text-xs shadow-glow-green flex items-center gap-2"
+          className="px-5 py-3 rounded-xl bg-alien-green text-space-950 font-bold font-mono text-xs sm:text-sm shadow-glow-green flex items-center gap-2 active:scale-95 transition-transform"
         >
           <span>View Stack ({calculation.totalUnits})</span>
-          <ArrowRight className="w-3.5 h-3.5" />
+          <ArrowRight className="w-4 h-4" />
         </button>
       </div>
 

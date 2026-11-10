@@ -20,7 +20,6 @@ const companyLinks = [
 
 const contactInfo = [
   { label: 'support@ufolabz.com', href: 'mailto:support@ufolabz.com' },
-  { label: 'Bahnhofstrasse 100, 8001 Zürich', href: 'https://maps.app.goo.gl/yQ32D81x11Vn4C2k8' },
 ]
 
 const socials = [

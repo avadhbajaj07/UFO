@@ -34,7 +34,7 @@ const DOWNLOADS = [
 
 // Mock profile stats
 const INITIAL_ADDRESSES = [
-  { id: 'addr-1', label: 'Home', name: 'Shikha Swiss', line1: 'Bahnhofstrasse 100', city: 'Zürich', zip: '8001', canton: 'Zurich', country: 'Switzerland', isDefault: true },
+  { id: 'addr-1', label: 'Home', name: 'Shikha Swiss', line1: 'Route de Chêne 14', city: 'Genève', zip: '1207', canton: 'Geneva', country: 'Switzerland', isDefault: true },
   { id: 'addr-2', label: 'Office', name: 'Shikha Office', line1: 'Gerechtigkeitsgasse 15', city: 'Bern', zip: '3011', canton: 'Bern', country: 'Switzerland', isDefault: false }
 ]
 

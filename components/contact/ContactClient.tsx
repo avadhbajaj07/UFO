@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Mail, Phone, MapPin, Send, CheckCircle2, Clock } from 'lucide-react';
+import { Mail, Phone, Send, CheckCircle2, Clock } from 'lucide-react';
 
 export default function ContactPageClient() {
   const [name, setName] = useState('');
@@ -62,20 +62,15 @@ export default function ContactPageClient() {
             </a>
           </div>
 
-          {/* Location */}
+          {/* Support Hours */}
           <div className="card-glass p-6 text-center group hover:border-nebula-600/30 transition-all duration-300">
             <div className="w-12 h-12 rounded-xl bg-nebula-800/30 border border-nebula-600/20 flex items-center justify-center mx-auto mb-4">
-              <MapPin className="w-5 h-5 text-nebula-400" />
+              <Clock className="w-5 h-5 text-alien-green" />
             </div>
-            <h3 className="font-display text-lg text-white mb-1">Visit Us</h3>
-            <a
-              href="https://maps.app.goo.gl/yQ32D81x11Vn4C2k8"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sm text-muted group-hover:text-alien-green transition-colors"
-            >
-              Bahnhofstrasse 100, 8001 Zürich
-            </a>
+            <h3 className="font-display text-lg text-white mb-1">Customer Support</h3>
+            <p className="text-sm text-muted">
+              Mon – Fri: 08:00 – 18:00 CET · Response within 24 hours
+            </p>
           </div>
         </div>
       </section>

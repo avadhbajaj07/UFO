@@ -114,7 +114,40 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // 3. Update Site Settings (if table exists)
+    // 3. Update Product Images
+    const imageUpdates = [
+      {
+        slugs: ['astro-creatine'],
+        url: 'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782667544/UFO4_nuzyls.png',
+      },
+      {
+        slugs: ['astro-collagen', 'astro-collagen-peptide'],
+        url: 'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1794316727/NEW_NOVA_COLLAGEN_1_y4eyr2.png',
+      },
+      {
+        slugs: ['magnesium'],
+        url: 'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1794316725/Flacon_de_magne%CC%81sium_au_design_extraterrestre_1_oo2r28.png',
+      },
+    ]
+
+    for (const imgUp of imageUpdates) {
+      const { data: matchedProds } = await supabaseAdmin
+        .from('products')
+        .select('id')
+        .in('slug', imgUp.slugs)
+
+      if (matchedProds && matchedProds.length > 0) {
+        for (const mp of matchedProds) {
+          await supabaseAdmin
+            .from('product_images')
+            .update({ url: imgUp.url })
+            .eq('product_id', mp.id)
+            .eq('is_primary', true)
+        }
+      }
+    }
+
+    // 4. Update Site Settings (if table exists)
     try {
       await supabaseAdmin.from('site_settings').upsert([
         { key: 'preorder_mode', value: true },
