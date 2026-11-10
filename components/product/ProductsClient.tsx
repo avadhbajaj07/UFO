@@ -6,7 +6,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Star, ShoppingBag, SlidersHorizontal, Layers } from 'lucide-react'
 import { formatPrice } from '@/lib/utils/pricing'
-import { getCanonicalUnitPrice } from '@/lib/config/pricing'
+import { getCanonicalUnitPrice, getPreorderLaunchPrice } from '@/lib/config/pricing'
 import { PREORDER_CONFIG } from '@/lib/config/preorder'
 import { getProductFlavors } from '@/lib/config/flavors'
 import { getLocalizedField } from '@/types'
@@ -39,14 +39,13 @@ function ProductLoopCard({
   addItem: any
   isLoading: boolean
 }) {
-  const { hasMultipleFlavors, flavors } = getProductFlavors(product.slug)
+  const { flavors } = getProductFlavors(product.slug)
   const [selectedFlavorSlug, setSelectedFlavorSlug] = useState<string>(
     flavors[0]?.slug ?? product.slug
   )
 
-  const activeFlavor = hasMultipleFlavors
-    ? flavors.find((f) => f.slug === selectedFlavorSlug) ?? flavors[0]
-    : null
+  const activeFlavor =
+    flavors.find((f) => f.slug === selectedFlavorSlug) ?? flavors[0] ?? null
 
   const color = activeFlavor?.color ?? product.product_color ?? '#00FF88'
   const name = getLocalizedField(product.name)
@@ -65,6 +64,7 @@ function ProductLoopCard({
     'CHF',
     variant?.price ?? product.base_price
   )
+  const launchPrice = getPreorderLaunchPrice(targetSlug, 'CHF', canonicalPrice)
 
   return (
     <div className="group bg-space-800 border border-muted/10 rounded-2xl overflow-hidden hover:border-alien-green/40 transition-all duration-300 flex flex-col h-full shadow-lg">
@@ -121,18 +121,20 @@ function ProductLoopCard({
             </p>
           </Link>
 
-          {/* Interactive Flavor Selector on Product Loop Card */}
-          {hasMultipleFlavors && (
+          {/* Interactive Flavor / Format Selector on Product Loop Card */}
+          {flavors.length > 0 && (
             <div className="my-2.5 space-y-1.5">
               <div className="text-[10px] font-mono text-gray-400 uppercase tracking-wider flex justify-between items-center">
-                <span>Flavor:</span>
+                <span>{product.slug.includes('magnesium') ? 'Format:' : 'Flavor:'}</span>
                 <span className="font-bold text-white text-[11px]">
-                  {activeFlavor?.flavorName}
+                  {product.slug.includes('magnesium')
+                    ? '90 CAPS'
+                    : activeFlavor?.flavorName?.toUpperCase() || 'NATURAL TASTE'}
                 </span>
               </div>
-              <div className="grid grid-cols-2 gap-1.5">
+              <div className={cn('grid gap-1.5', flavors.length > 1 ? 'grid-cols-2' : 'grid-cols-1')}>
                 {flavors.map((flv) => {
-                  const isSelected = flv.slug === selectedFlavorSlug
+                  const isSelected = flv.slug === (activeFlavor?.slug ?? product.slug)
                   return (
                     <button
                       key={flv.slug}
@@ -166,11 +168,16 @@ function ProductLoopCard({
         {/* Price & Actions */}
         <div className="mt-auto pt-3 border-t border-white/[0.04] flex flex-col gap-2">
           <div className="flex items-baseline justify-between gap-1.5 flex-wrap min-h-[24px]">
-            <span className="text-base sm:text-lg font-bold font-mono text-white">
-              {formatPrice(canonicalPrice)}
-            </span>
-            <span className="text-[10px] font-mono text-alien-green">
-              Batch 01 Pre-Order
+            <div className="flex items-baseline gap-2">
+              <span className="text-base sm:text-lg font-bold font-mono text-white">
+                {formatPrice(launchPrice)}
+              </span>
+              <span className="text-xs font-mono text-gray-500 line-through">
+                {formatPrice(canonicalPrice)}
+              </span>
+            </div>
+            <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-alien-green/20 border border-alien-green/40 text-alien-green">
+              25% OFF LAUNCH
             </span>
           </div>
 
@@ -194,7 +201,7 @@ function ProductLoopCard({
             href="/build-your-stack"
             className="w-full py-1.5 px-2.5 rounded-xl border border-alien-green/30 hover:border-alien-green/60 text-alien-green hover:bg-alien-green/10 text-center font-mono text-[10px] sm:text-[11px] font-semibold transition-all flex items-center justify-center gap-1"
           >
-            <span>⚡ Add to Custom Stack</span>
+            <span>⚡ Add to Custom Stack (Save up to 15%)</span>
           </Link>
           <p className="text-[9px] text-muted/70 text-center font-mono">
             {PREORDER_CONFIG.estimatedShipDate}

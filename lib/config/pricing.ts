@@ -22,8 +22,16 @@ export interface ProductPricingDefinition {
   }
 }
 
+export const PREORDER_LAUNCH_DISCOUNT_PERCENT = 25
+
 /**
- * Section 2: Online Retail Prices & NutriFit Geneva Store Pickup Prices (BOGO 50%)
+ * Section 2: Online Retail Prices & NutriFit Geneva Store Pickup Prices
+ * Current Catalog:
+ * amino: 43.35 EUR / 39.90 CHF
+ * blast: 43.35 EUR / 39.90 CHF
+ * creatine: 32.49 EUR / 29.90 CHF
+ * magnesium: 37.92 EUR / 34.90 CHF
+ * collagen: 43.35 EUR / 39.90 CHF
  */
 export const CORE_PRODUCTS_PRICING: Record<string, ProductPricingDefinition> = {
   creatine: {
@@ -31,11 +39,11 @@ export const CORE_PRODUCTS_PRICING: Record<string, ProductPricingDefinition> = {
     name: 'Creatine 300g',
     slugs: ['astro-creatine'],
     skus: ['ASTRO-300G'],
-    retailPrice: { CHF: 23.27, EUR: 23.27 },
+    retailPrice: { CHF: 29.90, EUR: 32.49 },
     nutrifitPickup: {
-      firstUnitPrice: 23.27,
-      secondUnitPrice: 23.27,
-      pairTotal: 46.54,
+      firstUnitPrice: 29.90,
+      secondUnitPrice: 29.90,
+      pairTotal: 59.80,
       discountPerPair: 0,
     },
   },
@@ -44,11 +52,11 @@ export const CORE_PRODUCTS_PRICING: Record<string, ProductPricingDefinition> = {
     name: 'EAA 300g',
     slugs: ['amino-fuel-mango', 'amino-fuel-blue-raspberry', 'amino-fuel-blue'],
     skus: ['AMNO-MANGO-300G', 'AMNO-BLUE-300G', 'AMINO-MANGO', 'var-ab1'],
-    retailPrice: { CHF: 32.37, EUR: 32.37 },
+    retailPrice: { CHF: 39.90, EUR: 43.35 },
     nutrifitPickup: {
-      firstUnitPrice: 32.37,
-      secondUnitPrice: 32.37,
-      pairTotal: 64.74,
+      firstUnitPrice: 39.90,
+      secondUnitPrice: 39.90,
+      pairTotal: 79.80,
       discountPerPair: 0,
     },
   },
@@ -57,11 +65,11 @@ export const CORE_PRODUCTS_PRICING: Record<string, ProductPricingDefinition> = {
     name: 'BLAST Pre-workout 300g',
     slugs: ['blast-pre-workout-energy', 'blast-pre-workout-blue'],
     skus: ['BLAST-ENERGY-300G', 'BLAST-BLUE-300G'],
-    retailPrice: { CHF: 38.87, EUR: 38.87 },
+    retailPrice: { CHF: 39.90, EUR: 43.35 },
     nutrifitPickup: {
-      firstUnitPrice: 38.87,
-      secondUnitPrice: 38.87,
-      pairTotal: 77.74,
+      firstUnitPrice: 39.90,
+      secondUnitPrice: 39.90,
+      pairTotal: 79.80,
       discountPerPair: 0,
     },
   },
@@ -70,11 +78,11 @@ export const CORE_PRODUCTS_PRICING: Record<string, ProductPricingDefinition> = {
     name: 'Marine Collagen 300g',
     slugs: ['astro-collagen-peptide', 'astro-collagen'],
     skus: ['COL-300G'],
-    retailPrice: { CHF: 38.87, EUR: 38.87 },
+    retailPrice: { CHF: 39.90, EUR: 43.35 },
     nutrifitPickup: {
-      firstUnitPrice: 38.87,
-      secondUnitPrice: 38.87,
-      pairTotal: 77.74,
+      firstUnitPrice: 39.90,
+      secondUnitPrice: 39.90,
+      pairTotal: 79.80,
       discountPerPair: 0,
     },
   },
@@ -83,11 +91,11 @@ export const CORE_PRODUCTS_PRICING: Record<string, ProductPricingDefinition> = {
     name: 'Magnesium 90 capsules',
     slugs: ['magnesium'],
     skus: ['SKU-MAGNESIUM-960'],
-    retailPrice: { CHF: 19.37, EUR: 19.37 },
+    retailPrice: { CHF: 34.90, EUR: 37.92 },
     nutrifitPickup: {
-      firstUnitPrice: 19.37,
-      secondUnitPrice: 19.37,
-      pairTotal: 38.74,
+      firstUnitPrice: 34.90,
+      secondUnitPrice: 34.90,
+      pairTotal: 69.80,
       discountPerPair: 0,
     },
   },
@@ -124,18 +132,43 @@ export function getCanonicalUnitPrice(
 }
 
 /**
+ * Get the 25% Pre-Order Launch Discounted Price
+ */
+export function getPreorderLaunchPrice(
+  identifier: string,
+  currency: SupportedCurrency = 'CHF',
+  fallbackPrice?: number
+): number {
+  const base = getCanonicalUnitPrice(identifier, currency, fallbackPrice)
+  return Math.round(base * (1 - PREORDER_LAUNCH_DISCOUNT_PERCENT / 100) * 100) / 100
+}
+
+/**
+ * Get the 25% Pre-Order Launch Discount Amount
+ */
+export function getPreorderDiscountAmount(
+  identifier: string,
+  currency: SupportedCurrency = 'CHF',
+  fallbackPrice?: number
+): number {
+  const base = getCanonicalUnitPrice(identifier, currency, fallbackPrice)
+  const discounted = getPreorderLaunchPrice(identifier, currency, fallbackPrice)
+  return Math.round((base - discounted) * 100) / 100
+}
+
+/**
  * Section 3: Shipping Configuration
  */
 export const SHIPPING_CONFIG = {
   switzerland: {
     currency: 'CHF' as SupportedCurrency,
-    freeThreshold: 50.0, // Free from CHF 50
-    standardFee: 10.0, // CHF 10 if under CHF 50
+    freeThreshold: 75.0, // Free delivery from CHF 75
+    standardFee: 10.0, // CHF 10 if under CHF 75
     pickupFee: 0.0, // Free pickup at NutriFit Geneva
   },
   eu: {
     currency: 'EUR' as SupportedCurrency,
-    freeThreshold: 60.0, // Free from EUR 60
+    freeThreshold: 75.0, // Free delivery from EUR 75
     defaultStandardFee: 9.9, // Configurable placeholder
     countryRates: {
       FR: 9.9,

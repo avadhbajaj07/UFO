@@ -235,9 +235,15 @@ export default function CartDrawer() {
                 <span>Subtotal</span>
                 <span>{formatPrice(breakdown.subtotal)}</span>
               </div>
+              {(breakdown as any).preorder_discount > 0 && (
+                <div className="flex justify-between text-alien-green font-semibold">
+                  <span>Pre-Order Launch Offer (25%)</span>
+                  <span>−{formatPrice((breakdown as any).preorder_discount)}</span>
+                </div>
+              )}
               {breakdown.stack_discount > 0 && (
                 <div className="flex justify-between text-alien-green font-semibold">
-                  <span>Stack discount ({breakdown.stack_discount_percent}%)</span>
+                  <span>Stack Volume Discount ({breakdown.stack_discount_percent}%)</span>
                   <span>−{formatPrice(breakdown.stack_discount)}</span>
                 </div>
               )}

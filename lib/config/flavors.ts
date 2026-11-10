@@ -78,8 +78,8 @@ export const FLAVOR_FAMILIES: Record<string, { familyKey: string; title: string;
       {
         slug: 'astro-creatine',
         name: 'Astro Creatine Pure',
-        flavorName: 'Pure Unflavored',
-        description: '100% pure micronized creatine monohydrate. Neutral taste for easy mixing into any beverage.',
+        flavorName: 'Natural Taste',
+        description: '100% pure micronized creatine monohydrate in natural unflavored taste for rapid ATP energy.',
         color: '#00FF88',
         colorName: 'Alien Green',
         imageUrl: 'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782667544/UFO4_nuzyls.png',
@@ -88,15 +88,15 @@ export const FLAVOR_FAMILIES: Record<string, { familyKey: string; title: string;
   },
   collagen: {
     familyKey: 'collagen',
-    title: 'Astro Collagen Peptide 300g',
+    title: 'Nova Marine Collagen 300g',
     flavors: [
       {
         slug: 'astro-collagen-peptide',
-        name: 'Astro Collagen Peptide',
-        flavorName: 'Pure Neutral',
-        description: 'Bioactive hydrolysed marine collagen peptides with zero odor or taste.',
-        color: '#9B30FF',
-        colorName: 'Cosmic Purple',
+        name: 'Nova Marine Collagen (Tropical Fruit)',
+        flavorName: 'Tropical Fruit',
+        description: 'Bioactive hydrolysed marine collagen peptides infused with tropical fruits for joints & skin elasticity.',
+        color: '#FF2244',
+        colorName: 'Tropical Fruit Red',
         imageUrl: 'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1794316727/NEW_NOVA_COLLAGEN_1_y4eyr2.png',
       },
     ],
@@ -107,9 +107,9 @@ export const FLAVOR_FAMILIES: Record<string, { familyKey: string; title: string;
     flavors: [
       {
         slug: 'magnesium',
-        name: 'Magnesium',
-        flavorName: 'Pure Capsules',
-        description: 'High-absorption magnesium bisglycinate delivered in 90 vegan capsules.',
+        name: 'Magnesium 90 Caps',
+        flavorName: '90 Vegan Caps',
+        description: 'High-absorption chelated magnesium bisglycinate delivered in 90 vegan capsules.',
         color: '#00FF88',
         colorName: 'Alien Green',
         imageUrl: 'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1794316725/Flacon_de_magne%CC%81sium_au_design_extraterrestre_1_oo2r28.png',

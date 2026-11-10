@@ -22,7 +22,7 @@ import {
   Check,
 } from 'lucide-react'
 import { formatPrice } from '@/lib/utils/pricing'
-import { getCanonicalUnitPrice, SHIPPING_CONFIG } from '@/lib/config/pricing'
+import { getCanonicalUnitPrice, getPreorderLaunchPrice, SHIPPING_CONFIG } from '@/lib/config/pricing'
 import { PREORDER_CONFIG } from '@/lib/config/preorder'
 import {
   calculateStackDiscount,
@@ -152,9 +152,21 @@ export default function BuildYourStackClient({
     )
   }, [stackItems, initialTiers])
 
-  const freeShippingThreshold = SHIPPING_CONFIG.switzerland.freeThreshold
-  const shippingFee = calculation.isFreeShipping ? 0 : SHIPPING_CONFIG.switzerland.standardFee
-  const estimatedTotal = calculation.discountedSubtotal + (calculation.totalUnits > 0 ? shippingFee : 0)
+  const preorderLaunchDiscount = Math.round(calculation.rawSubtotal * 0.25 * 100) / 100
+  const subtotalAfterDiscounts = Math.max(
+    0,
+    calculation.rawSubtotal - preorderLaunchDiscount - calculation.discountAmount
+  )
+
+  const freeShippingThreshold = SHIPPING_CONFIG.switzerland.freeThreshold // 75.0 CHF
+  const isFreeShipping = subtotalAfterDiscounts >= freeShippingThreshold || calculation.totalUnits === 0
+  const amountUntilFreeShipping = Math.max(
+    0,
+    Math.round((freeShippingThreshold - subtotalAfterDiscounts) * 100) / 100
+  )
+  const shippingFee = isFreeShipping ? 0 : SHIPPING_CONFIG.switzerland.standardFee
+  const estimatedTotal =
+    subtotalAfterDiscounts + (calculation.totalUnits > 0 ? shippingFee : 0)
 
   // ─── Handlers ──────────────────────────────────────────────────────────
   const showToast = (msg: string) => {
@@ -395,7 +407,7 @@ export default function BuildYourStackClient({
             <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-space-900 border border-white/10 text-xs font-mono">
               <Truck className="w-3.5 h-3.5 text-alien-green" />
               <span className="text-gray-400">Bonus:</span>
-              <strong className="text-white">Free Swiss Delivery over CHF 50</strong>
+              <strong className="text-white">Free Swiss Delivery over CHF 75</strong>
             </div>
           </div>
 
@@ -423,7 +435,7 @@ export default function BuildYourStackClient({
               <span>·</span>
               <span>AUTOMATICALLY APPLIED AT CHECKOUT</span>
               <span>·</span>
-              <span>FREE SWISS POSTAGE FROM CHF 50</span>
+              <span>FREE SWISS POSTAGE FROM CHF 75</span>
               <span>·</span>
               <span>100% PRE-ORDER GUARANTEE</span>
               <span>·</span>
@@ -494,6 +506,11 @@ export default function BuildYourStackClient({
                   'CHF',
                   product.basePrice
                 )
+                const discountedLaunchPrice = getPreorderLaunchPrice(
+                  activeFlavor.slug || product.slug,
+                  'CHF',
+                  canonicalPrice
+                )
 
                 // Check quantity currently in stack
                 const inStackItem = stackItems.find(
@@ -547,16 +564,23 @@ export default function BuildYourStackClient({
                         {product.tagline}
                       </p>
 
-                      {/* Flavor Selector (for multi-flavor products) */}
-                      {product.hasVariants && product.flavors.length > 1 && (
+                      {/* Flavor / Format Selector on Stack Card */}
+                      {product.flavors && product.flavors.length > 0 && (
                         <div className="mb-4 space-y-1.5">
                           <div className="text-[10px] font-mono text-gray-400 uppercase tracking-wider flex justify-between">
-                            <span>Flavor:</span>
+                            <span>{product.slug.includes('magnesium') ? 'Format:' : 'Flavor:'}</span>
                             <span className="font-bold text-white">
-                              {activeFlavor.flavorName}
+                              {product.slug.includes('magnesium')
+                                ? '90 CAPS'
+                                : activeFlavor?.flavorName?.toUpperCase() || 'NATURAL TASTE'}
                             </span>
                           </div>
-                          <div className="grid grid-cols-2 gap-1.5">
+                          <div
+                            className={cn(
+                              'grid gap-1.5',
+                              product.flavors.length > 1 ? 'grid-cols-2' : 'grid-cols-1'
+                            )}
+                          >
                             {product.flavors.map((flv) => {
                               const isSelected = flv.slug === activeFlavor.slug
                               return (
@@ -567,7 +591,7 @@ export default function BuildYourStackClient({
                                   className={cn(
                                     'flex items-center gap-1.5 p-1.5 rounded-xl border text-[11px] font-mono transition-all text-left',
                                     isSelected
-                                      ? 'bg-white/10 text-white font-bold'
+                                      ? 'bg-white/10 text-white font-bold border-alien-green'
                                       : 'bg-space-950/60 border-white/5 text-gray-400 hover:text-white hover:border-white/20'
                                   )}
                                   style={isSelected ? { borderColor: flv.color } : {}}
@@ -588,10 +612,18 @@ export default function BuildYourStackClient({
                     {/* Bottom Pricing & Add Action */}
                     <div className="pt-3 border-t border-white/5 flex items-center justify-between gap-2 mt-auto">
                       <div>
-                        <div className="font-mono text-base sm:text-lg font-bold text-white">
-                          {formatPrice(canonicalPrice)}
+                        <div className="flex items-baseline gap-1.5 flex-wrap">
+                          <span className="font-mono text-base sm:text-lg font-bold text-white">
+                            {formatPrice(discountedLaunchPrice)}
+                          </span>
+                          <span className="text-xs font-mono text-gray-500 line-through">
+                            {formatPrice(canonicalPrice)}
+                          </span>
+                          <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-alien-green/20 text-alien-green border border-alien-green/40">
+                            -25% Launch
+                          </span>
                         </div>
-                        <span className="text-[10px] font-mono text-alien-green">
+                        <span className="text-[10px] font-mono text-alien-green block mt-0.5">
                           Save up to 15% in stack
                         </span>
                       </div>
@@ -818,11 +850,11 @@ export default function BuildYourStackClient({
               <div className="p-3.5 rounded-2xl bg-space-950/80 border border-white/5 space-y-1.5">
                 <div className="flex justify-between items-center text-xs font-mono">
                   <span className="text-gray-400">Swiss Cargo Postage</span>
-                  {calculation.isFreeShipping ? (
+                  {isFreeShipping ? (
                     <span className="text-alien-green font-bold">🚀 FREE SHIPPING EARNED</span>
                   ) : (
                     <span className="text-alien-green">
-                      {formatPrice(calculation.amountUntilFreeShipping)} away from Free Shipping
+                      {formatPrice(amountUntilFreeShipping)} away from Free Shipping
                     </span>
                   )}
                 </div>
@@ -832,7 +864,7 @@ export default function BuildYourStackClient({
                     style={{
                       width: `${Math.min(
                         100,
-                        (calculation.discountedSubtotal / freeShippingThreshold) * 100
+                        (subtotalAfterDiscounts / freeShippingThreshold) * 100
                       )}%`,
                     }}
                   />
@@ -842,9 +874,16 @@ export default function BuildYourStackClient({
               {/* Financial Totals */}
               <div className="space-y-2 pt-2 border-t border-white/5 text-sm font-mono">
                 <div className="flex justify-between text-gray-400">
-                  <span>Stack Subtotal</span>
-                  <span className="text-white">{formatPrice(calculation.rawSubtotal)}</span>
+                  <span>Catalog Retail Value</span>
+                  <span className="text-white line-through">{formatPrice(calculation.rawSubtotal)}</span>
                 </div>
+
+                {calculation.rawSubtotal > 0 && (
+                  <div className="flex justify-between text-alien-green font-bold">
+                    <span>Pre-Order Launch Offer (25%)</span>
+                    <span>−{formatPrice(preorderLaunchDiscount)}</span>
+                  </div>
+                )}
 
                 {calculation.discountAmount > 0 && (
                   <div className="flex justify-between text-alien-green font-bold">
@@ -858,7 +897,7 @@ export default function BuildYourStackClient({
                 <div className="flex justify-between text-gray-400">
                   <span>Estimated Shipping</span>
                   <span className="text-white">
-                    {calculation.isFreeShipping ? 'FREE' : formatPrice(shippingFee)}
+                    {isFreeShipping ? 'FREE' : formatPrice(shippingFee)}
                   </span>
                 </div>
 
@@ -1014,8 +1053,14 @@ export default function BuildYourStackClient({
             <div className="space-y-2 pt-2 border-t border-white/5 text-xs font-mono">
               <div className="flex justify-between text-gray-400">
                 <span>Subtotal</span>
-                <span className="text-white">{formatPrice(calculation.rawSubtotal)}</span>
+                <span className="text-white line-through">{formatPrice(calculation.rawSubtotal)}</span>
               </div>
+              {calculation.rawSubtotal > 0 && (
+                <div className="flex justify-between text-alien-green font-bold">
+                  <span>Pre-Order Launch Offer (25%)</span>
+                  <span>−{formatPrice(preorderLaunchDiscount)}</span>
+                </div>
+              )}
               {calculation.discountAmount > 0 && (
                 <div className="flex justify-between text-alien-green font-bold">
                   <span>Stack Volume Discount ({calculation.discountPercent}%)</span>
@@ -1025,7 +1070,7 @@ export default function BuildYourStackClient({
               <div className="flex justify-between text-gray-400">
                 <span>Estimated Shipping</span>
                 <span className="text-white">
-                  {calculation.isFreeShipping ? 'FREE' : formatPrice(shippingFee)}
+                  {isFreeShipping ? 'FREE' : formatPrice(shippingFee)}
                 </span>
               </div>
               <div className="flex justify-between text-sm font-bold text-white pt-2 border-t border-white/10">

@@ -288,12 +288,16 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
 
   // Subtotal calculations driven by single source of truth
   const basePrice = canonicalPrice
-  const savingsPct = 0
+  const savingsPct = 25
 
+  // 25% Pre-Order Launching Offer discount
+  const preorderLaunchPrice = Math.round(canonicalPrice * 0.75 * 100) / 100
   // 15% discount for subscriptions
   const subscriptionDiscount = 0.15
-  const finalPricePerUnit = isSubscribed ? basePrice * (1 - subscriptionDiscount) : basePrice
-  const totalOriginalPrice = (selectedVariant?.compare_at_price ?? basePrice) * quantity
+  const finalPricePerUnit = isSubscribed
+    ? Math.round(preorderLaunchPrice * (1 - subscriptionDiscount) * 100) / 100
+    : preorderLaunchPrice
+  const totalOriginalPrice = canonicalPrice * quantity
   const totalFinalPrice = finalPricePerUnit * quantity
 
   // Alien points earn metric
@@ -608,14 +612,16 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
                 />
 
                 {mainImageUrl ? (
-                  <Image
-                    src={mainImageUrl}
-                    alt={name}
-                    fill
-                    className="object-contain p-4 drop-shadow-2xl animate-float"
-                    priority
-                    sizes="(max-width: 1024px) 100vw, 40vw"
-                  />
+                  <div className="relative w-full h-full cursor-zoom-in group/zoom">
+                    <Image
+                      src={mainImageUrl}
+                      alt={name}
+                      fill
+                      className="object-contain p-4 drop-shadow-2xl animate-float transition-transform duration-500 ease-out hover:scale-110 group-hover/zoom:scale-110"
+                      priority
+                      sizes="(max-width: 1024px) 100vw, 40vw"
+                    />
+                  </div>
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
                     <FlaskConical className="w-24 h-24 text-white/10" />
@@ -779,8 +785,8 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
                 <div>
                   <h4 className="font-bold text-white text-lg">{name}</h4>
                   <p className="text-xs text-gray-400">
-                    {hasMultipleFlavors && currentFlavor
-                      ? `Flavor: ${currentFlavor.flavorName} · 300g (30 Servings)`
+                    {currentFlavor
+                      ? `${product.slug.includes('magnesium') ? 'Format' : 'Flavor'}: ${currentFlavor.flavorName} · ${product.slug.includes('magnesium') ? '90 Capsules' : '300g (30 Servings)'}`
                       : 'Swiss Formulation · 300g'}
                   </p>
                 </div>
@@ -886,6 +892,28 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
                 </div>
               )}
 
+              {/* Single Flavor / Format Display Pill */}
+              {!hasMultipleFlavors && currentFlavor && (
+                <div className="space-y-2 pb-5 border-b border-white/5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-mono uppercase tracking-wider text-gray-400 font-semibold">
+                      {product.slug.includes('magnesium') ? 'Format' : 'Flavor'}
+                    </span>
+                    <span className="text-xs font-bold text-white flex items-center gap-1.5 font-mono">
+                      <span
+                        className="w-2.5 h-2.5 rounded-full animate-pulse shrink-0"
+                        style={{ backgroundColor: currentFlavor.color || color }}
+                      />
+                      <span>{currentFlavor.flavorName}</span>
+                    </span>
+                  </div>
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border border-alien-green/40 bg-alien-green/10 text-alien-green text-xs font-mono font-bold">
+                    <span className="w-2 h-2 rounded-full bg-alien-green" />
+                    <span>{currentFlavor.flavorName}</span>
+                  </div>
+                </div>
+              )}
+
               {/* Pre-order Dispatch & NutriFit Geneva Pickup notice */}
               <div className="bg-space-900 border border-alien-green/20 p-3.5 rounded-2xl space-y-1.5">
                 <div className="flex items-center gap-2 text-xs font-semibold text-alien-green">
@@ -900,7 +928,11 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
               {/* Price Breakdown */}
               <div className="space-y-2.5 text-sm">
                 <div className="flex justify-between text-gray-400">
-                  <span>Pre-order Unit Price</span>
+                  <span>Retail Price</span>
+                  <span className="line-through">{formatPrice(canonicalPrice)}</span>
+                </div>
+                <div className="flex justify-between text-alien-green font-bold">
+                  <span>Pre-Order Launch Offer (25% Off)</span>
                   <span>{formatPrice(finalPricePerUnit)}</span>
                 </div>
                 <div className="flex justify-between text-gray-400">
@@ -910,9 +942,9 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
                 <div className="flex justify-between font-bold text-white text-lg pt-3 border-t border-white/5">
                   <span>Total (incl. VAT)</span>
                   <div className="text-right">
-                    <span className="text-xl text-white font-bold">{formatPrice(totalFinalPrice)}</span>
+                    <span className="text-xl text-alien-green font-bold font-mono">{formatPrice(totalFinalPrice)}</span>
                     {totalOriginalPrice > totalFinalPrice && (
-                      <div className="text-xs text-gray-400 line-through">{formatPrice(totalOriginalPrice)}</div>
+                      <div className="text-xs text-gray-500 line-through">{formatPrice(totalOriginalPrice)}</div>
                     )}
                   </div>
                 </div>

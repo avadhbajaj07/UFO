@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
         total: 0,
         nudgeMessage: 'Add 2 formulas to unlock 10% stack savings.',
         isFreeShipping: false,
-        amountUntilFreeShipping: normalizedCurrency === 'EUR' ? 60.0 : 50.0,
+        amountUntilFreeShipping: 75.0,
         orderItems: [],
       })
     }

@@ -55,7 +55,7 @@ export const DEFAULT_PRESET_STACKS: PresetStackDef[] = [
         sku: 'ASTRO-300G',
         quantity: 1,
         name: 'Astro Creatine Pure',
-        flavorName: 'Pure Unflavored',
+        flavorName: 'Natural Taste',
         color: '#00FF88',
         imageUrl:
           'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782667544/UFO4_nuzyls.png',
@@ -96,9 +96,9 @@ export const DEFAULT_PRESET_STACKS: PresetStackDef[] = [
         slug: 'astro-collagen-peptide',
         sku: 'COL-300G',
         quantity: 1,
-        name: 'Astro Collagen Peptide',
-        flavorName: 'Pure Neutral',
-        color: '#9B30FF',
+        name: 'Nova Marine Collagen',
+        flavorName: 'Tropical Fruit',
+        color: '#FF2244',
         imageUrl:
           'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1794316727/NEW_NOVA_COLLAGEN_1_y4eyr2.png',
       },
@@ -129,7 +129,7 @@ export const DEFAULT_PRESET_STACKS: PresetStackDef[] = [
         sku: 'ASTRO-300G',
         quantity: 1,
         name: 'Astro Creatine Pure',
-        flavorName: 'Pure Unflavored',
+        flavorName: 'Natural Taste',
         color: '#00FF88',
         imageUrl:
           'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782667544/UFO4_nuzyls.png',
@@ -256,8 +256,8 @@ export function calculateStackDiscount(
     nudgeMessage = '🔥 Maximum 15% stack discount unlocked!'
   }
 
-  // Free shipping rules evaluated AFTER stack discount
-  const freeShippingThreshold = currency === 'EUR' ? 60.0 : 50.0
+  // Free shipping rules evaluated AFTER stack discount: Free from 75 CHF / 75 EUR
+  const freeShippingThreshold = 75.0
   const discountedSubtotal = discountedCents / 100
   const isFreeShipping = discountedSubtotal >= freeShippingThreshold || totalUnits === 0
   const amountUntilFreeShipping = Math.max(

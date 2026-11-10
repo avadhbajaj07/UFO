@@ -42,36 +42,40 @@ export function useCart() {
     })
   })
 
-  // Stack volume discount (10% for 2 units, 15% for 3+ units)
+  // 1. 25% Pre-Order Launch Offer
+  const preorder_discount = Math.round(subtotal * 0.25 * 100) / 100
+
+  // 2. Stack volume discount (10% for 2 units, 15% for 3+ units)
   const stackCalc = calculateStackDiscount(stackItemsForCalc, 'CHF')
 
   const coupon_discount = 0
   const loyalty_discount = 0
   const gift_card_amount = 0
 
-  const subtotalAfterStackDiscount = stackCalc.discountedSubtotal
+  const subtotalAfterDiscounts = Math.max(0, subtotal - preorder_discount - stackCalc.discountAmount)
 
   const is_free_shipping =
-    subtotalAfterStackDiscount >= SHIPPING_CONFIG.switzerland.freeThreshold || subtotal === 0
+    subtotalAfterDiscounts >= SHIPPING_CONFIG.switzerland.freeThreshold || subtotal === 0
   const shipping_amount =
     subtotal === 0 ? 0 : is_free_shipping ? 0 : SHIPPING_CONFIG.switzerland.standardFee
 
   const total = Math.max(
     0,
-    subtotalAfterStackDiscount - coupon_discount - loyalty_discount - gift_card_amount + shipping_amount
+    subtotalAfterDiscounts - coupon_discount - loyalty_discount - gift_card_amount + shipping_amount
   )
   const tax_amount = total * (8.1 / 108.1) // 8.1% VAT included in price
 
   const savings_pct =
-    originalSubtotal > 0
-      ? Math.round(((originalSubtotal - (subtotal - stackCalc.discountAmount)) / originalSubtotal) * 100)
-      : 0
+    subtotal > 0
+      ? Math.round(((preorder_discount + stackCalc.discountAmount) / subtotal) * 100)
+      : 25
 
   const breakdown = {
     subtotal,
+    preorder_discount,
     stack_discount: stackCalc.discountAmount,
     stack_discount_percent: stackCalc.discountPercent,
-    discount_amount: stackCalc.discountAmount + (originalSubtotal - subtotal),
+    discount_amount: preorder_discount + stackCalc.discountAmount,
     coupon_discount,
     loyalty_discount,
     gift_card_amount,
@@ -80,8 +84,8 @@ export function useCart() {
     total,
     savings_pct,
     is_free_shipping,
-    amount_until_free_shipping: stackCalc.amountUntilFreeShipping,
-    free_shipping_threshold: stackCalc.freeShippingThreshold,
+    amount_until_free_shipping: Math.max(0, Math.round((75.0 - subtotalAfterDiscounts) * 100) / 100),
+    free_shipping_threshold: 75.0,
     total_units: stackCalc.totalUnits,
     nudge_message: stackCalc.nudgeMessage,
     active_tier: stackCalc.activeTier,

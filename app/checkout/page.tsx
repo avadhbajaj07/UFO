@@ -186,7 +186,10 @@ export default function CheckoutPage() {
     })
   }, [mappedItems, currency])
 
-  // Resolve best discount between NutriFit 50% pickup and Stack Volume discount (they do not stack)
+  // 1. Pre-Order Launching Offer (25% off)
+  const preorderDiscount = Math.round(subtotal * 0.25 * 100) / 100
+
+  // 2. Resolve best discount between NutriFit pickup and Stack Volume discount
   const discountResolution = useMemo(() => {
     return resolveBestDiscount({
       deliveryMethod: deliveryMethod === 'pickup_nutrifit' ? 'pickup_nutrifit' : 'shipping',
@@ -196,9 +199,9 @@ export default function CheckoutPage() {
   }, [deliveryMethod, nutrifitDiscount, stackCalc.discountAmount])
 
   const primaryDiscount = discountResolution.appliedDiscount
-  const discountedSubtotal = Math.max(0, subtotal - primaryDiscount)
+  const discountedSubtotal = Math.max(0, subtotal - preorderDiscount - primaryDiscount)
 
-  // Shipping Fee calculation (evaluated on discountedSubtotal)
+  // Shipping Fee calculation (evaluated on discountedSubtotal: Free from 75 CHF/EUR)
   const shippingCost = useMemo(() => {
     if (deliveryMethod === 'pickup_nutrifit') return 0.0
     if (deliveryMethod === 'shipping_ch') {
@@ -295,7 +298,8 @@ export default function CheckoutPage() {
         quantity: item.quantity,
       })),
       subtotal,
-      discountAmount: primaryDiscount + couponDiscount,
+      discountAmount: preorderDiscount + primaryDiscount + finalDiscount,
+      preorderDiscountAmount: preorderDiscount,
       stackDiscountAmount: stackCalc.discountAmount,
       stackDiscountPercent: stackCalc.discountPercent,
       appliedDiscountType: discountResolution.appliedDiscountType,
@@ -593,7 +597,7 @@ export default function CheckoutPage() {
                               <span className="text-[10px] font-mono bg-white/10 px-1.5 py-0.5 rounded text-gray-300">CH</span>
                             </div>
                             <div className="text-xs text-gray-400">
-                              CHF 10 if under CHF 50 · Free shipping for orders CHF 50+
+                              CHF 10 if under CHF 75 · Free shipping for orders CHF 75+
                             </div>
                           </div>
                         </div>
@@ -660,7 +664,7 @@ export default function CheckoutPage() {
                               <span className="text-[10px] font-mono bg-blue-500/20 text-blue-300 px-1.5 py-0.5 rounded">EU</span>
                             </div>
                             <div className="text-xs text-gray-400">
-                              Free EU shipping from €60 · Tracked laboratory dispatch
+                              Free EU shipping from €75 · Tracked laboratory dispatch
                             </div>
                           </div>
                         </div>
@@ -1016,8 +1020,15 @@ export default function CheckoutPage() {
                 <div className="pt-3 border-t border-white/5 space-y-2 text-xs">
                   <div className="flex justify-between text-gray-400">
                     <span>Subtotal</span>
-                    <span>{formatCurrencyPrice(subtotal, currency)}</span>
+                    <span className="line-through">{formatCurrencyPrice(subtotal, currency)}</span>
                   </div>
+
+                  {subtotal > 0 && (
+                    <div className="flex justify-between text-alien-green font-semibold">
+                      <span>Pre-Order Launch Offer (25%)</span>
+                      <span>−{formatCurrencyPrice(preorderDiscount, currency)}</span>
+                    </div>
+                  )}
 
                   {discountResolution.appliedDiscountType === 'stack_tier' && primaryDiscount > 0 && (
                     <div className="flex justify-between text-alien-green font-semibold">
@@ -1025,7 +1036,6 @@ export default function CheckoutPage() {
                       <span>−{formatCurrencyPrice(primaryDiscount, currency)}</span>
                     </div>
                   )}
-
 
                   {finalDiscount > 0 && (
                     <div className="flex justify-between text-alien-green font-semibold">

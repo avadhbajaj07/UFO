@@ -18,7 +18,7 @@ export const revalidate = 3600 // ISR: revalidate every hour
 export const metadata: Metadata = {
   title: 'Build Your Custom Stack — Save up to 15% | UFO LABZ Switzerland',
   description:
-    'Formulate your custom UFO LABZ performance stack. Bundle 2 products for 10% off, or 3+ for an automatic 15% discount. Free delivery in Switzerland on orders from CHF 50.',
+    'Formulate your custom UFO LABZ performance stack. Bundle 2 products for 10% off, or 3+ for an automatic 15% discount. Free delivery in Switzerland on orders from CHF 75.',
   alternates: {
     canonical: 'https://ufolabz.com/build-your-stack',
   },
@@ -53,12 +53,20 @@ const DEFAULT_STACK_PRODUCTS: StackProductCardItem[] = [
     name: 'Astro Creatine Pure 300g',
     tagline: '100% Pure Micronized Creatine Monohydrate for ATP Saturation',
     category: 'Creatine',
-    basePrice: 23.27,
+    basePrice: 29.90,
     color: '#00FF88',
     imageUrl:
       'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782667544/UFO4_nuzyls.png',
     hasVariants: false,
-    flavors: [],
+    flavors: [
+      {
+        slug: 'astro-creatine',
+        flavorName: 'Natural Taste',
+        color: '#00FF88',
+        imageUrl:
+          'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782667544/UFO4_nuzyls.png',
+      },
+    ],
     variantId: '41e83bf4-2c4b-4f87-9019-aca3960f268c',
     sku: 'ASTRO-300G',
   },
@@ -68,7 +76,7 @@ const DEFAULT_STACK_PRODUCTS: StackProductCardItem[] = [
     name: 'Amino Fuel EAA 300g',
     tagline: 'Fermented Full-Spectrum EAAs & Cellular Electrolytes',
     category: 'Amino Acids',
-    basePrice: 32.37,
+    basePrice: 39.90,
     color: '#FF8C00',
     imageUrl:
       'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782667544/UFO5_l42elt.png',
@@ -98,7 +106,7 @@ const DEFAULT_STACK_PRODUCTS: StackProductCardItem[] = [
     name: 'Blast Pre-Workout 300g',
     tagline: 'High-Impact Neuro-Drive, Nitric Oxide Pumps & Zero Crash',
     category: 'Pre-Workout',
-    basePrice: 38.87,
+    basePrice: 39.90,
     color: '#FF2244',
     imageUrl:
       'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782667544/UFO3_bfwhlr.png',
@@ -128,12 +136,20 @@ const DEFAULT_STACK_PRODUCTS: StackProductCardItem[] = [
     name: 'Nova Marine Collagen 300g',
     tagline: 'Hydrolyzed Bioactive Marine Collagen Peptides for Joints & Skin',
     category: 'Marine Collagen',
-    basePrice: 38.87,
-    color: '#9B30FF',
+    basePrice: 39.90,
+    color: '#FF2244',
     imageUrl:
       'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1794316727/NEW_NOVA_COLLAGEN_1_y4eyr2.png',
     hasVariants: false,
-    flavors: [],
+    flavors: [
+      {
+        slug: 'astro-collagen-peptide',
+        flavorName: 'Tropical Fruit',
+        color: '#FF2244',
+        imageUrl:
+          'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1794316727/NEW_NOVA_COLLAGEN_1_y4eyr2.png',
+      },
+    ],
     variantId: '4ecb2866-9067-45cc-bddf-1e79b549c64d',
     sku: 'COL-300G',
   },
@@ -143,12 +159,20 @@ const DEFAULT_STACK_PRODUCTS: StackProductCardItem[] = [
     name: 'Magnesium 90 Capsules',
     tagline: 'Chelated Bisglycinate for Neuromuscular Rest & Deep Sleep',
     category: 'Magnesium',
-    basePrice: 19.37,
+    basePrice: 34.90,
     color: '#00FF88',
     imageUrl:
       'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1794316725/Flacon_de_magne%CC%81sium_au_design_extraterrestre_1_oo2r28.png',
     hasVariants: false,
-    flavors: [],
+    flavors: [
+      {
+        slug: 'magnesium',
+        flavorName: '90 Vegan Caps',
+        color: '#00FF88',
+        imageUrl:
+          'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1794316725/Flacon_de_magne%CC%81sium_au_design_extraterrestre_1_oo2r28.png',
+      },
+    ],
     variantId: 'b08be57c-17b4-49d3-a2bc-df41cb88ad4b',
     sku: 'SKU-MAGNESIUM-960',
   },

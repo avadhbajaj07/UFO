@@ -56,10 +56,11 @@ export interface CheckoutTotals {
   currency: SupportedCurrency
   deliveryMethod: CheckoutDeliveryMethod
   validatedSubtotal: number
+  preorderDiscountAmount: number
   stackDiscountAmount: number
   stackDiscountPercent: number
   nutrifitDiscountAmount: number
-  appliedDiscountType: 'none' | 'stack_tier' | 'nutrifit_pickup' | 'coupon'
+  appliedDiscountType: 'none' | 'stack_tier' | 'nutrifit_pickup' | 'coupon' | 'preorder_launch'
   appliedDiscountNote: string
   couponDiscountAmount: number
   discountAmount: number
@@ -167,46 +168,48 @@ export async function buildValidatedCheckoutTotals(
     currency
   )
 
-  // 2. NutriFit Geneva Pickup BOGO 50% discount on second identical units
-  let nutrifitDiscountAmount = 0
-  if (deliveryMethod === 'pickup_nutrifit') {
-    const nutrifitCalc = calculateNutrifitPickupDiscount(
-      orderItemsToInsert.map((item) => ({
-        variantId: item.variant_id,
-        sku: item.sku,
-        name: item.product_name.en,
-        quantity: item.quantity,
-        unitPrice: item.unit_price,
-      }))
-    )
-    nutrifitDiscountAmount = nutrifitCalc.discountTotal
-  }
+  // 2. Pre-Order Launching Offer: 25% discount guaranteed on preorder store
+  const PREORDER_LAUNCH_PERCENT = 25
+  const preorderDiscountAmount =
+    Math.round(validatedSubtotal * (PREORDER_LAUNCH_PERCENT / 100) * 100) / 100
 
-  // 3. Resolve best single discount between NutriFit Pickup 50% vs Stack Discount (no double-stacking)
-  const bestDiscount = resolveBestDiscount({
-    deliveryMethod,
-    nutrifitDiscount: nutrifitDiscountAmount,
-    stackDiscount: stackCalc.discountAmount,
-  })
-
-  // 4. Coupon discount (applied to remaining amount if any)
-  const subtotalAfterBestDiscount = Math.max(0, validatedSubtotal - bestDiscount.appliedDiscount)
+  // 3. Coupon discount (applied to subtotal after stack & launch discounts if coupon entered)
+  const subtotalAfterLaunchAndStack = Math.max(
+    0,
+    validatedSubtotal - preorderDiscountAmount - stackCalc.discountAmount
+  )
   const couponDiscountAmount = Math.min(
     Math.max(
       0,
       resolveCouponDiscountAmount(
-        subtotalAfterBestDiscount,
+        subtotalAfterLaunchAndStack,
         input.discountAmount,
         input.couponCode
       )
     ),
-    subtotalAfterBestDiscount
+    subtotalAfterLaunchAndStack
   )
 
   const discountAmount =
-    Math.round((bestDiscount.appliedDiscount + couponDiscountAmount) * 100) / 100
+    Math.round(
+      Math.min(
+        validatedSubtotal,
+        preorderDiscountAmount + stackCalc.discountAmount + couponDiscountAmount
+      ) * 100
+    ) / 100
 
-  // 5. Shipping fee (evaluated on subtotal AFTER discount as per pricing rules)
+  // Build descriptive notes for the discount breakdown
+  const notes: string[] = ['25% Pre-Order Launch Offer']
+  if (stackCalc.discountPercent > 0) {
+    notes.push(`${stackCalc.discountPercent}% Stack Discount`)
+  }
+  if (couponDiscountAmount > 0) {
+    notes.push(`Coupon (${input.couponCode})`)
+  }
+  const appliedDiscountNote = notes.join(' + ')
+  const appliedDiscountType = stackCalc.discountPercent > 0 ? 'stack_tier' : 'preorder_launch'
+
+  // 4. Shipping fee (evaluated on subtotal AFTER discount as per pricing rules: Free from 75 CHF/EUR)
   const subtotalForShipping = Math.max(0, validatedSubtotal - discountAmount)
   let shippingAmount = 0
   if (deliveryMethod === 'pickup_nutrifit') {
@@ -236,11 +239,12 @@ export async function buildValidatedCheckoutTotals(
     currency,
     deliveryMethod,
     validatedSubtotal: Math.round(validatedSubtotal * 100) / 100,
+    preorderDiscountAmount,
     stackDiscountAmount: stackCalc.discountAmount,
     stackDiscountPercent: stackCalc.discountPercent,
-    nutrifitDiscountAmount,
-    appliedDiscountType: bestDiscount.appliedDiscountType,
-    appliedDiscountNote: bestDiscount.appliedDiscountNote,
+    nutrifitDiscountAmount: 0,
+    appliedDiscountType,
+    appliedDiscountNote,
     couponDiscountAmount,
     discountAmount,
     shippingAmount,

@@ -49,7 +49,7 @@ export default function ShippingPage() {
             <ul className="space-y-2">
               <li className="text-sm text-muted flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-alien-green shrink-0" />
-                <strong>FREE</strong> on orders CHF 50+
+                <strong>FREE</strong> on orders CHF 75+
               </li>
               <li className="text-sm text-muted flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-alien-green shrink-0" />
@@ -96,7 +96,7 @@ export default function ShippingPage() {
             <ul className="space-y-2">
               <li className="text-sm text-muted flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-alien-green shrink-0" />
-                <strong>FREE</strong> on orders EUR 60+
+                <strong>FREE</strong> on orders EUR 75+
               </li>
               <li className="text-sm text-muted flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-alien-green shrink-0" />
