@@ -50,7 +50,7 @@ export default function OrderConfirmation({
   orderNumber,
   customerName,
   isPreorder = true,
-  estimatedShipDate = 'Late March 2027 (Batch 01)',
+  estimatedShipDate = '2nd Week of December 2026 (Batch 01)',
   shippingAddress,
   billingAddress,
   items,

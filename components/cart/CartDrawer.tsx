@@ -230,10 +230,10 @@ export default function CartDrawer() {
                 <span>Subtotal</span>
                 <span>{formatPrice(breakdown.subtotal)}</span>
               </div>
-              {(breakdown as any).preorder_discount > 0 && (
+              {breakdown.coupon_discount > 0 && (
                 <div className="flex justify-between text-alien-green font-semibold">
-                  <span>Pre-Order Launch Offer (25%)</span>
-                  <span>−{formatPrice((breakdown as any).preorder_discount)}</span>
+                  <span>Coupon Discount</span>
+                  <span>−{formatPrice(breakdown.coupon_discount)}</span>
                 </div>
               )}
               {breakdown.stack_discount > 0 && (
@@ -242,10 +242,10 @@ export default function CartDrawer() {
                   <span>−{formatPrice(breakdown.stack_discount)}</span>
                 </div>
               )}
-              {breakdown.coupon_discount > 0 && (
-                <div className="flex justify-between text-alien-green">
-                  <span>Coupon discount</span>
-                  <span>−{formatPrice(breakdown.coupon_discount)}</span>
+              {(breakdown as any).preorder_discount > 0 && (
+                <div className="flex justify-between text-alien-green font-semibold">
+                  <span>Pre-Order Launch Offer (25%)</span>
+                  <span>−{formatPrice((breakdown as any).preorder_discount)}</span>
                 </div>
               )}
               <div className="flex justify-between text-muted">

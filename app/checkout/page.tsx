@@ -945,26 +945,38 @@ export default function CheckoutPage() {
                     <span className="line-through">{formatCurrencyPrice(subtotal, currency)}</span>
                   </div>
 
-                  {subtotal > 0 && (
-                    <div className="flex justify-between text-alien-green font-semibold">
-                      <span>Pre-Order Launch Offer (25%)</span>
-                      <span>−{formatCurrencyPrice(preorderDiscount, currency)}</span>
-                    </div>
-                  )}
+                  {(() => {
+                    const discountRows = [
+                      ...(finalDiscount > 0 ? [{
+                        id: 'coupon',
+                        label: 'Coupon Discount',
+                        amount: finalDiscount,
+                        order: 1,
+                      }] : []),
+                      ...(discountResolution.appliedDiscountType === 'stack_tier' && primaryDiscount > 0 ? [{
+                        id: 'stack',
+                        label: `Stack Volume Discount (${stackCalc.discountPercent}%)`,
+                        amount: primaryDiscount,
+                        order: 2,
+                      }] : []),
+                      ...(subtotal > 0 && preorderDiscount > 0 ? [{
+                        id: 'preorder',
+                        label: 'Pre-Order Launch Offer (25%)',
+                        amount: preorderDiscount,
+                        order: 3,
+                      }] : []),
+                    ]
 
-                  {discountResolution.appliedDiscountType === 'stack_tier' && primaryDiscount > 0 && (
-                    <div className="flex justify-between text-alien-green font-semibold">
-                      <span>Stack Volume Discount ({stackCalc.discountPercent}%)</span>
-                      <span>−{formatCurrencyPrice(primaryDiscount, currency)}</span>
-                    </div>
-                  )}
+                    // Lowest discount first, then increasing discount value (Coupon -> Stack -> Pre-Order)
+                    discountRows.sort((a, b) => a.amount - b.amount || a.order - b.order)
 
-                  {finalDiscount > 0 && (
-                    <div className="flex justify-between text-alien-green font-semibold">
-                      <span>Coupon Discount</span>
-                      <span>−{formatCurrencyPrice(finalDiscount, currency)}</span>
-                    </div>
-                  )}
+                    return discountRows.map((disc) => (
+                      <div key={disc.id} className="flex justify-between text-alien-green font-semibold">
+                        <span>{disc.label}</span>
+                        <span>−{formatCurrencyPrice(disc.amount, currency)}</span>
+                      </div>
+                    ))
+                  })()}
 
                   <div className="flex justify-between text-gray-400">
                     <span>Shipping</span>
@@ -986,7 +998,7 @@ export default function CheckoutPage() {
                   </div>
 
                   <div className="flex justify-between font-bold text-white text-base pt-3 border-t border-white/5">
-                    <span>TOTAL DUE TODAY</span>
+                    <span>Total</span>
                     <span className="text-xl text-alien-green font-mono">{formatCurrencyPrice(finalTotal, currency)}</span>
                   </div>
                 </div>
@@ -1008,7 +1020,7 @@ export default function CheckoutPage() {
                     • <strong>Full Refund Guarantee:</strong> Modify or cancel your pre-order anytime prior to dispatch with zero cancellation fees.
                   </p>
                   <p className="text-[11px] text-gray-400 leading-relaxed">
-                    • <strong>Batch Dispatch:</strong> Expected late March 2027. Full tracking will be provided.
+                    • <strong>Batch Dispatch:</strong> Expected 2nd week of December 2026. Full tracking will be provided.
                   </p>
                   <p className="text-[11px] text-gray-400 leading-relaxed">
                     • <strong>Direct Cargo Dispatch:</strong> Swiss Post Priority & EU tracked delivery with live shipment updates.

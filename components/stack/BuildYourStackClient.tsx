@@ -92,7 +92,7 @@ const FAQ_ITEMS = [
   },
   {
     q: 'What does Pre-Order mean and when will my stack ship?',
-    a: 'Every UFO LABZ formula is currently in Swiss Batch 01 production. Pre-ordering reserves your batch allocation directly from our manufacturing laboratory. Batch 01 dispatch begins in Late March 2027. You may cancel your pre-order anytime prior to shipment for an instant 100% full refund.',
+    a: 'Every UFO LABZ formula is currently in Swiss Batch 01 production. Pre-ordering reserves your batch allocation directly from our manufacturing laboratory. Batch 01 dispatch begins in the 2nd week of December 2026. You may cancel your pre-order anytime prior to shipment for an instant 100% full refund.',
   },
 ]
 

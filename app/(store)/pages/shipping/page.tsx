@@ -97,7 +97,7 @@ export default function ShippingPage() {
             <div className="flex items-start gap-3">
               <CheckCircle2 className="w-5 h-5 text-alien-green shrink-0 mt-0.5" />
               <p className="text-sm text-muted">
-                Pre-order Batch 01 dispatch starts Late March 2027 with direct email notification and tracking.
+                Pre-order Batch 01 dispatch starts 2nd week of December 2026 with direct email notification and tracking.
               </p>
             </div>
             <div className="flex items-start gap-3">

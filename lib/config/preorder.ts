@@ -9,8 +9,8 @@ export const PREORDER_CONFIG = {
   isPreorderMode: process.env.NEXT_PUBLIC_PREORDER_MODE !== 'false',
 
   // Estimated Ship Date placeholder (to be confirmed by merchant)
-  estimatedShipDate: 'Late March 2027 (Batch 01)',
-  estimatedShipNotice: 'Laboratory formulation in progress. Expected dispatch: Late March 2027.',
+  estimatedShipDate: '2nd Week of December 2026 (Batch 01)',
+  estimatedShipNotice: 'Laboratory formulation in progress. Expected dispatch: 2nd Week of December 2026.',
 
   // Storefront Badges & Labels
   badgeText: 'PRE-ORDER',
@@ -32,7 +32,7 @@ export const PREORDER_CONFIG = {
       {
         heading: 'Estimated Dispatch Timeline',
         description:
-          'Shipments are scheduled for dispatch in Late March 2027. You will receive real-time email tracking updates as your order enters precision packaging.',
+          'Shipments are scheduled for dispatch in the 2nd week of December 2026. You will receive real-time email tracking updates as your order enters precision packaging.',
       },
       {
         heading: '100% Full Refund Anytime Before Dispatch',

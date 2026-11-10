@@ -195,14 +195,15 @@ export async function buildValidatedCheckoutTotals(
       ) * 100
     ) / 100
 
-  // Build descriptive notes for the discount breakdown
-  const notes: string[] = ['25% Pre-Order Launch Offer']
-  if (stackCalc.discountPercent > 0) {
-    notes.push(`${stackCalc.discountPercent}% Stack Discount`)
-  }
+  // Build descriptive notes for the discount breakdown (Coupon -> Stack -> Pre-Order)
+  const notes: string[] = []
   if (couponDiscountAmount > 0) {
     notes.push(`Coupon (${input.couponCode})`)
   }
+  if (stackCalc.discountPercent > 0) {
+    notes.push(`${stackCalc.discountPercent}% Stack Discount`)
+  }
+  notes.push('25% Pre-Order Launch Offer')
   const appliedDiscountNote = notes.join(' + ')
   const appliedDiscountType = stackCalc.discountPercent > 0 ? 'stack_tier' : 'preorder_launch'
 

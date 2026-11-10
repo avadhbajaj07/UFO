@@ -91,7 +91,7 @@ export const emailService = {
           orderNumber: orderData.order_number,
           customerName: shippingAddress.fullName || 'Valued Customer',
           isPreorder: true,
-          estimatedShipDate: orderData.estimated_ship_date || 'Late March 2027 (Batch 01)',
+          estimatedShipDate: orderData.estimated_ship_date || '2nd Week of December 2026 (Batch 01)',
           shippingAddress: {
             fullName: shippingAddress.fullName || '',
             addressLine1: shippingAddress.addressLine1 || '',

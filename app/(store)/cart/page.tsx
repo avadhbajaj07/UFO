@@ -264,16 +264,16 @@ export default function CartPage() {
                     <span>Pre-order Subtotal</span>
                     <span className="font-mono text-white font-semibold">{formatPrice(breakdown.subtotal)}</span>
                   </div>
+                  {breakdown.coupon_discount > 0 && (
+                    <div className="flex justify-between text-alien-green font-semibold">
+                      <span>Coupon Discount</span>
+                      <span className="font-mono font-semibold">−{formatPrice(breakdown.coupon_discount)}</span>
+                    </div>
+                  )}
                   {breakdown.stack_discount > 0 && (
                     <div className="flex justify-between text-alien-green font-semibold">
                       <span>Stack Volume Discount ({breakdown.stack_discount_percent}%)</span>
                       <span className="font-mono">−{formatPrice(breakdown.stack_discount)}</span>
-                    </div>
-                  )}
-                  {breakdown.coupon_discount > 0 && (
-                    <div className="flex justify-between text-alien-green">
-                      <span>Coupon Discount</span>
-                      <span className="font-mono font-semibold">−{formatPrice(breakdown.coupon_discount)}</span>
                     </div>
                   )}
                   <div className="flex justify-between text-muted">
@@ -288,7 +288,7 @@ export default function CartPage() {
                   </div>
 
                   <div className="flex justify-between font-display text-white text-2xl pt-4 border-t border-white/5">
-                    <span>TOTAL DUE</span>
+                    <span>TOTAL</span>
                     <span className="text-glow-green text-alien-green font-mono">{formatPrice(breakdown.total)}</span>
                   </div>
                 </div>

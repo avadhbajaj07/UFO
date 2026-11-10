@@ -151,7 +151,7 @@ export async function GET(req: NextRequest) {
     try {
       await supabaseAdmin.from('site_settings').upsert([
         { key: 'preorder_mode', value: true },
-        { key: 'estimated_ship_date', value: 'Late March 2027 (Batch 01)' },
+        { key: 'estimated_ship_date', value: '2nd Week of December 2026 (Batch 01)' },
       ])
     } catch {
       // ignore if table does not exist
