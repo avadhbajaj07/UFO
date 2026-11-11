@@ -105,9 +105,9 @@ export default function ComingSoon() {
       <header className="relative z-10 w-full max-w-7xl mx-auto px-6 py-6 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <img
-            src="https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782711478/UFO_logo_horizontal_kr0e7j.jpg"
+            src="/images/ufolabz-logo-horizontal.png"
             alt="UFO LABZ"
-            className="h-11 sm:h-13 w-auto object-contain rounded-xl border border-white/10 shadow-glow-purple/20"
+            className="h-12 sm:h-14 w-auto object-contain drop-shadow-[0_0_15px_rgba(31,255,107,0.2)]"
           />
         </div>
 

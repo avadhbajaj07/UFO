@@ -36,9 +36,9 @@ export default function HeroSection() {
           style={{ animationDelay: '0s' }}
         >
           <img
-            src="https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782711478/ufo_logo_sqaure_h2yvkk.jpg"
+            src="/images/ufolabz-logo.png"
             alt="UFO LABZ"
-            className="h-28 w-28 object-contain rounded-full border border-white/10 shadow-[0_0_50px_rgba(0,255,136,0.15)] hover:scale-105 transition-transform duration-300"
+            className="h-32 w-32 sm:h-36 sm:w-36 md:h-40 md:w-40 object-contain rounded-full border border-alien-green/20 shadow-[0_0_50px_rgba(31,255,107,0.25)] hover:scale-105 transition-transform duration-300"
           />
         </div>
 

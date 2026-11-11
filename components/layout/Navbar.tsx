@@ -27,13 +27,13 @@ export default function Navbar() {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 border-b border-white/[0.06] bg-space-950/80 backdrop-blur-xl">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-16 sm:h-20">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 group">
+          <Link href="/" className="flex items-center gap-2 sm:gap-3 group">
             <img
               src="/images/ufolabz-logo-horizontal.png"
               alt="UFO LABZ"
-              className="h-10 w-auto object-contain opacity-95 group-hover:opacity-100 transition-opacity"
+              className="h-11 sm:h-14 w-auto object-contain opacity-95 group-hover:opacity-100 transition-opacity drop-shadow-[0_0_15px_rgba(31,255,107,0.2)]"
             />
             <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full bg-alien-green/20 border border-alien-green/50 text-alien-green text-[10px] font-mono font-bold uppercase tracking-wider">
               Batch 01 Pre-order

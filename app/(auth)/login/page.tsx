@@ -195,9 +195,9 @@ function LoginForm() {
         <div className="text-center mb-6">
           <Link href="/" className="inline-block mb-4 hover:opacity-90 transition-opacity">
             <img
-              src="https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782711478/ufo_logo_sqaure_h2yvkk.jpg"
+              src="/images/ufolabz-logo.png"
               alt="UFO LABZ"
-              className="w-20 h-20 object-contain rounded-2xl border border-white/10 shadow-lg mx-auto"
+              className="w-20 h-20 object-contain rounded-2xl border border-alien-green/20 shadow-glow-green/20 mx-auto"
             />
           </Link>
           <h1 className="font-display text-4xl tracking-wider text-white mb-2">

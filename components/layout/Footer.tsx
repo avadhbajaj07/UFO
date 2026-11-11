@@ -50,11 +50,11 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8">
           {/* Brand Column */}
           <div className="lg:col-span-1">
-            <Link href="/" className="inline-flex items-center mb-5 group">
+            <Link href="/" className="inline-flex items-center mb-6 group">
               <img
                 src="/images/ufolabz-logo-horizontal.png"
                 alt="UFO LABZ"
-                className="h-10 w-auto object-contain opacity-95 group-hover:opacity-100 transition-opacity drop-shadow-[0_0_15px_rgba(31,255,107,0.15)]"
+                className="h-14 sm:h-16 w-auto object-contain opacity-95 group-hover:opacity-100 transition-opacity drop-shadow-[0_0_20px_rgba(31,255,107,0.25)]"
               />
             </Link>
             <p className="text-sm text-muted leading-relaxed mb-5">

@@ -41,7 +41,7 @@ export default async function HomePage() {
     '@type': 'Organization',
     name: 'UFO LABZ',
     url: 'https://ufolabz.com',
-    logo: 'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782711478/ufo_logo_sqaure_h2yvkk.jpg',
+    logo: 'https://ufolabz.com/images/ufolabz-logo.png',
     contactPoint: {
       '@type': 'ContactPoint',
       telephone: '+41 79 250 35 64',
