@@ -52,9 +52,9 @@ export default function Footer() {
           <div className="lg:col-span-1">
             <Link href="/" className="inline-flex items-center mb-5 group">
               <img
-                src="https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782711478/UFO_logo_horizontal_kr0e7j.jpg"
+                src="/images/ufolabz-logo-horizontal.png"
                 alt="UFO LABZ"
-                className="h-10 w-auto object-contain rounded-lg border border-white/5 opacity-90 group-hover:opacity-100 transition-opacity"
+                className="h-10 w-auto object-contain opacity-95 group-hover:opacity-100 transition-opacity drop-shadow-[0_0_15px_rgba(31,255,107,0.15)]"
               />
             </Link>
             <p className="text-sm text-muted leading-relaxed mb-5">

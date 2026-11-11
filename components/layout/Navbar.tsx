@@ -31,9 +31,9 @@ export default function Navbar() {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 group">
             <img
-              src="https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782711478/UFO_logo_horizontal_kr0e7j.jpg"
+              src="/images/ufolabz-logo-horizontal.png"
               alt="UFO LABZ"
-              className="h-10 w-auto object-contain rounded-lg border border-white/5 opacity-90 group-hover:opacity-100 transition-opacity"
+              className="h-10 w-auto object-contain opacity-95 group-hover:opacity-100 transition-opacity"
             />
             <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full bg-alien-green/20 border border-alien-green/50 text-alien-green text-[10px] font-mono font-bold uppercase tracking-wider">
               Batch 01 Pre-order

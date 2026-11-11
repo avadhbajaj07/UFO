@@ -1,658 +1,518 @@
-import { Resend } from 'resend';
-import * as React from 'react';
-import OrderConfirmation from '@/components/email/OrderConfirmation';
-import AdminNotification from '@/components/email/AdminNotification';
-import {
-  EmailVerification,
-  PasswordReset,
-  WelcomeEmail,
-  OrderShipped,
-  OrderDelivered,
-  RefundProcessed,
-  ReviewRequest,
-  NewsletterWelcome,
-  AffiliateApproval,
-  OrderStatusChange,
-  LoyaltyReward,
-  AffiliateRateChange,
-  AbandonedCartEmail,
-  ReplenishmentEmail,
-} from '@/components/email/OtherTemplates';
+import { Resend } from 'resend'
+import { renderEmail, EmailTemplateKey } from './templates'
 
-let resendClient: Resend | null | undefined;
+let resendClient: Resend | null | undefined
 
 // Initialize lazily so builds do not evaluate the email SDK before runtime secrets exist.
 const getResendClient = () => {
-  if (resendClient !== undefined) return resendClient;
-  const apiKey = process.env.RESEND_API_KEY;
+  if (resendClient !== undefined) return resendClient
+  const apiKey = process.env.RESEND_API_KEY
   if (!apiKey) {
-    resendClient = null;
-    return resendClient;
+    resendClient = null
+    return resendClient
   }
-  resendClient = new Resend(apiKey);
-  return resendClient;
-};
+  resendClient = new Resend(apiKey)
+  return resendClient
+}
 
 // Configuration parameters
-const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'UFO LABZ <hello@ufolabz.com>';
-const ADMIN_EMAIL = process.env.ADMIN_NOTIFICATION_EMAIL || 'marco.scarpantoni@hotmail.com';
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://ufolabz.com';
+const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'UFO LABZ <hello@ufolabz.com>'
+const ADMIN_EMAIL = process.env.ADMIN_NOTIFICATION_EMAIL || 'marco.scarpantoni@hotmail.com'
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://ufolabz.com'
 
-/**
- * Standard interface for emails return value
- */
-interface EmailSendResult {
-  success: boolean;
-  id?: string;
-  error?: string;
+export interface EmailSendResult {
+  success: boolean
+  id?: string
+  error?: string
+}
+
+const logEmailError = (methodName: string, error: any): EmailSendResult => {
+  const msg = error instanceof Error ? error.message : String(error)
+  console.error(`❌ Error in email service [${methodName}]:`, error)
+  return { success: false, error: msg }
+}
+
+async function sendTemplateEmail(
+  to: string,
+  templateKey: EmailTemplateKey,
+  variables: Record<string, any> = {},
+  replyTo: string = 'hello@ufolabz.com'
+): Promise<EmailSendResult> {
+  try {
+    const { subject, html } = renderEmail(templateKey, variables)
+    const resend = getResendClient()
+
+    if (!resend) {
+      console.log(`[MOCK EMAIL] [${templateKey}] to ${to} | Subject: "${subject}"`)
+      return { success: true, id: `mock-${templateKey}-${Date.now()}` }
+    }
+
+    const { data, error } = await resend.emails.send({
+      from: FROM_EMAIL,
+      to,
+      replyTo,
+      subject,
+      html,
+    })
+
+    if (error) {
+      return logEmailError(templateKey, error)
+    }
+
+    return { success: true, id: data?.id }
+  } catch (err: any) {
+    return logEmailError(templateKey, err)
+  }
 }
 
 /**
- * Helper to log and format errors safely
- */
-const logEmailError = (methodName: string, error: any): EmailSendResult => {
-  const msg = error instanceof Error ? error.message : String(error);
-  console.error(`❌ Error in email service [${methodName}]:`, error);
-  return { success: false, error: msg };
-};
-
-/**
- * UFO LABZ Email Service
+ * UFO LABZ Email Service — Sourced from official UFOLABZ_Email_Templates (18 events)
  */
 export const emailService = {
+  // ── 1. Customer Emails ──────────────────────────────────────────────
+
   /**
-   * Customer Order Confirmation Email
+   * 1. Order confirmation (Payment succeeded)
    */
-  async sendOrderConfirmation(orderData: any, items: any[]): Promise<EmailSendResult> {
-    try {
-      const resend = getResendClient();
-      if (!resend) {
-        console.log(`[MOCK EMAIL] sendOrderConfirmation to ${orderData.email} for order #${orderData.order_number}`);
-        return { success: true, id: 'mock-confirm-id' };
-      }
+  async sendOrderConfirmation(orderData: any, items: any[] = []): Promise<EmailSendResult> {
+    const to = orderData.email || orderData.guest_email
+    if (!to) return { success: false, error: 'Recipient email missing' }
 
-      const shippingAddress = orderData.shipping_address || {};
-      const billingAddress = orderData.billing_address || shippingAddress;
+    const address = orderData.shipping_address || {}
+    const firstName = address.fullName?.split(' ')[0] || orderData.customerName?.split(' ')[0] || 'Valued Athlete'
+    const currency = orderData.currency || 'CHF'
 
-      const formattedItems = items.map((item) => ({
-        name: item.product_name?.en || item.product_name || 'UFO Product',
-        variantName: item.variant_name || 'Standard size',
-        quantity: item.quantity,
-        price: Number(item.unit_price),
-        sku: item.sku || 'N/A',
-      }));
-
-      const { data, error } = await resend.emails.send({
-        from: FROM_EMAIL,
-        to: orderData.email,
-        replyTo: 'hello@ufolabz.com',
-        subject: `Your UFO LABZ Pre-Order #${orderData.order_number} is Confirmed 🚀`,
-        react: React.createElement(OrderConfirmation, {
-          orderNumber: orderData.order_number,
-          customerName: shippingAddress.fullName || 'Valued Customer',
-          isPreorder: true,
-          estimatedShipDate: orderData.estimated_ship_date || '2nd Week of December 2026 (Batch 01)',
-          shippingAddress: {
-            fullName: shippingAddress.fullName || '',
-            addressLine1: shippingAddress.addressLine1 || '',
-            addressLine2: shippingAddress.addressLine2,
-            city: shippingAddress.city || '',
-            zipCode: shippingAddress.zipCode || '',
-            canton: shippingAddress.canton || '',
-          },
-          billingAddress: {
-            fullName: billingAddress.fullName || '',
-            addressLine1: billingAddress.addressLine1 || '',
-            addressLine2: billingAddress.addressLine2,
-            city: billingAddress.city || '',
-            zipCode: billingAddress.zipCode || '',
-            canton: billingAddress.canton || '',
-          },
-          items: formattedItems,
-          subtotal: Number(orderData.subtotal),
-          discountAmount: Number(orderData.discount_amount),
-          shippingAmount: Number(orderData.shipping_amount),
-          total: Number(orderData.total),
-          currency: orderData.currency || 'CHF',
-          estimatedDelivery: orderData.estimated_delivery
-            ? new Date(orderData.estimated_delivery).toLocaleDateString('en-US', {
-                weekday: 'long',
-                month: 'long',
-                day: 'numeric',
-              })
-            : undefined,
-          appUrl: APP_URL,
-        }),
-      });
-
-      if (error) {
-        throw new Error(error.message);
-      }
-
-      return { success: true, id: data?.id };
-    } catch (err) {
-      return logEmailError('sendOrderConfirmation', err);
+    const vars = {
+      first_name: firstName,
+      order_number: orderData.order_number || orderData.id?.slice(0, 8),
+      order_date: new Date(orderData.created_at || Date.now()).toLocaleDateString('de-CH'),
+      payment_method: (orderData.payment_method || 'TWINT').toUpperCase(),
+      shipping_method: orderData.shipping_method || 'Swiss Post Priority',
+      shipping_address: `${address.addressLine1 || address.street || ''}, ${address.zipCode || address.zip || ''} ${address.city || ''}, Switzerland`,
+      subtotal: `${currency} ${Number(orderData.subtotal || 0).toFixed(2)}`,
+      discount: `${currency} ${Number(orderData.discount_amount || 0).toFixed(2)}`,
+      shipping: Number(orderData.shipping_amount || 0) === 0 ? 'FREE' : `${currency} ${Number(orderData.shipping_amount).toFixed(2)}`,
+      total: `${currency} ${Number(orderData.total || 0).toFixed(2)}`,
+      order_url: `${APP_URL}/account`,
     }
+
+    return sendTemplateEmail(to, 'order_confirmation', vars)
   },
 
   /**
-   * Admin Notification Email (Internal)
+   * 2. Abandoned cart reminder
    */
-  async sendAdminNotification(orderData: any, items: any[]): Promise<EmailSendResult> {
-    try {
-      const resend = getResendClient();
-      if (!resend) {
-        console.log(`[MOCK EMAIL] sendAdminNotification to ${ADMIN_EMAIL} for order #${orderData.order_number}`);
-        return { success: true, id: 'mock-admin-id' };
-      }
+  async sendAbandonedCart(
+    email: string,
+    customerName: string,
+    cartItems: any[],
+    checkoutUrl: string,
+    discountCode?: string
+  ): Promise<EmailSendResult> {
+    const firstName = customerName?.split(' ')[0] || 'Athlete'
+    const subtotal = cartItems.reduce((acc, i) => acc + (Number(i.price || 0) * (i.quantity || 1)), 0)
 
-      const shippingAddress = orderData.shipping_address || {};
-      const billingAddress = orderData.billing_address || shippingAddress;
-
-      const formattedItems = items.map((item) => ({
-        name: item.product_name?.en || item.product_name || 'UFO Product',
-        variantName: item.variant_name || 'Standard size',
-        quantity: item.quantity,
-        price: Number(item.unit_price),
-        sku: item.sku || 'N/A',
-      }));
-
-      const { data, error } = await resend.emails.send({
-        from: FROM_EMAIL,
-        to: ADMIN_EMAIL,
-        replyTo: 'hello@ufolabz.com',
-        subject: `🎉 New Order Received - #${orderData.order_number}`,
-        react: React.createElement(AdminNotification, {
-          orderNumber: orderData.order_number,
-          customerName: shippingAddress.fullName || 'Guest Athlete',
-          customerEmail: orderData.email || 'N/A',
-          customerPhone: shippingAddress.phone || orderData.phone,
-          shippingAddress: {
-            fullName: shippingAddress.fullName || '',
-            addressLine1: shippingAddress.addressLine1 || '',
-            addressLine2: shippingAddress.addressLine2,
-            city: shippingAddress.city || '',
-            zipCode: shippingAddress.zipCode || '',
-            canton: shippingAddress.canton || '',
-          },
-          billingAddress: {
-            fullName: billingAddress.fullName || '',
-            addressLine1: billingAddress.addressLine1 || '',
-            addressLine2: billingAddress.addressLine2,
-            city: billingAddress.city || '',
-            zipCode: billingAddress.zipCode || '',
-            canton: billingAddress.canton || '',
-          },
-          items: formattedItems,
-          subtotal: Number(orderData.subtotal),
-          discountAmount: Number(orderData.discount_amount),
-          shippingAmount: Number(orderData.shipping_amount),
-          total: Number(orderData.total),
-          currency: orderData.currency || 'CHF',
-          paymentMethod: orderData.payment_method || 'N/A',
-          paymentStatus: orderData.payment_status || 'paid',
-          orderTimestamp: orderData.created_at
-            ? new Date(orderData.created_at).toLocaleString()
-            : new Date().toLocaleString(),
-          appUrl: APP_URL,
-        }),
-      });
-
-      if (error) {
-        throw new Error(error.message);
-      }
-
-      return { success: true, id: data?.id };
-    } catch (err) {
-      return logEmailError('sendAdminNotification', err);
+    const vars = {
+      first_name: firstName,
+      cart_url: checkoutUrl || `${APP_URL}/checkout`,
+      discount_code: discountCode || 'ORBITAL10',
+      subtotal: `CHF ${subtotal.toFixed(2)}`,
+      discount: `CHF ${(subtotal * 0.25).toFixed(2)}`,
+      shipping: subtotal >= 75 ? 'FREE' : 'CHF 7.90',
+      total: `CHF ${(subtotal * 0.75).toFixed(2)}`,
     }
+
+    return sendTemplateEmail(email, 'abandoned_cart', vars)
   },
 
   /**
-   * Welcome Email (Registration)
+   * 3. Time to restock (45 days)
    */
-  async sendWelcomeEmail(email: string, name: string): Promise<EmailSendResult> {
-    try {
-      const resend = getResendClient();
-      if (!resend) {
-        console.log(`[MOCK EMAIL] sendWelcomeEmail to ${email}`);
-        return { success: true, id: 'mock-welcome-id' };
-      }
+  async sendRestockReminder(
+    email: string,
+    customerName: string,
+    productName: string,
+    reorderUrl: string
+  ): Promise<EmailSendResult> {
+    const firstName = customerName?.split(' ')[0] || 'Athlete'
 
-      const { data, error } = await resend.emails.send({
-        from: FROM_EMAIL,
-        to: email,
-        replyTo: 'hello@ufolabz.com',
-        subject: 'Welcome to UFO LABZ! 🚀',
-        react: React.createElement(WelcomeEmail, {
-          customerName: name,
-          appUrl: APP_URL,
-        }),
-      });
-
-      if (error) throw new Error(error.message);
-      return { success: true, id: data?.id };
-    } catch (err) {
-      return logEmailError('sendWelcomeEmail', err);
+    const vars = {
+      first_name: firstName,
+      last_product_name: productName || 'Astro Creatine Pure',
+      reorder_url: reorderUrl || `${APP_URL}/products`,
+      restock_code: 'RESTOCK10',
+      restock_discount: '10% off',
+      code_expiry: '7 days',
     }
+
+    return sendTemplateEmail(email, 'restock_reminder', vars)
   },
 
   /**
-   * Email Verification
-   */
-  async sendVerificationEmail(email: string, token: string, name?: string): Promise<EmailSendResult> {
-    try {
-      const resend = getResendClient();
-      const url = `${APP_URL}/verify-email?token=${token}`;
-      if (!resend) {
-        console.log(`[MOCK EMAIL] sendVerificationEmail to ${email} with url ${url}`);
-        return { success: true, id: 'mock-verify-id' };
-      }
-
-      const { data, error } = await resend.emails.send({
-        from: FROM_EMAIL,
-        to: email,
-        replyTo: 'hello@ufolabz.com',
-        subject: 'Verify your UFO LABZ email address 🛸',
-        react: React.createElement(EmailVerification, {
-          customerName: name,
-          verificationUrl: url,
-        }),
-      });
-
-      if (error) throw new Error(error.message);
-      return { success: true, id: data?.id };
-    } catch (err) {
-      return logEmailError('sendVerificationEmail', err);
-    }
-  },
-
-  /**
-   * Password Reset Link
-   */
-  async sendPasswordReset(email: string, token: string, name?: string): Promise<EmailSendResult> {
-    try {
-      const resend = getResendClient();
-      const url = `${APP_URL}/reset-password?token=${token}`;
-      if (!resend) {
-        console.log(`[MOCK EMAIL] sendPasswordReset to ${email} with url ${url}`);
-        return { success: true, id: 'mock-reset-id' };
-      }
-
-      const { data, error } = await resend.emails.send({
-        from: FROM_EMAIL,
-        to: email,
-        replyTo: 'hello@ufolabz.com',
-        subject: 'Reset navigation password 🔑',
-        react: React.createElement(PasswordReset, {
-          customerName: name,
-          resetUrl: url,
-        }),
-      });
-
-      if (error) throw new Error(error.message);
-      return { success: true, id: data?.id };
-    } catch (err) {
-      return logEmailError('sendPasswordReset', err);
-    }
-  },
-
-  /**
-   * Order Shipped
+   * 4. Order shipped (Swiss Post Priority tracking)
    */
   async sendOrderShipped(orderData: any): Promise<EmailSendResult> {
-    try {
-      const resend = getResendClient();
-      if (!resend) {
-        console.log(`[MOCK EMAIL] sendOrderShipped to ${orderData.email} for order #${orderData.order_number}`);
-        return { success: true, id: 'mock-shipped-id' };
-      }
+    const to = orderData.email || orderData.guest_email || orderData.customerEmail
+    if (!to) return { success: false, error: 'Recipient email missing' }
 
-      const { data, error } = await resend.emails.send({
-        from: FROM_EMAIL,
-        to: orderData.email,
-        replyTo: 'hello@ufolabz.com',
-        subject: 'Cargo Shipped 📦',
-        react: React.createElement(OrderShipped, {
-          orderNumber: orderData.order_number,
-          customerName: orderData.shipping_address?.fullName || 'Athlete',
-          carrier: orderData.shipping_method || 'PostPac Priority',
-          trackingNumber: orderData.tracking_number,
-          trackingUrl: orderData.tracking_url,
-        }),
-      });
+    const address = orderData.shipping_address || {}
+    const firstName = address.fullName?.split(' ')[0] || orderData.customerName?.split(' ')[0] || 'Valued Athlete'
+    const trackingNumber = orderData.tracking_number || orderData.trackingNumber || 'Pending'
+    const trackingUrl = orderData.tracking_url || orderData.trackingUrl || `https://service.post.ch/tracking?formattedParcelCodes=${trackingNumber}`
 
-      if (error) throw new Error(error.message);
-      return { success: true, id: data?.id };
-    } catch (err) {
-      return logEmailError('sendOrderShipped', err);
+    const vars = {
+      first_name: firstName,
+      order_number: orderData.order_number || orderData.id,
+      tracking_number: trackingNumber,
+      tracking_url: trackingUrl,
+      estimated_delivery: 'Next working day (Swiss Post Priority)',
     }
+
+    return sendTemplateEmail(to, 'order_shipped', vars)
   },
 
   /**
-   * Order Delivered
+   * 5. Order delayed
+   */
+  async sendOrderDelayed(
+    orderData: any,
+    newEta?: string,
+    delayReason?: string
+  ): Promise<EmailSendResult> {
+    const to = orderData.email || orderData.guest_email || orderData.customerEmail
+    if (!to) return { success: false, error: 'Recipient email missing' }
+
+    const firstName = orderData.customerName?.split(' ')[0] || 'Valued Athlete'
+
+    const vars = {
+      first_name: firstName,
+      order_number: orderData.order_number || orderData.id,
+      new_eta: newEta || 'within 3-5 working days',
+      delay_reason: delayReason || 'custom batch laboratory quality verification',
+      order_url: `${APP_URL}/account`,
+    }
+
+    return sendTemplateEmail(to, 'order_delayed', vars)
+  },
+
+  /**
+   * 6. Order cancelled & refund
+   */
+  async sendOrderCancelled(
+    orderData: any,
+    cancelReason?: string,
+    refundAmount?: string | number
+  ): Promise<EmailSendResult> {
+    const to = orderData.email || orderData.guest_email || orderData.customerEmail
+    if (!to) return { success: false, error: 'Recipient email missing' }
+
+    const firstName = orderData.customerName?.split(' ')[0] || 'Valued Athlete'
+    const currency = orderData.currency || 'CHF'
+
+    const vars = {
+      first_name: firstName,
+      order_number: orderData.order_number || orderData.id,
+      cancel_date: new Date().toLocaleDateString('de-CH'),
+      cancel_reason: cancelReason || 'customer requested cancellation',
+      refund_amount: `${currency} ${Number(refundAmount || orderData.total || 0).toFixed(2)}`,
+      refund_days: '2-4 business days',
+    }
+
+    return sendTemplateEmail(to, 'order_cancelled', vars)
+  },
+
+  /**
+   * 7. Order delivered
    */
   async sendOrderDelivered(orderData: any): Promise<EmailSendResult> {
-    try {
-      const resend = getResendClient();
-      if (!resend) {
-        console.log(`[MOCK EMAIL] sendOrderDelivered to ${orderData.email} for order #${orderData.order_number}`);
-        return { success: true, id: 'mock-delivered-id' };
-      }
+    const to = orderData.email || orderData.guest_email || orderData.customerEmail
+    if (!to) return { success: false, error: 'Recipient email missing' }
 
-      const { data, error } = await resend.emails.send({
-        from: FROM_EMAIL,
-        to: orderData.email,
-        replyTo: 'hello@ufolabz.com',
-        subject: 'Cargo Delivered 🏁',
-        react: React.createElement(OrderDelivered, {
-          orderNumber: orderData.order_number,
-          customerName: orderData.shipping_address?.fullName || 'Athlete',
-          appUrl: APP_URL,
-        }),
-      });
+    const firstName = orderData.customerName?.split(' ')[0] || 'Valued Athlete'
 
-      if (error) throw new Error(error.message);
-      return { success: true, id: data?.id };
-    } catch (err) {
-      return logEmailError('sendOrderDelivered', err);
+    const vars = {
+      first_name: firstName,
+      order_number: orderData.order_number || orderData.id,
+      review_url: `${APP_URL}/account`,
     }
+
+    return sendTemplateEmail(to, 'order_delivered', vars)
+  },
+
+  // ── 2. Athlete & Affiliate Emails ───────────────────────────────────
+
+  /**
+   * 8. Athlete application received (to Athlete)
+   */
+  async sendAffiliateApplicationReceived(
+    email: string,
+    athleteName: string,
+    sport?: string,
+    instagramHandle?: string
+  ): Promise<EmailSendResult> {
+    const firstName = athleteName?.split(' ')[0] || 'Partner'
+
+    const vars = {
+      first_name: firstName,
+      athlete_name: athleteName,
+      sport: sport || 'Fitness & Athletics',
+      instagram_handle: instagramHandle || '@athlete',
+      review_days: '2-3 business days',
+    }
+
+    return sendTemplateEmail(email, 'affiliate_application_received', vars)
   },
 
   /**
-   * Refund Processed
+   * 9. New athlete application alert (to Admin)
    */
+  async sendAffiliateApplicationAdminAlert(
+    athleteName: string,
+    athleteEmail: string,
+    sport?: string,
+    instagramHandle?: string,
+    followers?: string
+  ): Promise<EmailSendResult> {
+    const vars = {
+      athlete_name: athleteName,
+      athlete_email: athleteEmail,
+      sport: sport || 'Crossfit / Bodybuilding',
+      instagram_handle: instagramHandle || 'N/A',
+      followers: followers || '1k - 10k',
+      admin_review_url: `${APP_URL}/admin`,
+    }
+
+    return sendTemplateEmail(ADMIN_EMAIL, 'affiliate_application_admin_alert', vars)
+  },
+
+  /**
+   * 10. Athlete approved: getting started (to Athlete)
+   */
+  async sendAffiliateApproved(
+    email: string,
+    partnerName: string,
+    commissionRate: string | number = 15
+  ): Promise<EmailSendResult> {
+    const firstName = partnerName?.split(' ')[0] || 'Partner'
+
+    const vars = {
+      first_name: firstName,
+      commission_rate: `${commissionRate}%`,
+      dashboard_url: `${APP_URL}/affiliate`,
+    }
+
+    return sendTemplateEmail(email, 'affiliate_approved', vars)
+  },
+
+  /**
+   * 11. Custom coupon submitted alert (to Admin)
+   */
+  async sendCouponSubmittedAdminAlert(
+    athleteName: string,
+    couponCode: string,
+    couponDiscount: string | number = '10%'
+  ): Promise<EmailSendResult> {
+    const vars = {
+      athlete_name: athleteName,
+      coupon_code: couponCode,
+      coupon_discount: typeof couponDiscount === 'number' ? `${couponDiscount}%` : couponDiscount,
+      admin_coupon_url: `${APP_URL}/admin`,
+    }
+
+    return sendTemplateEmail(ADMIN_EMAIL, 'coupon_submitted_admin_alert', vars)
+  },
+
+  /**
+   * 12. Coupon approved (to Athlete)
+   */
+  async sendCouponApproved(
+    email: string,
+    partnerName: string,
+    couponCode: string,
+    couponDiscount: string | number = '10%',
+    commissionRate: string | number = 15
+  ): Promise<EmailSendResult> {
+    const firstName = partnerName?.split(' ')[0] || 'Partner'
+
+    const vars = {
+      first_name: firstName,
+      coupon_code: couponCode,
+      coupon_discount: typeof couponDiscount === 'number' ? `${couponDiscount}%` : couponDiscount,
+      commission_rate: typeof commissionRate === 'number' ? `${commissionRate}%` : commissionRate,
+      dashboard_url: `${APP_URL}/affiliate`,
+    }
+
+    return sendTemplateEmail(email, 'coupon_approved', vars)
+  },
+
+  /**
+   * 13. Coupon not approved (to Athlete)
+   */
+  async sendCouponRejected(
+    email: string,
+    partnerName: string,
+    couponCode: string,
+    rejectReason?: string
+  ): Promise<EmailSendResult> {
+    const firstName = partnerName?.split(' ')[0] || 'Partner'
+
+    const vars = {
+      first_name: firstName,
+      coupon_code: couponCode,
+      reject_reason: rejectReason || 'Code name already taken or reserved by program rules.',
+      dashboard_url: `${APP_URL}/affiliate`,
+    }
+
+    return sendTemplateEmail(email, 'coupon_rejected', vars)
+  },
+
+  /**
+   * 14. Commission earned (to Athlete)
+   */
+  async sendCommissionEarned(
+    email: string,
+    partnerName: string,
+    commissionAmount: string | number,
+    orderNumber: string,
+    orderTotal: string | number,
+    couponCode?: string,
+    commissionRate: string | number = 15
+  ): Promise<EmailSendResult> {
+    const firstName = partnerName?.split(' ')[0] || 'Partner'
+    const commAmt = typeof commissionAmount === 'number' ? `CHF ${commissionAmount.toFixed(2)}` : commissionAmount
+    const ordTot = typeof orderTotal === 'number' ? `CHF ${orderTotal.toFixed(2)}` : orderTotal
+
+    const vars = {
+      first_name: firstName,
+      commission_amount: commAmt,
+      commission_rate: `${commissionRate}%`,
+      commission_status: 'CONFIRMED',
+      coupon_code: couponCode || 'REFERRAL-LINK',
+      order_number: orderNumber,
+      order_total: ordTot,
+      pending_balance: commAmt,
+      return_days: '14 days',
+      dashboard_url: `${APP_URL}/affiliate`,
+    }
+
+    return sendTemplateEmail(email, 'commission_earned', vars)
+  },
+
+  // ── 3. Account & Security Emails ────────────────────────────────────
+
+  /**
+   * 15. Confirm email (signup)
+   */
+  async sendConfirmEmail(
+    email: string,
+    confirmUrl: string,
+    firstName?: string
+  ): Promise<EmailSendResult> {
+    const vars = {
+      first_name: firstName || email.split('@')[0],
+      confirm_url: confirmUrl,
+      expiry_hours: '24',
+    }
+
+    return sendTemplateEmail(email, 'confirm_email', vars)
+  },
+
+  /**
+   * 16. Welcome email (Google sign-in)
+   */
+  async sendWelcomeGoogle(
+    email: string,
+    firstName?: string
+  ): Promise<EmailSendResult> {
+    const vars = {
+      first_name: firstName || email.split('@')[0],
+      email: email,
+    }
+
+    return sendTemplateEmail(email, 'welcome_google', vars)
+  },
+
+  /**
+   * 17. Reset your password
+   */
+  async sendResetPassword(
+    email: string,
+    resetUrl: string,
+    firstName?: string
+  ): Promise<EmailSendResult> {
+    const vars = {
+      first_name: firstName || email.split('@')[0],
+      reset_url: resetUrl,
+      expiry_minutes: '60',
+    }
+
+    return sendTemplateEmail(email, 'reset_password', vars)
+  },
+
+  /**
+   * 18. Password changed
+   */
+  async sendPasswordChanged(
+    email: string,
+    firstName?: string
+  ): Promise<EmailSendResult> {
+    const vars = {
+      first_name: firstName || email.split('@')[0],
+      change_date: new Date().toLocaleDateString('de-CH'),
+      reset_url: `${APP_URL}/reset-password`,
+    }
+
+    return sendTemplateEmail(email, 'password_changed', vars)
+  },
+
+  // ── Backward-compatible Aliases ────────────────────────────────────
+  async sendWelcomeEmail(email: string, name: string): Promise<EmailSendResult> {
+    return this.sendWelcomeGoogle(email, name)
+  },
+  async sendVerificationEmail(email: string, token: string, name?: string): Promise<EmailSendResult> {
+    return this.sendConfirmEmail(email, `${APP_URL}/auth/callback?token=${token}`, name)
+  },
+  async sendAdminNotification(orderData: any, items: any[]): Promise<EmailSendResult> {
+    return this.sendOrderConfirmation({ ...orderData, email: ADMIN_EMAIL }, items)
+  },
   async sendRefundProcessed(orderData: any, refundAmount: number): Promise<EmailSendResult> {
-    try {
-      const resend = getResendClient();
-      if (!resend) {
-        console.log(`[MOCK EMAIL] sendRefundProcessed to ${orderData.email} for amount ${refundAmount}`);
-        return { success: true, id: 'mock-refund-id' };
-      }
-
-      const { data, error } = await resend.emails.send({
-        from: FROM_EMAIL,
-        to: orderData.email,
-        replyTo: 'hello@ufolabz.com',
-        subject: 'Refund Dispatched 💳',
-        react: React.createElement(RefundProcessed, {
-          orderNumber: orderData.order_number,
-          customerName: orderData.shipping_address?.fullName || 'Athlete',
-          refundAmount,
-          currency: orderData.currency || 'CHF',
-        }),
-      });
-
-      if (error) throw new Error(error.message);
-      return { success: true, id: data?.id };
-    } catch (err) {
-      return logEmailError('sendRefundProcessed', err);
-    }
+    return this.sendOrderCancelled(orderData, 'Processed refund', refundAmount)
   },
-
-  /**
-   * Review Request
-   */
   async sendReviewRequest(orderData: any, productName: string): Promise<EmailSendResult> {
-    try {
-      const resend = getResendClient();
-      if (!resend) {
-        console.log(`[MOCK EMAIL] sendReviewRequest to ${orderData.email} for product ${productName}`);
-        return { success: true, id: 'mock-review-req-id' };
-      }
-
-      const url = `${APP_URL}/products/${orderData.product_slug || 'catalog'}#write-review`;
-
-      const { data, error } = await resend.emails.send({
-        from: FROM_EMAIL,
-        to: orderData.email,
-        replyTo: 'hello@ufolabz.com',
-        subject: `Report Performance Data: ${productName} 📝`,
-        react: React.createElement(ReviewRequest, {
-          orderNumber: orderData.order_number,
-          customerName: orderData.shipping_address?.fullName || 'Athlete',
-          productName,
-          reviewUrl: url,
-        }),
-      });
-
-      if (error) throw new Error(error.message);
-      return { success: true, id: data?.id };
-    } catch (err) {
-      return logEmailError('sendReviewRequest', err);
-    }
+    return this.sendOrderDelivered(orderData)
   },
-
-  /**
-   * Newsletter Welcome
-   */
   async sendNewsletterWelcome(email: string): Promise<EmailSendResult> {
-    try {
-      const resend = getResendClient();
-      if (!resend) {
-        console.log(`[MOCK EMAIL] sendNewsletterWelcome to ${email}`);
-        return { success: true, id: 'mock-newsletter-id' };
-      }
-
-      const { data, error } = await resend.emails.send({
-        from: FROM_EMAIL,
-        to: email,
-        replyTo: 'hello@ufolabz.com',
-        subject: 'Intel Transmission Logged 📡',
-        react: React.createElement(NewsletterWelcome, {
-          email,
-        }),
-      });
-
-      if (error) throw new Error(error.message);
-      return { success: true, id: data?.id };
-    } catch (err) {
-      return logEmailError('sendNewsletterWelcome', err);
-    }
+    return this.sendWelcomeGoogle(email)
   },
-
-  /**
-   * Affiliate Approval Notice
-   */
   async sendAffiliateApproval(email: string, partnerName: string, referralCode: string, commissionRate: number): Promise<EmailSendResult> {
-    try {
-      const resend = getResendClient();
-      if (!resend) {
-        console.log(`[MOCK EMAIL] sendAffiliateApproval to ${email} for partner ${partnerName}`);
-        return { success: true, id: 'mock-aff-approve-id' };
-      }
-
-      const { data, error } = await resend.emails.send({
-        from: FROM_EMAIL,
-        to: email,
-        replyTo: 'hello@ufolabz.com',
-        subject: 'Affiliate Program Approved 🤝',
-        react: React.createElement(AffiliateApproval, {
-          partnerName,
-          referralCode,
-          commissionRate,
-        }),
-      });
-
-      if (error) throw new Error(error.message);
-      return { success: true, id: data?.id };
-    } catch (err) {
-      return logEmailError('sendAffiliateApproval', err);
-    }
+    return this.sendAffiliateApproved(email, partnerName, commissionRate)
   },
-
-  /**
-   * Order Status Update Notice
-   */
   async sendOrderStatusChange(email: string, customerName: string, orderNumber: string, oldStatus: string, newStatus: string): Promise<EmailSendResult> {
-    try {
-      const resend = getResendClient();
-      if (!resend) {
-        console.log(`[MOCK EMAIL] sendOrderStatusChange to ${email} for order #${orderNumber} (${oldStatus} -> ${newStatus})`);
-        return { success: true, id: 'mock-status-change-id' };
-      }
-
-      const { data, error } = await resend.emails.send({
-        from: FROM_EMAIL,
-        to: email,
-        replyTo: 'hello@ufolabz.com',
-        subject: `Order #${orderNumber} Status Update 🛰️`,
-        react: React.createElement(OrderStatusChange, {
-          orderNumber,
-          customerName,
-          oldStatus,
-          newStatus,
-        }),
-      });
-
-      if (error) throw new Error(error.message);
-      return { success: true, id: data?.id };
-    } catch (err) {
-      return logEmailError('sendOrderStatusChange', err);
+    if (newStatus.toLowerCase().includes('shipped') || newStatus.toLowerCase().includes('completed')) {
+      return this.sendOrderShipped({ email, customerName, order_number: orderNumber })
     }
+    if (newStatus.toLowerCase().includes('ready') || newStatus.toLowerCase().includes('delivered')) {
+      return this.sendOrderDelivered({ email, customerName, order_number: orderNumber })
+    }
+    return this.sendOrderDelayed({ email, customerName, order_number: orderNumber }, 'Prepared for shipment', `Status update to ${newStatus}`)
   },
-
-  /**
-   * Loyalty Points Reward Notice
-   */
   async sendLoyaltyReward(email: string, customerName: string, points: number, expiryDate: string): Promise<EmailSendResult> {
-    try {
-      const resend = getResendClient();
-      if (!resend) {
-        console.log(`[MOCK EMAIL] sendLoyaltyReward to ${email}: +${points} pts expiring ${expiryDate}`);
-        return { success: true, id: 'mock-loyalty-reward-id' };
-      }
-
-      const { data, error } = await resend.emails.send({
-        from: FROM_EMAIL,
-        to: email,
-        replyTo: 'hello@ufolabz.com',
-        subject: 'Loyalty Points Credited 🛸',
-        react: React.createElement(LoyaltyReward, {
-          customerName,
-          points,
-          expiryDate,
-        }),
-      });
-
-      if (error) throw new Error(error.message);
-      return { success: true, id: data?.id };
-    } catch (err) {
-      return logEmailError('sendLoyaltyReward', err);
-    }
+    return this.sendWelcomeGoogle(email, customerName)
   },
-
-  /**
-   * Affiliate Commission Rate Changed Notice
-   */
   async sendAffiliateRateChange(email: string, partnerName: string, oldRate: number, newRate: number): Promise<EmailSendResult> {
-    try {
-      const resend = getResendClient();
-      if (!resend) {
-        console.log(`[MOCK EMAIL] sendAffiliateRateChange to ${email}: ${oldRate}% -> ${newRate}%`);
-        return { success: true, id: 'mock-aff-rate-change-id' };
-      }
-
-      const { data, error } = await resend.emails.send({
-        from: FROM_EMAIL,
-        to: email,
-        replyTo: 'hello@ufolabz.com',
-        subject: 'Commission Structure Changed 📈',
-        react: React.createElement(AffiliateRateChange, {
-          partnerName,
-          oldRate,
-          newRate,
-        }),
-      });
-
-      if (error) throw new Error(error.message);
-      return { success: true, id: data?.id };
-    } catch (err) {
-      return logEmailError('sendAffiliateRateChange', err);
-    }
+    return this.sendAffiliateApproved(email, partnerName, newRate)
   },
-
-  /**
-   * Abandoned Cart Notification
-   */
-  async sendAbandonedCart(email: string, customerName: string, cartItems: any[], checkoutUrl: string, discountCode?: string): Promise<EmailSendResult> {
-    try {
-      const resend = getResendClient();
-      if (!resend) {
-        console.log(`[MOCK EMAIL] sendAbandonedCart to ${email} for checkoutUrl ${checkoutUrl}`);
-        return { success: true, id: 'mock-abandoned-cart-id' };
-      }
-
-      const { data, error } = await resend.emails.send({
-        from: FROM_EMAIL,
-        to: email,
-        replyTo: 'hello@ufolabz.com',
-        subject: 'You left something behind at UFO LABZ 🛸',
-        react: React.createElement(AbandonedCartEmail, {
-          customerName,
-          cartItems,
-          checkoutUrl,
-          discountCode,
-        }),
-      });
-
-      if (error) throw new Error(error.message);
-      return { success: true, id: data?.id };
-    } catch (err) {
-      return logEmailError('sendAbandonedCart', err);
-    }
-  },
-
-  /**
-   * Post-Purchase Replenishment Notification
-   */
   async sendReplenishment(email: string, customerName: string, productName: string, reorderUrl: string): Promise<EmailSendResult> {
-    try {
-      const resend = getResendClient();
-      if (!resend) {
-        console.log(`[MOCK EMAIL] sendReplenishment to ${email} for product ${productName}`);
-        return { success: true, id: 'mock-replenish-id' };
-      }
-
-      const { data, error } = await resend.emails.send({
-        from: FROM_EMAIL,
-        to: email,
-        replyTo: 'hello@ufolabz.com',
-        subject: `Running low on ${productName}? 🚀`,
-        react: React.createElement(ReplenishmentEmail, {
-          customerName,
-          productName,
-          reorderUrl,
-        }),
-      });
-
-      if (error) throw new Error(error.message);
-      return { success: true, id: data?.id };
-    } catch (err) {
-      return logEmailError('sendReplenishment', err);
-    }
+    return this.sendRestockReminder(email, customerName, productName, reorderUrl)
   },
-
   async sendCustomEmail(email: string, subject: string, textOrHtml: string): Promise<EmailSendResult> {
-    try {
-      const resend = getResendClient();
-      if (!resend) {
-        console.log(`[MOCK EMAIL] sendCustomEmail to ${email}: ${subject}`);
-        return { success: true, id: 'mock-custom-id' };
-      }
-
-      const { data, error } = await resend.emails.send({
-        from: FROM_EMAIL,
-        to: email,
-        replyTo: 'hello@ufolabz.com',
-        subject,
-        text: textOrHtml,
-      });
-
-      if (error) throw new Error(error.message);
-      return { success: true, id: data?.id };
-    } catch (err) {
-      return logEmailError('sendCustomEmail', err);
-    }
+    const resend = getResendClient()
+    if (!resend) return { success: true, id: 'mock-custom' }
+    return resend.emails.send({
+      from: FROM_EMAIL,
+      to: email,
+      subject,
+      html: textOrHtml,
+    }) as any
   },
-};
+}

@@ -9,6 +9,7 @@ import { formatPrice } from '@/lib/utils/pricing'
 import { getCanonicalUnitPrice, SHIPPING_CONFIG } from '@/lib/config/pricing'
 import { PREORDER_CONFIG } from '@/lib/config/preorder'
 import { getLocalizedField } from '@/types'
+import { stripFlavorSuffix } from '@/lib/products/format'
 import { cn } from '@/lib/utils'
 
 export default function CartDrawer() {
@@ -131,7 +132,8 @@ export default function CartDrawer() {
             items.map((item) => {
               if (!item?.variant) return null
               const product = item.variant.product as any
-              const name    = getLocalizedField(product?.name)
+              const rawName = getLocalizedField(product?.name)
+              const name    = stripFlavorSuffix(rawName)
               const color   = product?.product_color ?? '#00FF88'
 
               return (

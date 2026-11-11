@@ -14,6 +14,7 @@ import { useCurrency } from '@/hooks/useCurrency'
 import { getCanonicalUnitPrice } from '@/lib/config/pricing'
 import { PREORDER_CONFIG } from '@/lib/config/preorder'
 import { getProductFlavors } from '@/lib/config/flavors'
+import { stripFlavorSuffix, getProductFormat, getCleanTagline } from '@/lib/products/format'
 import { getLocalizedField } from '@/types'
 import { useCart } from '@/hooks/useCart'
 import { cn } from '@/lib/utils'
@@ -266,8 +267,10 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
     return String(field)
   }
 
-  const name = safeText(product.name)
-  const tagline = safeText(product.tagline)
+  const rawName = safeText(product.name)
+  const name = stripFlavorSuffix(rawName)
+  const tagline = getCleanTagline(product)
+  const formatPill = getProductFormat(product)
   const desc = safeText(product.description)
   const shortDesc = safeText(product.short_description)
   const keyBenefits = Array.isArray(product.schema_markup?.key_benefits) && product.schema_markup.key_benefits.length > 0
@@ -758,9 +761,7 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
                 <div>
                   <h4 className="font-bold text-white text-lg">{name}</h4>
                   <p className="text-xs text-gray-400">
-                    {currentFlavor
-                      ? `${product.slug.includes('magnesium') ? 'Format' : 'Flavor'}: ${currentFlavor.flavorName} · ${product.slug.includes('magnesium') ? '90 Capsules' : '300g (30 Servings)'}`
-                      : 'Swiss Formulation · 300g'}
+                    Swiss Formulation · {formatPill}
                   </p>
                 </div>
                 {/* Pre-order indicator */}
@@ -768,6 +769,22 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
                   <span className="text-xs font-mono bg-alien-green/20 border border-alien-green/50 text-alien-green px-3 py-1 rounded-full font-bold uppercase tracking-wider shadow-sm">
                     PRE-ORDER ONLY
                   </span>
+                </div>
+              </div>
+
+              {/* FORMAT / SIZE PILL (Standard across all products) */}
+              <div className="space-y-2 pb-4 border-b border-white/5">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-mono uppercase tracking-wider text-gray-400 font-semibold">
+                    Format
+                  </span>
+                  <span className="text-xs font-bold text-white font-mono">
+                    {formatPill}
+                  </span>
+                </div>
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border border-alien-green/40 bg-alien-green/10 text-alien-green text-xs font-mono font-bold shadow-sm">
+                  <span className="w-2 h-2 rounded-full bg-alien-green shrink-0" />
+                  <span>{formatPill}</span>
                 </div>
               </div>
 
@@ -855,7 +872,7 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
                               )}
                             </div>
                             <span className="text-[10px] text-gray-400 block truncate font-mono mt-0.5">
-                              {flv.badge || '300g Powder'}
+                              {flv.badge || formatPill}
                             </span>
                           </div>
                         </Link>
@@ -865,12 +882,12 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
                 </div>
               )}
 
-              {/* Single Flavor / Format Display Pill */}
-              {!hasMultipleFlavors && currentFlavor && (
+              {/* Single Flavor Selector for products without multiple flavors (except magnesium which is pure format) */}
+              {!hasMultipleFlavors && currentFlavor && !product.slug.includes('magnesium') && (
                 <div className="space-y-2 pb-5 border-b border-white/5">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-mono uppercase tracking-wider text-gray-400 font-semibold">
-                      {product.slug.includes('magnesium') ? 'Format' : 'Flavor'}
+                      Flavor
                     </span>
                     <span className="text-xs font-bold text-white flex items-center gap-1.5 font-mono">
                       <span
@@ -880,8 +897,8 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
                       <span>{currentFlavor.flavorName}</span>
                     </span>
                   </div>
-                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border border-alien-green/40 bg-alien-green/10 text-alien-green text-xs font-mono font-bold">
-                    <span className="w-2 h-2 rounded-full bg-alien-green" />
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border border-white/10 bg-white/5 text-gray-300 text-xs font-mono">
+                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: currentFlavor.color || color }} />
                     <span>{currentFlavor.flavorName}</span>
                   </div>
                 </div>

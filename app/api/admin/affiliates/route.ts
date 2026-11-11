@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { emailService } from '@/lib/email/email'
 
 export const dynamic = 'force-dynamic'
 
@@ -187,21 +188,57 @@ export async function POST(req: NextRequest) {
     switch (action) {
       case 'approve_coupon': {
         const { code } = payload
-        const { error } = await supabase
+        const { data: coup, error } = await supabase
           .from('coupons')
           .update({ is_active: true })
           .eq('code', code)
+          .select('*, affiliate:affiliates(*, profile:profiles!profile_id(*))')
+          .maybeSingle()
         if (error) throw error
+
+        try {
+          const aff = coup?.affiliate
+          const prof = Array.isArray(aff?.profile) ? aff.profile[0] : aff?.profile
+          if (prof?.email) {
+            await emailService.sendCouponApproved(
+              prof.email,
+              prof.full_name || 'UFO Partner',
+              code,
+              `${coup.value || 10}%`,
+              aff?.commission_rate || 15
+            )
+          }
+        } catch (mailErr: any) {
+          console.warn('[ADMIN AFFILIATES] Failed to send coupon approved email:', mailErr?.message)
+        }
+
         return NextResponse.json({ success: true, message: `Coupon ${code} approved.` })
       }
 
       case 'reject_coupon': {
         const { code } = payload
-        const { error } = await supabase
+        const { data: coup, error } = await supabase
           .from('coupons')
           .update({ is_active: false })
           .eq('code', code)
+          .select('*, affiliate:affiliates(*, profile:profiles!profile_id(*))')
+          .maybeSingle()
         if (error) throw error
+
+        try {
+          const aff = coup?.affiliate
+          const prof = Array.isArray(aff?.profile) ? aff.profile[0] : aff?.profile
+          if (prof?.email) {
+            await emailService.sendCouponRejected(
+              prof.email,
+              prof.full_name || 'UFO Partner',
+              code
+            )
+          }
+        } catch (mailErr: any) {
+          console.warn('[ADMIN AFFILIATES] Failed to send coupon rejected email:', mailErr?.message)
+        }
+
         return NextResponse.json({ success: true, message: `Coupon ${code} deactivated.` })
       }
 
@@ -217,11 +254,27 @@ export async function POST(req: NextRequest) {
 
       case 'approve_affiliate': {
         const { id } = payload
-        const { error } = await supabase
+        const { data: aff, error } = await supabase
           .from('affiliates')
           .update({ status: 'approved', approved_at: new Date().toISOString() })
           .eq('id', id)
+          .select('*, profile:profiles!profile_id(*)')
+          .maybeSingle()
         if (error) throw error
+
+        try {
+          const prof = Array.isArray(aff?.profile) ? aff.profile[0] : aff?.profile
+          if (prof?.email) {
+            await emailService.sendAffiliateApproved(
+              prof.email,
+              prof.full_name || 'UFO Athlete',
+              aff?.commission_rate || 15
+            )
+          }
+        } catch (mailErr: any) {
+          console.warn('[ADMIN AFFILIATES] Failed to send affiliate approved email:', mailErr?.message)
+        }
+
         return NextResponse.json({ success: true, message: 'Affiliate approved successfully.' })
       }
 

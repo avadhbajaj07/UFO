@@ -11,6 +11,7 @@ import { getCanonicalUnitPrice, getPreorderLaunchPrice } from '@/lib/config/pric
 import { PREORDER_CONFIG } from '@/lib/config/preorder'
 import { getProductFlavors } from '@/lib/config/flavors'
 import { getLocalizedField } from '@/types'
+import { stripFlavorSuffix, getProductFormat, getCleanTagline } from '@/lib/products/format'
 import { useCart } from '@/hooks/useCart'
 import { cn } from '@/lib/utils'
 
@@ -30,8 +31,10 @@ function ProductCard({ product }: { product: any }) {
     flavors.find((f) => f.slug === selectedFlavorSlug) ?? flavors[0] ?? null
 
   const color = activeFlavor?.color ?? product.product_color ?? '#00FF88'
-  const name = getLocalizedField(product.name)
-  const tagline = getLocalizedField(product.tagline)
+  const rawName = getLocalizedField(product.name)
+  const name = stripFlavorSuffix(rawName)
+  const tagline = getCleanTagline(product)
+  const formatPill = getProductFormat(product)
 
   // Resolve active canister image from selected flavor or primary image
   const primary = activeFlavor?.imageUrl
@@ -93,25 +96,32 @@ function ProductCard({ product }: { product: any }) {
       <div className="p-3 sm:p-5 flex flex-col flex-grow">
         {/* Top text content container */}
         <div className="flex-grow">
-          {/* Rating */}
-          {product.total_reviews > 0 && (
-            <div className="flex items-center gap-1 mb-1.5 sm:mb-2">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Star
-                  key={i}
-                  className={cn(
-                    'w-2.5 h-2.5 sm:w-3 sm:h-3',
-                    i < Math.round(product.avg_rating)
-                      ? 'fill-yellow-400 text-yellow-400'
-                      : 'fill-transparent text-muted/30'
-                  )}
-                />
-              ))}
-              <span className="text-[10px] sm:text-xs text-muted ml-1">
-                ({product.total_reviews})
-              </span>
-            </div>
-          )}
+          {/* Format / Size Pill + Rating Row */}
+          <div className="flex items-center justify-between gap-2 mb-2">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border border-alien-green/40 bg-alien-green/10 text-alien-green font-mono text-[10px] font-bold tracking-wider">
+              <span className="w-1.5 h-1.5 rounded-full bg-alien-green shrink-0" />
+              <span>{formatPill}</span>
+            </span>
+
+            {product.total_reviews > 0 && (
+              <div className="flex items-center gap-1">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Star
+                    key={i}
+                    className={cn(
+                      'w-2.5 h-2.5 sm:w-3 sm:h-3',
+                      i < Math.round(product.avg_rating)
+                        ? 'fill-yellow-400 text-yellow-400'
+                        : 'fill-transparent text-muted/30'
+                    )}
+                  />
+                ))}
+                <span className="text-[10px] sm:text-xs text-muted ml-1">
+                  ({product.total_reviews})
+                </span>
+              </div>
+            )}
+          </div>
 
           <Link href={`/products/${targetSlug}`}>
             <h3 className="font-display text-base sm:text-lg lg:text-xl tracking-wider text-white group-hover:text-alien-green mb-0.5 sm:mb-1 transition-colors line-clamp-2">
@@ -126,10 +136,10 @@ function ProductCard({ product }: { product: any }) {
           {flavors.length > 0 && (
             <div className="my-2.5 space-y-1.5">
               <div className="text-[10px] font-mono text-gray-400 uppercase tracking-wider flex justify-between items-center">
-                <span>{product.slug.includes('magnesium') ? 'Format:' : 'Flavor:'}</span>
+                <span>{flavors.length > 1 ? 'Flavor:' : (product.slug.includes('magnesium') ? 'Format:' : 'Flavor:')}</span>
                 <span className="font-bold text-white text-[11px]">
                   {product.slug.includes('magnesium')
-                    ? '90 CAPS'
+                    ? formatPill.toUpperCase()
                     : activeFlavor?.flavorName?.toUpperCase() || 'NATURAL TASTE'}
                 </span>
               </div>

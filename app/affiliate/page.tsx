@@ -36,12 +36,12 @@ export default function AffiliatePage() {
   const [dbProducts, setDbProducts] = useState<any[]>([])
   const [googleLoading, setGoogleLoading] = useState(false)
 
-  // Safety timeout: Never stay stuck on loading screen longer than 1.5s
+  // Safety timeout: Never stay stuck on loading screen longer than 600ms
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsCheckingRecord(false)
       setIsLoading(false)
-    }, 1500)
+    }, 600)
     return () => clearTimeout(timer)
   }, [setIsLoading])
 

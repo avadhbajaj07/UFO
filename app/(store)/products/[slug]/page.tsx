@@ -2,6 +2,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import { getLocalizedField } from '@/types'
+import { stripFlavorSuffix } from '@/lib/products/format'
 import ProductDetail from '@/components/product/ProductDetail'
 import type { Metadata } from 'next'
 import { isExcludedPublicProductSlug } from '@/lib/products/catalog'
@@ -61,7 +62,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const product = await getProduct(params.slug) as any
   if (!product) return { title: 'Product Not Found' }
 
-  const name = getLocalizedField(product.name as Record<string, string>)
+  const rawName = getLocalizedField(product.name as Record<string, string>)
+  const name = stripFlavorSuffix(rawName)
   const fallbackDescription = getLocalizedField(product.seo_description as Record<string, string>)
     || getLocalizedField(product.short_description as Record<string, string>)
   const seo = getProductSeo(params.slug, {

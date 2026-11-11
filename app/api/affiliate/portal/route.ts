@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { emailService } from '@/lib/email/email'
 
 export const dynamic = 'force-dynamic'
 
@@ -154,6 +155,22 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ success: false, error: insertError.message }, { status: 400 })
       }
 
+      // Send athlete application confirmation and admin alert
+      const athleteName = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'UFO Partner'
+      try {
+        if (user.email) {
+          await emailService.sendAffiliateApplicationReceived(user.email, athleteName)
+        }
+        await emailService.sendAffiliateApplicationAdminAlert(
+          athleteName,
+          user.email || 'N/A',
+          payoutDetails?.canton || 'Zurich',
+          payoutDetails?.social_link || 'N/A'
+        )
+      } catch (mailErr: any) {
+        console.warn('[AFFILIATE PORTAL] Error sending application emails:', mailErr?.message)
+      }
+
       return NextResponse.json({ success: true, affiliate: newAff })
     }
 
@@ -191,6 +208,14 @@ export async function POST(req: NextRequest) {
 
       if (coupError) {
         return NextResponse.json({ success: false, error: coupError.message }, { status: 400 })
+      }
+
+      // Send custom coupon submitted admin alert
+      const athleteName = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'UFO Partner'
+      try {
+        await emailService.sendCouponSubmittedAdminAlert(athleteName, cleanCode, '10%')
+      } catch (mailErr: any) {
+        console.warn('[AFFILIATE PORTAL] Error sending coupon submitted alert:', mailErr?.message)
       }
 
       return NextResponse.json({ success: true, coupon: newCoupon })

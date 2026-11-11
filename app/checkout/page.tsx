@@ -29,6 +29,7 @@ import {
 import { calculateStackDiscount, resolveBestDiscount } from '@/lib/config/stack'
 import { PREORDER_CONFIG } from '@/lib/config/preorder'
 import { getLocalizedField } from '@/types'
+import { stripFlavorSuffix } from '@/lib/products/format'
 import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/store/auth'
 import { createClient } from '@/lib/supabase/client'
@@ -927,7 +928,7 @@ export default function CheckoutPage() {
                           )}
                         </div>
                         <div>
-                          <div className="font-bold text-xs text-white max-w-[170px] truncate">{item.name}</div>
+                          <div className="font-bold text-xs text-white max-w-[170px] truncate">{stripFlavorSuffix(item.name)}</div>
                           <div className="text-[10px] text-gray-400">
                             Qty: {item.quantity} · <span className="text-alien-green">Pre-order</span>
                           </div>

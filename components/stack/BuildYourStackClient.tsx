@@ -25,6 +25,7 @@ import { formatPrice } from '@/lib/utils/pricing'
 import { useCurrency } from '@/hooks/useCurrency'
 import { getCanonicalUnitPrice, getPreorderLaunchPrice, SHIPPING_CONFIG } from '@/lib/config/pricing'
 import { PREORDER_CONFIG } from '@/lib/config/preorder'
+import { stripFlavorSuffix, getProductFormat, getCleanTagline } from '@/lib/products/format'
 import {
   calculateStackDiscount,
   DEFAULT_STACK_TIERS,
@@ -563,12 +564,20 @@ export default function BuildYourStackClient({
                         />
                       </div>
 
+                      {/* Format / Size Pill */}
+                      <div className="mb-2">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border border-alien-green/40 bg-alien-green/10 text-alien-green font-mono text-[10px] font-bold tracking-wider">
+                          <span className="w-1.5 h-1.5 rounded-full bg-alien-green shrink-0" />
+                          <span>{getProductFormat(product)}</span>
+                        </span>
+                      </div>
+
                       {/* Product Titles */}
                       <h3 className="font-display text-base sm:text-lg lg:text-xl text-white tracking-wide uppercase line-clamp-1 mb-1">
-                        {product.name}
+                        {stripFlavorSuffix(product.name)}
                       </h3>
                       <p className="text-[11px] sm:text-xs text-gray-400 leading-snug line-clamp-2 mb-3">
-                        {product.tagline}
+                        {getCleanTagline(product)}
                       </p>
 
                       {/* Flavor / Format Selector on Stack Card */}

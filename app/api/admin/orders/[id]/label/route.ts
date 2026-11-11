@@ -9,6 +9,7 @@ import {
   getShippingLabelSignedUrl,
   ensureShippingBucketExists,
 } from '@/lib/swisspost'
+import { emailService } from '@/lib/email/email'
 
 export const dynamic = 'force-dynamic'
 
@@ -233,6 +234,23 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
           })}`,
         })
         .eq('id', order.id)
+    }
+
+    // Send Order Shipped notification email with Swiss Post tracking
+    const recipientEmail = order.guest_email || order.shipping_address?.email
+    if (recipientEmail) {
+      try {
+        await emailService.sendOrderShipped({
+          email: recipientEmail,
+          customerName: order.shipping_address?.fullName || 'Valued Athlete',
+          order_number: order.order_number || order.id,
+          tracking_number: labelResult.trackingNumber,
+          tracking_url: labelResult.trackingUrl,
+          shipping_address: order.shipping_address,
+        })
+      } catch (mailErr: any) {
+        console.warn('[SWISSPOST ROUTE] Could not send order shipped email:', mailErr?.message)
+      }
     }
 
     return NextResponse.json({

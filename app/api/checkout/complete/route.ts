@@ -389,6 +389,30 @@ export async function POST(req: NextRequest) {
                 Number(currentAff.pending_commission || 0) + commissionAmount,
             })
             .eq('id', orderAffiliateId)
+
+          // Send athlete commission email
+          try {
+            const { data: affRecord } = await supabaseAdmin
+              .from('affiliates')
+              .select('profile_id, profile:profiles!profile_id(email, full_name)')
+              .eq('id', orderAffiliateId)
+              .maybeSingle()
+
+            const affProf = Array.isArray(affRecord?.profile) ? affRecord?.profile[0] : affRecord?.profile
+            if (affProf?.email) {
+              await emailService.sendCommissionEarned(
+                affProf.email,
+                affProf.full_name || 'UFO Partner',
+                commissionAmount,
+                orderNumber,
+                serverTotals.validatedSubtotal,
+                couponCode || 'REFERRAL',
+                commissionRate
+              )
+            }
+          } catch (commMailErr: any) {
+            console.warn('[CHECKOUT API] Failed to send commission email:', commMailErr?.message)
+          }
         }
       }
     }
