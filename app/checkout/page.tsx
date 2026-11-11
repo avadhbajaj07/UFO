@@ -235,68 +235,26 @@ export default function CheckoutPage() {
 
     setIsApplyingCoupon(true)
     try {
-      const supabase = createClient() as any
+      const res = await fetch('/api/coupons/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code,
+          subtotal: discountedSubtotal,
+          currency,
+        }),
+      })
 
-      // 1. Check Supabase active coupons table
-      const { data: dbCoupon } = await supabase
-        .from('coupons')
-        .select('*')
-        .ilike('code', code)
-        .eq('is_active', true)
-        .maybeSingle()
+      const data = await res.json().catch(() => ({}))
 
-      if (dbCoupon) {
-        let discount = 0
-        const val = Number(dbCoupon.value)
-        if (dbCoupon.type === 'percentage') {
-          discount = Math.round(discountedSubtotal * (val / 100) * 100) / 100
-          setAppliedCoupon(`${dbCoupon.code} (${val}% Off)`)
-        } else if (dbCoupon.type === 'fixed') {
-          discount = Math.min(val, discountedSubtotal)
-          setAppliedCoupon(`${dbCoupon.code} (${currency} ${val.toFixed(2)} Off)`)
-        } else {
-          setAppliedCoupon(`${dbCoupon.code} (Free Shipping)`)
-        }
-        setCouponDiscount(discount)
-        setCouponCode('')
+      if (!res.ok || !data.valid) {
+        setCouponError(data.message || 'Invalid coupon code')
         return
       }
 
-      // 2. Check Supabase approved affiliate athlete codes
-      const { data: dbAff } = await supabase
-        .from('affiliates')
-        .select('*')
-        .ilike('code', code)
-        .eq('status', 'approved')
-        .maybeSingle()
-
-      if (dbAff) {
-        const discount = Math.round(discountedSubtotal * 0.1 * 100) / 100
-        setCouponDiscount(discount)
-        setAppliedCoupon(`${dbAff.code} (10% Athlete Discount)`)
-        setCouponCode('')
-        return
-      }
-
-      // 3. Fallback promo codes
-      if (code === 'UFO99' || code === 'ALIEN99') {
-        const discount = discountedSubtotal * 0.99
-        setCouponDiscount(discount)
-        setAppliedCoupon(`${code} (99% Off)`)
-        setCouponCode('')
-      } else if (code === 'ALIEN10' || code === 'SWISS' || code === 'UFOLABZ') {
-        const discount = discountedSubtotal * 0.1
-        setCouponDiscount(discount)
-        setAppliedCoupon(`${code} (10% Off)`)
-        setCouponCode('')
-      } else if (code === 'WELCOME10') {
-        const discount = Math.min(10, discountedSubtotal)
-        setCouponDiscount(discount)
-        setAppliedCoupon(`WELCOME10 (${currency} 10.00 Off)`)
-        setCouponCode('')
-      } else {
-        setCouponError('Invalid coupon code')
-      }
+      setCouponDiscount(Number(data.discount || 0))
+      setAppliedCoupon(data.label || `${data.code}`)
+      setCouponCode('')
     } catch (err: any) {
       console.error('Coupon validation error:', err)
       setCouponError('Could not validate coupon code. Please try again.')

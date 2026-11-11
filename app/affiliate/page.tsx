@@ -36,12 +36,12 @@ export default function AffiliatePage() {
   const [dbProducts, setDbProducts] = useState<any[]>([])
   const [googleLoading, setGoogleLoading] = useState(false)
 
-  // Safety timeout: Never stay stuck on loading screen longer than 1.2s
+  // Safety timeout: Never stay stuck on loading screen longer than 1.5s
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsCheckingRecord(false)
       setIsLoading(false)
-    }, 1200)
+    }, 1500)
     return () => clearTimeout(timer)
   }, [setIsLoading])
 
@@ -57,7 +57,7 @@ export default function AffiliatePage() {
   const [activeTab, setActiveTab] = useState('dashboard')
 
   // Link Generator states
-  const [customSlug, setCustomSlug] = useState('maruti')
+  const [customSlug, setCustomSlug] = useState('partner')
   const [deepLinkProduct, setDeepLinkProduct] = useState('astro-creatine')
   const [showQrCode, setShowQrCode] = useState(false)
 
@@ -77,118 +77,49 @@ export default function AffiliatePage() {
     let isMounted = true
 
     const fetchData = async () => {
-      const supabase = createClient() as any
+      try {
+        const res = await fetch('/api/affiliate/portal')
+        const data = await res.json().catch(() => ({}))
 
-      // Directly verify user session from Supabase in case store hydration is in progress
-      let currentUser = user
-      if (!currentUser) {
-        const { data: { session } } = await supabase.auth.getSession()
-        if (session?.user) {
-          currentUser = session.user as any
-          setUser(session.user as any)
+        if (!isMounted) return
+
+        if (data.authenticated) {
+          if (data.user && !user) {
+            setUser(data.user)
+          }
+
+          if (data.affiliate) {
+            setAffiliateRecord(data.affiliate)
+            setWalletBalance(Number(data.affiliate.balance || 0))
+            setCustomSlug(data.affiliate.code || 'partner')
+
+            if (data.affiliate.payoutMethod) setWithdrawalMethod(data.affiliate.payoutMethod)
+            if (data.affiliate.payoutDetails?.twint_phone) setTwintPhone(data.affiliate.payoutDetails.twint_phone)
+            if (data.affiliate.payoutDetails?.bank_iban) setBankIban(data.affiliate.payoutDetails.bank_iban)
+            if (data.affiliate.payoutDetails?.website) setWebsite(data.affiliate.payoutDetails.website)
+            if (data.affiliate.payoutDetails?.social_link) setSocialLink(data.affiliate.payoutDetails.social_link)
+          } else {
+            setAffiliateRecord(null)
+          }
+
+          if (data.coupons) setCouponsList(data.coupons)
+          if (data.commissions) setCommissionsList(data.commissions)
+          if (data.payouts) setPayoutsList(data.payouts)
+
+          if (data.products && data.products.length > 0) {
+            setDbProducts(data.products)
+            setDeepLinkProduct(data.products[0].slug)
+          }
+        } else {
+          setAffiliateRecord(null)
         }
-      }
-
-      if (!currentUser) {
+      } catch (err) {
+        console.warn('[AFFILIATE PAGE] Error syncing partner data:', err)
+      } finally {
         if (isMounted) {
           setIsCheckingRecord(false)
           setIsLoading(false)
         }
-        return
-      }
-
-      // 1. Fetch affiliate record
-      const { data: aff } = await supabase
-        .from('affiliates')
-        .select('*')
-        .eq('profile_id', currentUser.id)
-        .maybeSingle()
-
-      if (!isMounted) return
-
-      if (aff) {
-        setAffiliateRecord(aff)
-        setWalletBalance(Number(aff.balance || 0))
-        setCustomSlug(aff.code)
-
-        // Load stored details
-        if (aff.payout_method) setWithdrawalMethod(aff.payout_method)
-        if (aff.payout_details?.twint_phone) setTwintPhone(aff.payout_details.twint_phone)
-        if (aff.payout_details?.bank_iban) setBankIban(aff.payout_details.bank_iban)
-        if (aff.payout_details?.website) setWebsite(aff.payout_details.website)
-        if (aff.payout_details?.social_link) setSocialLink(aff.payout_details.social_link)
-
-        // Fetch commissions
-        const { data: comms } = await supabase
-          .from('affiliate_commissions')
-          .select('*')
-          .eq('affiliate_id', aff.id)
-        if (comms && isMounted) {
-          setCommissionsList(
-            comms.map((c: any) => ({
-              id: c.id.slice(0, 8),
-              name: 'Supplement Referral',
-              sale: Number(c.order_total || (Number(c.amount || 0) * 100 / 15) || 0),
-              comm: Number(c.amount || c.commission_amount || 0),
-              status: c.status.toUpperCase(),
-            }))
-          )
-        }
-
-        // Fetch payouts
-        const { data: payouts } = await supabase
-          .from('affiliate_payouts')
-          .select('*')
-          .eq('affiliate_id', aff.id)
-        if (payouts && isMounted) {
-          setPayoutsList(
-            payouts.map((p: any) => ({
-              date: p.created_at ? p.created_at.split('T')[0] : 'N/A',
-              amount: Number(p.amount || 0),
-              method: (p.method || p.payout_method || 'TWINT').toUpperCase(),
-              status: p.status.toUpperCase(),
-            }))
-          )
-        }
-
-        // Fetch coupons
-        const { data: coups } = await supabase
-          .from('coupons')
-          .select('*')
-          .eq('affiliate_id', aff.id)
-        if (coups && isMounted) {
-          setCouponsList(
-            coups.map((c: any) => ({
-              code: c.code,
-              affiliateId: c.affiliate_id,
-              discountPct: Number(c.value),
-              commissionPct: Number(aff.commission_rate),
-              status: c.is_active ? 'APPROVED' : 'PENDING',
-              salesCount: c.uses_count || 0,
-              totalCommission:
-                Number(c.uses_count || 0) * (Number(aff.commission_rate) / 100) * 45,
-            }))
-          )
-        }
-      } else {
-        setAffiliateRecord(null)
-      }
-
-      // 2. Fetch products for link generator
-      const { data: prods } = await supabase
-        .from('products')
-        .select('id, name, slug, base_price, featured, is_new')
-        .eq('status', 'active')
-      if (prods && isMounted) {
-        setDbProducts(prods)
-        if (prods.length > 0) {
-          setDeepLinkProduct(prods[0].slug)
-        }
-      }
-
-      if (isMounted) {
-        setIsCheckingRecord(false)
-        setIsLoading(false)
       }
     }
 
@@ -197,7 +128,7 @@ export default function AffiliatePage() {
     return () => {
       isMounted = false
     }
-  }, [user, activeTab, setUser])
+  }, [setUser, setIsLoading])
 
   // Custom deep link outputs
   const referralBase = `https://ufolabz.com/?ref=${customSlug}`
@@ -207,36 +138,37 @@ export default function AffiliatePage() {
     e.preventDefault()
     if (!user) return
     
-    const baseCode = (name || user.email.split('@')[0]).toUpperCase().replace(/[^A-Z0-9]/g, '')
-    const finalCode = baseCode + Math.floor(100 + Math.random() * 900)
-
-    const supabase = createClient() as any
-    const { data, error } = await supabase
-      .from('affiliates')
-      .insert({
-        profile_id: user.id,
-        code: finalCode,
-        status: 'pending',
-        payout_method: withdrawalMethod,
-        payout_details: { bank_iban: bankIban, twint_phone: twintPhone, website, canton, social_link: socialLink },
-        commission_rate: 15.00
+    try {
+      const res = await fetch('/api/affiliate/portal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'apply',
+          payload: {
+            code: name || user.email?.split('@')[0],
+            payoutMethod: withdrawalMethod,
+            payoutDetails: { bank_iban: bankIban, twint_phone: twintPhone, website, canton, social_link: socialLink },
+          },
+        }),
       })
-      .select()
-      .single()
 
-    if (error) {
-      alert('Failed to register as affiliate: ' + error.message)
-    } else {
-      setAffiliateRecord(data)
-      alert('Your UFO LABZ affiliate application has been submitted successfully! It is now pending admin approval.')
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok || !data.success) {
+        alert('Failed to register: ' + (data.error || 'Server error'))
+      } else {
+        setAffiliateRecord(data.affiliate)
+        alert('Your UFO LABZ affiliate application has been submitted successfully! It is now pending admin approval.')
+      }
+    } catch (err: any) {
+      alert('Network error submitting application: ' + err.message)
     }
   }
 
   // Auto-fill registration fields using active user info
   const handlePrefillRegister = () => {
     if (user) {
-      setName(profile?.full_name || user.email.split('@')[0])
-      setEmail(user.email)
+      setName(profile?.full_name || user.email?.split('@')[0] || '')
+      setEmail(user.email || '')
       setPhone('+41 79 987 65 43')
       setWebsite('https://ufolabz.com')
       setSocialLink('instagram.com/' + (profile?.full_name || 'user').toLowerCase())
@@ -249,46 +181,40 @@ export default function AffiliatePage() {
     const code = newCouponCode.trim().toUpperCase()
     if (!code || !affiliateRecord) return
 
-    const supabase = createClient() as any
-    const { data: existing } = await supabase
-      .from('coupons')
-      .select('id')
-      .eq('code', code)
-      .maybeSingle()
-
-    if (existing) {
-      alert('This coupon code is already registered!')
-      return
-    }
-
-    const { data, error } = await supabase
-      .from('coupons')
-      .insert({
-        code,
-        type: 'percentage',
-        value: 10,
-        affiliate_id: affiliateRecord.id,
-        is_active: false, // requires admin approval to activate!
-        description: `10% discount coupon requested by partner ${profile?.full_name || user?.email?.split('@')[0]}`
+    try {
+      const res = await fetch('/api/affiliate/portal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'request_coupon',
+          payload: {
+            couponCode: code,
+            affiliateId: affiliateRecord.id,
+          },
+        }),
       })
-      .select()
-      .single()
 
-    if (error) {
-      alert('Failed to request coupon: ' + error.message)
-    } else {
-      const mappedNewCoup = {
-        code: data.code,
-        affiliateId: data.affiliate_id,
-        discountPct: Number(data.value),
-        commissionPct: Number(affiliateRecord.commission_rate),
-        status: data.is_active ? 'APPROVED' : 'PENDING',
-        salesCount: data.uses_count || 0,
-        totalCommission: 0.00
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok || !data.success) {
+        alert(data.error || 'Failed to request coupon')
+        return
       }
-      setCouponsList([...couponsList, mappedNewCoup])
+
+      const mappedNewCoup = {
+        id: data.coupon.id,
+        code: data.coupon.code,
+        affiliateId: data.coupon.affiliate_id,
+        discountPct: Number(data.coupon.value || 10),
+        commissionPct: Number(affiliateRecord.commission_rate || 15),
+        status: data.coupon.is_active ? 'APPROVED' : 'PENDING',
+        salesCount: 0,
+        totalCommission: 0.00,
+      }
+      setCouponsList([mappedNewCoup, ...couponsList])
       setNewCouponCode('')
-      alert(`Promo code "${code}" has been requested successfully! It is now pending admin approval.`)
+      alert(`Promo code "${code}" requested successfully! It is now pending admin approval.`)
+    } catch (err: any) {
+      alert('Error requesting coupon: ' + err.message)
     }
   }
 
@@ -300,41 +226,45 @@ export default function AffiliatePage() {
     }
     const amount = walletBalance
 
-    const supabase = createClient() as any
-    const { data, error } = await supabase
-      .from('affiliate_payouts')
-      .insert({
-        affiliate_id: affiliateRecord.id,
-        amount,
-        method: withdrawalMethod,
-        status: 'pending'
+    try {
+      const res = await fetch('/api/affiliate/portal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'request_payout',
+          payload: {
+            affiliateId: affiliateRecord.id,
+            amount,
+            method: withdrawalMethod,
+          },
+        }),
       })
-      .select()
-      .single()
 
-    if (error) {
-      alert('Failed to request payout: ' + error.message)
-    } else {
-      await supabase
-        .from('affiliates')
-        .update({ balance: 0.00 })
-        .eq('id', affiliateRecord.id)
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok || !data.success) {
+        alert(data.error || 'Failed to request payout')
+        return
+      }
 
       setWalletBalance(0)
       setPayoutsList([{
+        id: data.payout?.id,
         date: new Date().toISOString().split('T')[0],
         amount,
         method: withdrawalMethod.toUpperCase(),
-        status: 'PENDING'
+        status: 'PENDING',
       }, ...payoutsList])
-      alert('Withdrawal request successfully registered in Supabase! Payout is pending approval.')
+      alert('Withdrawal request registered! Payout is pending admin approval.')
+    } catch (err: any) {
+      alert('Error requesting payout: ' + err.message)
     }
   }
 
   if (isLoading || (user && isCheckingRecord)) {
     return (
-      <div className="min-h-screen bg-space-950 text-white flex items-center justify-center font-mono text-xs">
-        SYNCING ORBITAL PARTNER DATA...
+      <div className="min-h-screen bg-space-950 text-white flex flex-col items-center justify-center font-mono text-xs gap-3">
+        <div className="w-8 h-8 rounded-full border-2 border-alien-green/20 border-t-alien-green animate-spin" />
+        <span className="text-gray-400 tracking-wider text-[11px]">SYNCING ORBITAL PARTNER DATA...</span>
       </div>
     )
   }

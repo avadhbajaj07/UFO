@@ -7,7 +7,8 @@ import {
   ChevronRight, ArrowLeft, ArrowRight, DollarSign, BarChart2,
   Trash2, QrCode, MessageCircle, Percent, Settings, RefreshCw, Key,
   Package, Sparkles, Building, Layers, Eye, Plus, Send, Zap,
-  FileText, Check, Search, Globe, Truck, CreditCard, Heart, ShoppingBag, Star, Edit
+  FileText, Check, Search, Globe, Truck, CreditCard, Heart, ShoppingBag, Star, Edit,
+  Printer, ExternalLink, Download
 } from 'lucide-react'
 import { formatPrice } from '@/lib/utils/pricing'
 import { cn } from '@/lib/utils'
@@ -62,6 +63,7 @@ interface Order {
   id: string
   customerName: string
   customerEmail: string
+  city?: string
   date: string
   channel: 'Online' | 'POS Terminal'
   products: OrderItem[]
@@ -71,6 +73,12 @@ interface Order {
   total: number
   status: 'Pending' | 'Packed' | 'Ready for Pickup' | 'Completed'
   paymentMethod: 'Credit Card' | 'Twint' | 'Cash' | 'Invoice'
+  shippingAddress?: any
+  trackingNumber?: string | null
+  trackingUrl?: string | null
+  shippingLabelUrl?: string | null
+  shippingStatus?: 'none' | 'label_created' | 'shipped' | 'delivered'
+  labelCreatedAt?: string | null
 }
 
 export default function AdminPage() {
@@ -82,6 +90,12 @@ export default function AdminPage() {
   const [selectedOrderId, setSelectedOrderId] = useState<string>('')
   const [orderFilter, setOrderFilter] = useState<'All' | 'Online' | 'POS Terminal'>('All')
   const [orderStatusFilter, setOrderStatusFilter] = useState<'All' | 'Pending' | 'Packed' | 'Ready for Pickup' | 'Completed'>('All')
+
+  // Swiss Post shipping label states
+  const [isGeneratingLabel, setIsGeneratingLabel] = useState(false)
+  const [labelError, setLabelError] = useState('')
+  const [serviceCode, setServiceCode] = useState<'PRI' | 'ECO'>('PRI')
+  const [packageWeight, setPackageWeight] = useState(1.0)
 
   // Storage synced states
   const [affiliates, setAffiliates] = useState<any[]>([])
@@ -357,29 +371,49 @@ export default function AdminPage() {
       // 2. Map orders
       if (ordsError) console.error('Error fetching orders:', ordsError)
 
-      const mappedOrds = ords ? ords.map((o: any) => ({
-        dbId: o.id,
-        id: o.order_number || o.id.slice(0, 8),
-        customerName: o.shipping_address?.fullName || 'Guest',
-        customerEmail: o.guest_email || 'N/A',
-        city: o.shipping_address?.city || '',
-        date: new Date(o.created_at || o.paid_at).toLocaleString(),
-        channel: (o.payment_method === 'cash' ? 'POS Terminal' : 'Online') as 'Online' | 'POS Terminal',
-        products: o.items ? o.items.map((item: any) => ({
-          name: typeof item.product_name === 'object' ? (item.product_name.en || item.product_name.de || '') : (item.product_name || ''),
-          qty: item.quantity,
-          price: Number(item.unit_price)
-        })) : [],
-        subtotal: Number(o.subtotal),
-        discount: Number(o.discount_amount),
-        vat: Number(o.subtotal) * 0.081,
-        total: Number(o.total),
-        status: (o.status === 'confirmed' || o.status === 'pending' ? 'Pending' :
-                 o.status === 'processing' ? 'Packed' :
-                 o.status === 'out_for_delivery' ? 'Ready for Pickup' :
-                 o.status === 'shipped' || o.status === 'delivered' || o.status === 'completed' ? 'Completed' : 'Pending') as 'Pending' | 'Packed' | 'Ready for Pickup' | 'Completed',
-        paymentMethod: (o.payment_method === 'twint' ? 'Twint' : (o.payment_method === 'card' ? 'Credit Card' : 'Invoice')) as 'Credit Card' | 'Twint' | 'Cash' | 'Invoice'
-      })) : []
+      const mappedOrds = ords ? ords.map((o: any) => {
+        let labelData: any = null
+        if (o.internal_note && typeof o.internal_note === 'string' && o.internal_note.includes('SWISSPOST_LABEL:')) {
+          try {
+            const raw = o.internal_note.split('SWISSPOST_LABEL:')[1]
+            labelData = JSON.parse(raw)
+          } catch (e) {}
+        }
+
+        const trackingNumber = o.tracking_number || labelData?.trackingNumber || null
+        const trackingUrl = o.tracking_url || (trackingNumber ? `https://service.post.ch/tracking?formattedParcelCodes=${trackingNumber}` : null)
+        const shippingLabelUrl = o.shipping_label_url || labelData?.labelUrl || null
+
+        return {
+          dbId: o.id,
+          id: o.order_number || o.id.slice(0, 8),
+          customerName: o.shipping_address?.fullName || 'Guest',
+          customerEmail: o.guest_email || 'N/A',
+          city: o.shipping_address?.city || '',
+          date: new Date(o.created_at || o.paid_at).toLocaleString(),
+          channel: (o.payment_method === 'cash' ? 'POS Terminal' : 'Online') as 'Online' | 'POS Terminal',
+          products: o.items ? o.items.map((item: any) => ({
+            name: typeof item.product_name === 'object' ? (item.product_name.en || item.product_name.de || '') : (item.product_name || ''),
+            qty: item.quantity,
+            price: Number(item.unit_price)
+          })) : [],
+          subtotal: Number(o.subtotal),
+          discount: Number(o.discount_amount),
+          vat: Number(o.subtotal) * 0.081,
+          total: Number(o.total),
+          status: (o.status === 'confirmed' || o.status === 'pending' ? 'Pending' :
+                   o.status === 'processing' ? 'Packed' :
+                   o.status === 'out_for_delivery' ? 'Ready for Pickup' :
+                   o.status === 'shipped' || o.status === 'delivered' || o.status === 'completed' ? 'Completed' : 'Pending') as 'Pending' | 'Packed' | 'Ready for Pickup' | 'Completed',
+          paymentMethod: (o.payment_method === 'twint' ? 'Twint' : (o.payment_method === 'card' ? 'Credit Card' : 'Invoice')) as 'Credit Card' | 'Twint' | 'Cash' | 'Invoice',
+          shippingAddress: o.shipping_address,
+          trackingNumber,
+          trackingUrl,
+          shippingLabelUrl,
+          shippingStatus: o.shipping_status || (trackingNumber ? 'label_created' : 'none'),
+          labelCreatedAt: o.label_created_at || labelData?.createdAt || null,
+        }
+      }) : []
       setOrdersList(mappedOrds)
 
       // 3. Map affiliates & coupons from Admin API (using service role key)
@@ -993,6 +1027,49 @@ export default function AdminPage() {
       console.error('Failed to sync affiliate ledger:', err)
     } finally {
       setIsAffiliateSyncing(false)
+    }
+  }
+
+  // Generate Swiss Post thermal label for order
+  const handleGenerateSwissPostLabel = async (order: Order, regenerate = false) => {
+    if (!order.dbId) return
+    setIsGeneratingLabel(true)
+    setLabelError('')
+
+    try {
+      const res = await fetch(`/api/admin/orders/${order.dbId}/label${regenerate ? '?regenerate=true' : ''}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          przl: [serviceCode],
+          weightKg: packageWeight,
+        }),
+      })
+
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok || !data.success) {
+        const msg = data.error || data.details || 'Failed to generate Swiss Post label'
+        setLabelError(msg)
+        alert('Swiss Post Label Error: ' + msg)
+        return
+      }
+
+      setOrdersList(prev => prev.map(o => o.id === order.id ? {
+        ...o,
+        trackingNumber: data.trackingNumber,
+        trackingUrl: data.trackingUrl,
+        shippingLabelUrl: data.labelUrl,
+        shippingStatus: 'label_created',
+        labelCreatedAt: data.labelCreatedAt || new Date().toISOString(),
+      } : o))
+
+      alert(`✅ Swiss Post Label Ready! Tracking #${data.trackingNumber}`)
+      window.open(`/api/admin/orders/${order.dbId}/label?download=true`, '_blank')
+    } catch (err: any) {
+      setLabelError(err.message || 'Network error')
+      alert('Label generation failed: ' + err.message)
+    } finally {
+      setIsGeneratingLabel(false)
     }
   }
 
@@ -2701,7 +2778,14 @@ export default function AdminPage() {
                                   )}
                                 >
                                   <td className="p-3">
-                                    <div className="font-bold text-white">{ord.id}</div>
+                                    <div className="font-bold text-white flex items-center gap-1.5 flex-wrap">
+                                      <span>{ord.id}</span>
+                                      {ord.trackingNumber && (
+                                        <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-alien-green/10 text-alien-green border border-alien-green/20" title={`Swiss Post: ${ord.trackingNumber}`}>
+                                          🇨🇭 {ord.trackingNumber.slice(-8)}
+                                        </span>
+                                      )}
+                                    </div>
                                     <span className="text-[10px] text-gray-500">{ord.date}</span>
                                   </td>
                                   <td className="p-3">
@@ -2821,7 +2905,148 @@ export default function AdminPage() {
                             </div>
 
                             {/* Action controls */}
-                            <div className="border-t border-white/5 pt-4 space-y-3 text-xs">
+                            <div className="border-t border-white/5 pt-4 space-y-4 text-xs">
+                              {/* UFOLABZ Swiss Post Shipping Manager */}
+                              <div className="bg-space-900 border border-alien-green/20 p-4 rounded-2xl text-xs space-y-3 relative overflow-hidden">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-base">🇨🇭</span>
+                                    <div>
+                                      <h4 className="text-white font-bold text-xs uppercase tracking-wider flex items-center gap-1.5">
+                                        <span>Swiss Post Label</span>
+                                        <span className="text-[9px] font-mono font-normal text-gray-400">(A6 / 4x6 Thermal)</span>
+                                      </h4>
+                                      <p className="text-[10px] text-gray-400">Direct print for Phomemo 100x150 mm printer</p>
+                                    </div>
+                                  </div>
+                                  {order.trackingNumber ? (
+                                    <span className="px-2 py-0.5 rounded-full text-[9px] font-mono font-bold bg-alien-green/10 text-alien-green border border-alien-green/30">
+                                      READY
+                                    </span>
+                                  ) : (
+                                    <span className="px-2 py-0.5 rounded-full text-[9px] font-mono text-yellow-400 bg-yellow-500/10 border border-yellow-500/20">
+                                      NO LABEL
+                                    </span>
+                                  )}
+                                </div>
+
+                                {/* Destination overview */}
+                                {order.shippingAddress && (
+                                  <div className="bg-space-950/70 p-2.5 rounded-xl border border-white/5 text-[11px] text-gray-300">
+                                    <div className="text-gray-400 text-[9px] uppercase tracking-wider mb-0.5">Shipping Destination</div>
+                                    <div className="font-semibold text-white">{order.shippingAddress.fullName || order.customerName}</div>
+                                    <div>{order.shippingAddress.addressLine1 || order.shippingAddress.street || 'Street'} {order.shippingAddress.addressLine2 || ''}</div>
+                                    <div>{order.shippingAddress.zipCode || order.shippingAddress.zip || ''} {order.shippingAddress.city || order.city} {order.shippingAddress.canton ? `(${order.shippingAddress.canton})` : ''}</div>
+                                  </div>
+                                )}
+
+                                {order.trackingNumber ? (
+                                  <div className="space-y-2.5 pt-1">
+                                    <div className="bg-alien-green/5 border border-alien-green/20 p-3 rounded-xl">
+                                      <div className="flex items-center justify-between text-[10px]">
+                                        <span className="text-gray-400 uppercase font-mono">Tracking IdentCode:</span>
+                                        <a
+                                          href={order.trackingUrl || `https://service.post.ch/tracking?formattedParcelCodes=${order.trackingNumber}`}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="text-alien-green font-mono font-bold underline hover:opacity-80 flex items-center gap-1"
+                                        >
+                                          <span>{order.trackingNumber}</span>
+                                          <ExternalLink className="w-3 h-3 inline" />
+                                        </a>
+                                      </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-2">
+                                      <button
+                                        onClick={() => window.open(`/api/admin/orders/${order.dbId}/label?download=true`, '_blank')}
+                                        className="bg-alien-green text-space-950 font-bold py-2 px-3 rounded-xl flex items-center justify-center gap-1.5 hover:bg-alien-green/90 transition-all text-xs shadow-glow-green"
+                                      >
+                                        <Printer className="w-3.5 h-3.5" />
+                                        <span>Open / Print</span>
+                                      </button>
+
+                                      {order.shippingLabelUrl && (
+                                        <a
+                                          href={order.shippingLabelUrl}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          download={`SwissPost_${order.trackingNumber}.pdf`}
+                                          className="bg-white/5 border border-white/10 hover:bg-white/10 text-white font-medium py-2 px-3 rounded-xl flex items-center justify-center gap-1.5 transition-all text-xs"
+                                        >
+                                          <Download className="w-3.5 h-3.5" />
+                                          <span>Download</span>
+                                        </a>
+                                      )}
+                                    </div>
+
+                                    <button
+                                      onClick={() => {
+                                        if (confirm('Regenerate Swiss Post label? This will request a fresh barcode tracking number.')) {
+                                          handleGenerateSwissPostLabel(order, true)
+                                        }
+                                      }}
+                                      disabled={isGeneratingLabel}
+                                      className="w-full text-center text-[10px] text-gray-500 hover:text-yellow-400 py-1 transition-colors font-mono"
+                                    >
+                                      {isGeneratingLabel ? 'Regenerating...' : '↺ Regenerate Label'}
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <div className="space-y-3 pt-1">
+                                    <div className="grid grid-cols-2 gap-2 text-[10px]">
+                                      <div>
+                                        <label className="text-gray-400 block mb-1">Service</label>
+                                        <select
+                                          value={serviceCode}
+                                          onChange={(e) => setServiceCode(e.target.value as any)}
+                                          className="w-full bg-space-950 border border-white/10 text-white rounded-lg p-1.5 text-xs focus:outline-none focus:border-alien-green/50"
+                                        >
+                                          <option value="PRI">PostPac Priority</option>
+                                          <option value="ECO">PostPac Economy</option>
+                                        </select>
+                                      </div>
+                                      <div>
+                                        <label className="text-gray-400 block mb-1">Weight (kg)</label>
+                                        <input
+                                          type="number"
+                                          step="0.1"
+                                          min="0.1"
+                                          max="30"
+                                          value={packageWeight}
+                                          onChange={(e) => setPackageWeight(parseFloat(e.target.value) || 1.0)}
+                                          className="w-full bg-space-950 border border-white/10 text-white rounded-lg p-1.5 text-xs focus:outline-none focus:border-alien-green/50"
+                                        />
+                                      </div>
+                                    </div>
+
+                                    {labelError && (
+                                      <div className="text-[10px] text-red-400 bg-red-500/10 border border-red-500/20 p-2 rounded-lg">
+                                        {labelError}
+                                      </div>
+                                    )}
+
+                                    <button
+                                      onClick={() => handleGenerateSwissPostLabel(order)}
+                                      disabled={isGeneratingLabel}
+                                      className="w-full bg-alien-green hover:bg-alien-green/90 text-space-950 font-bold py-2.5 px-3 rounded-xl flex items-center justify-center gap-2 transition-all shadow-glow-green text-xs disabled:opacity-50"
+                                    >
+                                      {isGeneratingLabel ? (
+                                        <>
+                                          <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                                          <span>Generating Swiss Post Label...</span>
+                                        </>
+                                      ) : (
+                                        <>
+                                          <Printer className="w-3.5 h-3.5" />
+                                          <span>Generate & Print Label</span>
+                                        </>
+                                      )}
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+
                               <div>
                                 <label className="text-[10px] text-gray-400 mb-1 block uppercase tracking-wider font-semibold">Update Shipment Status</label>
                                 <select
