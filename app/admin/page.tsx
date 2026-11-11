@@ -86,6 +86,9 @@ export default function AdminPage() {
   // Storage synced states
   const [affiliates, setAffiliates] = useState<any[]>([])
   const [coupons, setCoupons] = useState<any[]>([])
+  const [commissionsList, setCommissionsList] = useState<any[]>([])
+  const [payoutsList, setPayoutsList] = useState<any[]>([])
+  const [isAffiliateSyncing, setIsAffiliateSyncing] = useState(false)
 
   // Live products catalog
   const [liveProducts, setLiveProducts] = useState<any[]>([])
@@ -269,8 +272,7 @@ export default function AdminPage() {
       const [
         { data: prods },
         { data: ords, error: ordsError },
-        { data: affs, error: affsError },
-        { data: coups },
+        affData,
         { data: custs },
         { data: revs },
         { data: cats },
@@ -290,11 +292,7 @@ export default function AdminPage() {
           *,
           items:order_items(*)
         `).order('created_at', { ascending: false }),
-        supabase.from('affiliates').select(`
-          *,
-          profile:profiles!profile_id(id, email, full_name, phone)
-        `),
-        supabase.from('coupons').select('*'),
+        fetch('/api/admin/affiliates').then(r => r.json()).catch(() => ({ affiliates: [], coupons: [], commissions: [], payouts: [] })),
         supabase.from('profiles').select(`
           *,
           loyalty:loyalty_accounts(points)
@@ -384,40 +382,13 @@ export default function AdminPage() {
       })) : []
       setOrdersList(mappedOrds)
 
-      // 3. Map affiliates
-      if (affsError) console.error('Error fetching affiliates:', affsError)
-
-      const mappedAffs = affs ? affs.map((a: any) => ({
-        id: a.id,
-        name: a.profile?.full_name || a.profile?.email?.split('@')[0] || 'Partner',
-        email: a.profile?.email || 'N/A',
-        phone: a.profile?.phone || 'N/A',
-        canton: a.payout_details?.canton || '',
-        website: a.payout_details?.website || 'N/A',
-        social: a.payout_details?.social_link || 'N/A',
-        status: a.status.toUpperCase(),
-        joinedDate: a.created_at.split('T')[0],
-        salesCount: a.total_orders,
-        code: a.code || 'N/A',
-        commissionRate: Number(a.commission_rate || 0),
-        totalCommission: Number(a.total_commission || 0),
-        pendingCommission: Number(a.pending_commission || 0),
-      })) : []
-      setAffiliates(mappedAffs)
-
-      // 4. Map coupons
-      const mappedCoups = coups ? coups.map((c: any) => ({
-        code: c.code,
-        affiliateId: c.affiliate_id || 'N/A',
-        affiliateName: '',
-        discountPct: Number(c.discount_value),
-        commissionPct: Number(c.commission_pct || 0),
-        status: c.is_active ? 'APPROVED' : 'PENDING',
-        salesCount: Number(c.sales_count || 0),
-        totalRevenue: Number(c.total_revenue || 0),
-        totalCommission: Number(c.total_commission || 0)
-      })) : []
-      setCoupons(mappedCoups)
+      // 3. Map affiliates & coupons from Admin API (using service role key)
+      if (affData?.success) {
+        setAffiliates(affData.affiliates || [])
+        setCoupons(affData.coupons || [])
+        setCommissionsList(affData.commissions || [])
+        setPayoutsList(affData.payouts || [])
+      }
 
       // 5. Map customers
       const mappedCusts = custs ? custs.map((c: any) => ({
@@ -1006,28 +977,38 @@ export default function AdminPage() {
   }
 
   // Save updates helper
-  const saveCouponsToStorage = (newCoups: any[]) => {
-    setCoupons(newCoups)
-    localStorage.setItem('ufo_admin_coupons', JSON.stringify(newCoups))
+  // Reload full affiliate dataset from Admin API
+  const reloadAffiliateData = async () => {
+    setIsAffiliateSyncing(true)
+    try {
+      const res = await fetch('/api/admin/affiliates')
+      const data = await res.json()
+      if (data?.success) {
+        setAffiliates(data.affiliates || [])
+        setCoupons(data.coupons || [])
+        setCommissionsList(data.commissions || [])
+        setPayoutsList(data.payouts || [])
+      }
+    } catch (err: any) {
+      console.error('Failed to sync affiliate ledger:', err)
+    } finally {
+      setIsAffiliateSyncing(false)
+    }
   }
 
-  const saveAffiliatesToStorage = (newAffs: any[]) => {
-    setAffiliates(newAffs)
-    localStorage.setItem('ufo_admin_affiliates', JSON.stringify(newAffs))
-  }
-
-  // Affiliate Actions
+  // Affiliate Actions via Server Role
   const handleApproveAffiliate = async (id: string) => {
     const aff = affiliates.find(a => a.id === id)
-    const supabase = createClient() as any
-    const { error } = await supabase
-      .from('affiliates')
-      .update({ status: 'approved', approved_at: new Date().toISOString() })
-      .eq('id', id)
-    if (error) {
-      alert('Failed: ' + error.message)
-    } else {
-      setAffiliates(affiliates.map(a => a.id === id ? { ...a, status: 'APPROVED' } : a))
+    try {
+      const res = await fetch('/api/admin/affiliates', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'approve_affiliate', payload: { id } }),
+      })
+      const data = await res.json()
+      if (!res.ok || !data.success) throw new Error(data.error || 'Failed to approve partner')
+
+      setAffiliates(prev => prev.map(a => a.id === id ? { ...a, status: 'APPROVED' } : a))
 
       // Trigger approval confirmation email
       if (aff && aff.email && aff.email !== 'N/A') {
@@ -1046,36 +1027,42 @@ export default function AdminPage() {
         }).catch(err => console.error('Failed to trigger affiliate email:', err))
       }
 
-      alert('Affiliate approved successfully!')
+      alert('✅ Affiliate partner approved successfully!')
+    } catch (err: any) {
+      alert('❌ Failed: ' + err.message)
     }
   }
 
   const handleSuspendAffiliate = async (id: string) => {
-    const supabase = createClient() as any
-    const { error } = await supabase
-      .from('affiliates')
-      .update({ status: 'suspended' })
-      .eq('id', id)
-    if (error) {
-      alert('Failed: ' + error.message)
-    } else {
-      setAffiliates(affiliates.map(a => a.id === id ? { ...a, status: 'SUSPENDED' } : a))
-      alert('Affiliate suspended successfully!')
+    try {
+      const res = await fetch('/api/admin/affiliates', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'suspend_affiliate', payload: { id } }),
+      })
+      const data = await res.json()
+      if (!res.ok || !data.success) throw new Error(data.error || 'Failed to suspend partner')
+
+      setAffiliates(prev => prev.map(a => a.id === id ? { ...a, status: 'SUSPENDED' } : a))
+      alert('⚠️ Affiliate partner suspended.')
+    } catch (err: any) {
+      alert('❌ Failed: ' + err.message)
     }
   }
 
   const handleUpdateAffiliateRate = async (id: string, newRate: number) => {
     const aff = affiliates.find(a => a.id === id)
     if (!aff) return
-    const supabase = createClient() as any
-    const { error } = await supabase
-      .from('affiliates')
-      .update({ commission_rate: newRate })
-      .eq('id', id)
-    if (error) {
-      alert('Failed: ' + error.message)
-    } else {
-      setAffiliates(affiliates.map(a => a.id === id ? { ...a, commissionRate: newRate } : a))
+    try {
+      const res = await fetch('/api/admin/affiliates', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'update_affiliate_rate', payload: { id, rate: newRate } }),
+      })
+      const data = await res.json()
+      if (!res.ok || !data.success) throw new Error(data.error || 'Failed to update commission rate')
+
+      setAffiliates(prev => prev.map(a => a.id === id ? { ...a, commissionRate: newRate } : a))
 
       // Trigger commission update email
       if (aff.email && aff.email !== 'N/A') {
@@ -1094,47 +1081,100 @@ export default function AdminPage() {
         }).catch(err => console.error('Failed to trigger affiliate email:', err))
       }
 
-      alert('Affiliate commission rate updated successfully!')
+      alert(`✅ Partner commission rate updated to ${newRate}%!`)
+    } catch (err: any) {
+      alert('❌ Failed: ' + err.message)
     }
   }
 
-  // Coupon Actions
+  // Coupon Actions via Server Role
   const handleApproveCoupon = async (code: string) => {
-    const supabase = createClient() as any
-    const { error } = await supabase
-      .from('coupons')
-      .update({ is_active: true })
-      .eq('code', code)
-    if (error) {
-      alert('Failed: ' + error.message)
-    } else {
-      setCoupons(coupons.map(c => c.code === code ? { ...c, status: 'APPROVED' } : c))
-      alert('Coupon approved successfully!')
+    try {
+      const res = await fetch('/api/admin/affiliates', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'approve_coupon', payload: { code } }),
+      })
+      const data = await res.json()
+      if (!res.ok || !data.success) throw new Error(data.error || 'Failed to approve coupon')
+
+      setCoupons(prev => prev.map(c => c.code === code ? { ...c, status: 'APPROVED' } : c))
+      alert(`✅ Coupon "${code}" approved! Customers can now apply it on checkout.`)
+    } catch (err: any) {
+      alert('❌ Failed: ' + err.message)
     }
   }
 
   const handleRejectCoupon = async (code: string) => {
-    const supabase = createClient() as any
-    const { error } = await supabase
-      .from('coupons')
-      .update({ is_active: false })
-      .eq('code', code)
-    if (error) {
-      alert('Failed: ' + error.message)
-    } else {
-      setCoupons(coupons.map(c => c.code === code ? { ...c, status: 'REJECTED' } : c))
-      alert('Coupon code rejected successfully!')
+    try {
+      const res = await fetch('/api/admin/affiliates', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'reject_coupon', payload: { code } }),
+      })
+      const data = await res.json()
+      if (!res.ok || !data.success) throw new Error(data.error || 'Failed to deactivate coupon')
+
+      setCoupons(prev => prev.map(c => c.code === code ? { ...c, status: 'REJECTED' } : c))
+      alert(`⚠️ Coupon code "${code}" deactivated.`)
+    } catch (err: any) {
+      alert('❌ Failed: ' + err.message)
     }
   }
 
   const handleUpdateRates = async (code: string, discount: number, commission: number) => {
-    const supabase = createClient() as any
-    const { error } = await supabase
-      .from('coupons')
-      .update({ discount_value: discount })
-      .eq('code', code)
-    if (error) alert('Failed: ' + error.message)
-    else setActiveTab('dashboard')
+    try {
+      const res = await fetch('/api/admin/affiliates', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'update_coupon_rate', payload: { code, discount } }),
+      })
+      const data = await res.json()
+      if (!res.ok || !data.success) throw new Error(data.error || 'Failed to update coupon discount')
+
+      setCoupons(prev => prev.map(c => c.code === code ? { ...c, discountPct: discount } : c))
+      alert(`✅ Coupon "${code}" discount rate updated to ${discount}%.`)
+    } catch (err: any) {
+      alert('❌ Failed: ' + err.message)
+    }
+  }
+
+  // Payout Actions via Server Role
+  const handleApprovePayout = async (payoutId: string, affiliateId: string, amount: number) => {
+    if (!confirm(`Are you sure you want to mark payout #${payoutId.slice(0, 8)} of CHF ${amount} as completed?`)) return
+    try {
+      const res = await fetch('/api/admin/affiliates', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'approve_payout', payload: { id: payoutId, affiliateId, amount } }),
+      })
+      const data = await res.json()
+      if (!res.ok || !data.success) throw new Error(data.error || 'Failed to approve payout')
+
+      setPayoutsList(prev => prev.map(p => p.id === payoutId ? { ...p, status: 'COMPLETED' } : p))
+      await reloadAffiliateData()
+      alert('✅ Payout marked as completed!')
+    } catch (err: any) {
+      alert('❌ Failed: ' + err.message)
+    }
+  }
+
+  const handleRejectPayout = async (payoutId: string) => {
+    if (!confirm(`Reject withdrawal request #${payoutId.slice(0, 8)}?`)) return
+    try {
+      const res = await fetch('/api/admin/affiliates', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'reject_payout', payload: { id: payoutId } }),
+      })
+      const data = await res.json()
+      if (!res.ok || !data.success) throw new Error(data.error || 'Failed to reject payout')
+
+      setPayoutsList(prev => prev.map(p => p.id === payoutId ? { ...p, status: 'REJECTED' } : p))
+      alert('⚠️ Payout request rejected.')
+    } catch (err: any) {
+      alert('❌ Failed: ' + err.message)
+    }
   }
 
   // Save CRM customers helper
@@ -3417,14 +3457,65 @@ export default function AdminPage() {
                 </div>
               )}
 
-              {/* 🤝 TAB 6: AFFILIATE APPROVALS */}
+              {/* 🤝 TAB 6: AFFILIATE APPROVALS & TRANSACTIONS */}
               {activeTab === 'affiliates' && (
-                <div className="space-y-6 animate-fade-in">
-                  <div>
-                    <h2 className="font-sans text-2xl font-bold tracking-tight text-white">Affiliate Partner Control</h2>
-                    <p className="text-xs text-gray-400">Moderate affiliate signup requests, payout withdrawals, custom discount coupons, and program commission tier structures.</p>
+                <div className="space-y-6 animate-fade-in text-left">
+                  {/* Header & Quick Sync */}
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                      <h2 className="font-sans text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+                        <span>Affiliate Partner Control</span>
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-alien-green/10 text-alien-green border border-alien-green/20">
+                          {affiliates.length} ATHLETES
+                        </span>
+                      </h2>
+                      <p className="text-xs text-gray-400 mt-0.5">Moderate partner signup requests, custom promo coupons, TWINT payout withdrawals, and commission transaction ledgers.</p>
+                    </div>
+
+                    <button
+                      onClick={reloadAffiliateData}
+                      disabled={isAffiliateSyncing}
+                      className="bg-white/5 border border-white/10 hover:border-alien-green/40 hover:bg-white/10 text-white font-mono text-xs px-4 py-2 rounded-xl flex items-center gap-2 transition-all"
+                    >
+                      <RefreshCw className={cn("w-3.5 h-3.5 text-alien-green", isAffiliateSyncing && "animate-spin")} />
+                      <span>{isAffiliateSyncing ? "SYNCING..." : "SYNC PARTNER LEDGER"}</span>
+                    </button>
                   </div>
 
+                  {/* Top Stats Overview */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="bg-space-950 border border-white/5 p-4 rounded-2xl">
+                      <span className="text-[10px] font-mono text-gray-400 uppercase block">Registered Athletes</span>
+                      <div className="text-2xl font-bold font-mono text-white mt-1">{affiliates.length}</div>
+                      <span className="text-[9px] text-alien-green">{affiliates.filter(a => a.status === 'APPROVED').length} active partners</span>
+                    </div>
+
+                    <div className="bg-space-950 border border-white/5 p-4 rounded-2xl">
+                      <span className="text-[10px] font-mono text-gray-400 uppercase block">Promo Coupons</span>
+                      <div className="text-2xl font-bold font-mono text-alien-green mt-1">{coupons.length}</div>
+                      <span className="text-[9px] text-gray-400">{coupons.filter(c => c.status === 'APPROVED').length} live on checkout</span>
+                    </div>
+
+                    <div className="bg-space-950 border border-white/5 p-4 rounded-2xl">
+                      <span className="text-[10px] font-mono text-gray-400 uppercase block">Pending Withdrawals</span>
+                      <div className="text-2xl font-bold font-mono text-yellow-500 mt-1">
+                        {payoutsList.filter(p => p.status === 'PENDING').length}
+                      </div>
+                      <span className="text-[9px] text-gray-400">
+                        CHF {payoutsList.filter(p => p.status === 'PENDING').reduce((acc, p) => acc + (p.amount || 0), 0).toFixed(2)} requested
+                      </span>
+                    </div>
+
+                    <div className="bg-space-950 border border-white/5 p-4 rounded-2xl">
+                      <span className="text-[10px] font-mono text-gray-400 uppercase block">Total Referral Sales</span>
+                      <div className="text-2xl font-bold font-mono text-nebula-400 mt-1">
+                        CHF {commissionsList.reduce((acc, c) => acc + (c.orderTotal || 0), 0).toFixed(2)}
+                      </div>
+                      <span className="text-[9px] text-gray-400">{commissionsList.length} referral orders</span>
+                    </div>
+                  </div>
+
+                  {/* 1. Global Program Parameters & Coupon Approvals Ledger */}
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Tier Commission Settings Card */}
                     <div className="bg-space-950 border border-white/5 p-6 rounded-3xl text-left space-y-4">
@@ -3473,197 +3564,372 @@ export default function AdminPage() {
 
                     {/* Requested Coupons moderation (2 cols) */}
                     <div className="lg:col-span-2 space-y-4 text-left">
-                      <h3 className="text-xs font-sans font-bold tracking-widest text-gray-400 uppercase">1. Coupon Approvals Ledger</h3>
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-xs font-sans font-bold tracking-widest text-gray-400 uppercase">1. Coupon Approvals Ledger</h3>
+                        <span className="text-[10px] text-gray-500 font-mono">{coupons.length} COUPONS LOADED</span>
+                      </div>
 
-                      {coupons.map((c) => (
-                        <div key={c.code} className="bg-space-950 border border-white/5 p-5 rounded-2xl space-y-4 text-xs">
-                          <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-white/5 pb-3 gap-2">
-                            <div>
-                              <span className="font-sans text-sm font-bold text-white bg-white/5 border border-white/10 px-3 py-1 rounded-lg">
-                                {c.code}
-                              </span>
-                              <span className="text-[10px] text-gray-400 ml-3">Requested by: <strong className="text-white">{c.affiliateName}</strong></span>
-                            </div>
-                            <div>
-                              <span className={cn(
-                                "px-2.5 py-0.5 rounded-full font-sans text-[9px] font-semibold",
-                                c.status === 'APPROVED' ? "bg-alien-green/10 text-alien-green border border-alien-green/20" :
-                                c.status === 'REJECTED' ? "bg-red-500/10 text-red-500 border border-red-500/20" :
-                                "bg-yellow-500/10 text-yellow-500 border border-yellow-500/20"
-                              )}>
-                                {c.status}
-                              </span>
-                            </div>
-                          </div>
-
-                          {/* Edit rates panel */}
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 items-center">
-                            <div>
-                              <label className="text-[9px] font-sans text-gray-500 block mb-1">Customer Discount %</label>
-                              <input
-                                type="number"
-                                value={c.discountPct}
-                                onChange={(e) => handleUpdateRates(c.code, parseInt(e.target.value) || 0, c.commissionPct)}
-                                className="input text-xs font-sans py-1.5 bg-space-900 border-white/5 text-white max-w-[80px]"
-                              />
-                            </div>
-
-                            <div>
-                              <label className="text-[9px] font-sans text-gray-500 block mb-1">Affiliate Commission %</label>
-                              <input
-                                type="number"
-                                value={c.commissionPct}
-                                onChange={(e) => handleUpdateRates(c.code, c.discountPct, parseInt(e.target.value) || 0)}
-                                className="input text-xs font-sans py-1.5 bg-space-900 border-white/5 text-white max-w-[80px]"
-                              />
-                            </div>
-
-                            <div className="text-left font-sans">
-                              <span className="text-[9px] text-gray-500 block font-bold">Earnings generated</span>
-                              <span className="text-alien-green font-bold">{formatPrice(c.totalCommission)}</span>
-                            </div>
-
-                            <div className="text-right space-x-1.5">
-                              {c.status !== 'APPROVED' && (
-                                <button
-                                  onClick={() => handleApproveCoupon(c.code)}
-                                  className="bg-alien-green text-space-950 font-bold px-3 py-1.5 rounded-lg text-[10px]"
-                                >
-                                  Approve
-                                </button>
-                              )}
-                              {c.status === 'APPROVED' && (
-                                <button
-                                  onClick={() => handleRejectCoupon(c.code)}
-                                  className="bg-red-500/10 border border-red-500/20 text-red-500 px-3 py-1.5 rounded-lg text-[10px]"
-                                >
-                                  Reject Code
-                                </button>
-                              )}
-                            </div>
-                          </div>
+                      {coupons.length === 0 ? (
+                        <div className="bg-space-950 border border-white/5 p-8 rounded-2xl text-center text-gray-500 text-xs">
+                          No discount coupons found in Supabase.
                         </div>
-                      ))}
+                      ) : (
+                        coupons.map((c) => (
+                          <div key={c.code} className="bg-space-950 border border-white/5 p-5 rounded-2xl space-y-4 text-xs">
+                            <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-white/5 pb-3 gap-2">
+                              <div className="flex items-center gap-3">
+                                <span className="font-mono text-sm font-bold text-white bg-white/5 border border-white/10 px-3 py-1 rounded-lg">
+                                  {c.code}
+                                </span>
+                                <div>
+                                  <span className="text-[11px] text-gray-300 font-semibold block">{c.affiliateName}</span>
+                                  <span className="text-[9px] text-gray-500">{c.affiliateEmail !== 'N/A' ? c.affiliateEmail : (c.affiliateId === 'SYSTEM' ? 'Storewide Promo Code' : 'Partner Code')}</span>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className={cn(
+                                  "px-2.5 py-0.5 rounded-full font-mono text-[9px] font-semibold uppercase",
+                                  c.status === 'APPROVED' ? "bg-alien-green/10 text-alien-green border border-alien-green/20" :
+                                  c.status === 'REJECTED' ? "bg-red-500/10 text-red-500 border border-red-500/20" :
+                                  "bg-yellow-500/10 text-yellow-500 border border-yellow-500/20"
+                                )}>
+                                  {c.status}
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Edit rates panel */}
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 items-center">
+                              <div>
+                                <label className="text-[9px] font-sans text-gray-500 block mb-1">Customer Discount %</label>
+                                <div className="flex items-center gap-1.5">
+                                  <input
+                                    type="number"
+                                    id={`disc-${c.code}`}
+                                    defaultValue={c.discountPct}
+                                    className="input text-xs font-mono py-1 bg-space-900 border-white/5 text-white w-16"
+                                  />
+                                  <button
+                                    onClick={() => {
+                                      const input = document.getElementById(`disc-${c.code}`) as HTMLInputElement
+                                      const val = parseInt(input?.value) || 0
+                                      handleUpdateRates(c.code, val, c.commissionPct)
+                                    }}
+                                    className="text-[9px] font-bold text-alien-green hover:underline"
+                                  >
+                                    Save
+                                  </button>
+                                </div>
+                              </div>
+
+                              <div>
+                                <label className="text-[9px] font-sans text-gray-500 block mb-1">Partner Commission %</label>
+                                <span className="font-mono text-white text-xs block py-1 font-bold">
+                                  {c.commissionPct > 0 ? `${c.commissionPct}%` : 'N/A'}
+                                </span>
+                              </div>
+
+                              <div className="text-left font-sans">
+                                <span className="text-[9px] text-gray-500 block font-bold">Uses & Revenue</span>
+                                <span className="text-gray-300 font-mono text-xs">{c.salesCount} uses</span>
+                              </div>
+
+                              <div className="text-right space-x-1.5">
+                                {c.status !== 'APPROVED' ? (
+                                  <button
+                                    onClick={() => handleApproveCoupon(c.code)}
+                                    className="bg-alien-green hover:bg-alien-green/80 text-space-950 font-bold px-3 py-1.5 rounded-lg text-[10px] transition-colors"
+                                  >
+                                    Approve Coupon
+                                  </button>
+                                ) : (
+                                  <button
+                                    onClick={() => handleRejectCoupon(c.code)}
+                                    className="bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 text-red-500 px-3 py-1.5 rounded-lg text-[10px] transition-colors"
+                                  >
+                                    Deactivate
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      )}
                     </div>
                   </div>
 
-                  {/* Affiliates List */}
+                  {/* 2. Affiliates Partner Directory */}
                   <div className="bg-space-950 border border-white/5 rounded-2xl overflow-hidden text-xs pt-4 space-y-3">
                     <div className="px-4 flex justify-between items-center text-left">
                       <span className="font-bold text-white font-sans text-[10px] uppercase text-gray-400">2. Affiliate Partner Directory</span>
+                      <span className="text-[10px] font-mono text-gray-500">{affiliates.length} REGISTERED ATHLETES</span>
                     </div>
 
-                    <table className="w-full text-left border-collapse">
-                      <thead>
-                        <tr className="bg-white/5 border-b border-white/5 font-sans text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
-                          <th className="p-3">Name</th>
-                          <th className="p-3">Email/Canton</th>
-                          <th className="p-3">Social Link</th>
-                          <th className="p-3">Status</th>
-                          <th className="p-3 text-right">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-white/5">
-                        {affiliates.map((aff) => (
-                          <React.Fragment key={aff.id}>
-                            <tr
-                              onClick={() => setExpandedAffiliate(expandedAffiliate === aff.id ? null : aff.id)}
-                              className="cursor-pointer hover:bg-white/[0.02] transition-colors"
-                            >
+                    {affiliates.length === 0 ? (
+                      <div className="p-8 text-center text-gray-500 text-xs">
+                        No affiliate athletes registered yet.
+                      </div>
+                    ) : (
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="bg-white/5 border-b border-white/5 font-sans text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
+                            <th className="p-3">Partner Name</th>
+                            <th className="p-3">Email / Canton</th>
+                            <th className="p-3">Referral Code</th>
+                            <th className="p-3">Commission %</th>
+                            <th className="p-3">Wallet Balance</th>
+                            <th className="p-3">Status</th>
+                            <th className="p-3 text-right">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-white/5">
+                          {affiliates.map((aff) => (
+                            <React.Fragment key={aff.id}>
+                              <tr
+                                onClick={() => setExpandedAffiliate(expandedAffiliate === aff.id ? null : aff.id)}
+                                className="cursor-pointer hover:bg-white/[0.02] transition-colors"
+                              >
+                                <td className="p-3">
+                                  <div className="font-bold text-white">{aff.name}</div>
+                                  <span className="text-[9px] text-gray-500 font-sans">Joined: {aff.joinedDate}</span>
+                                </td>
+                                <td className="p-3">
+                                  <div className="text-gray-300">{aff.email}</div>
+                                  <span className="text-[10px] text-gray-400 font-sans">{aff.canton}</span>
+                                </td>
+                                <td className="p-3">
+                                  <span className="font-mono text-alien-green font-bold bg-alien-green/10 px-2 py-0.5 rounded border border-alien-green/20">
+                                    {aff.code}
+                                  </span>
+                                </td>
+                                <td className="p-3">
+                                  <span className="font-mono text-white font-bold">{aff.commissionRate}%</span>
+                                </td>
+                                <td className="p-3">
+                                  <span className="font-mono font-bold text-alien-green">CHF {(aff.balance || 0).toFixed(2)}</span>
+                                </td>
+                                <td className="p-3">
+                                  <span className={cn(
+                                    "px-2 py-0.5 rounded font-mono text-[9px] font-bold uppercase",
+                                    aff.status === 'APPROVED' ? "bg-alien-green/10 text-alien-green border border-alien-green/20" :
+                                    aff.status === 'SUSPENDED' ? "bg-red-500/10 text-red-500 border border-red-500/20" :
+                                    "bg-yellow-500/10 text-yellow-500 border border-yellow-500/20"
+                                  )}>
+                                    {aff.status}
+                                  </span>
+                                </td>
+                                <td className="p-3 text-right space-x-1" onClick={(e) => e.stopPropagation()}>
+                                  {aff.status !== 'APPROVED' ? (
+                                    <button
+                                      onClick={() => handleApproveAffiliate(aff.id)}
+                                      className="bg-alien-green hover:bg-alien-green/80 text-space-950 font-bold px-2.5 py-1 rounded-lg text-[10px] transition-colors"
+                                    >
+                                      Approve
+                                    </button>
+                                  ) : (
+                                    <button
+                                      onClick={() => handleSuspendAffiliate(aff.id)}
+                                      className="bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 text-red-500 px-2.5 py-1 rounded-lg text-[10px] transition-colors"
+                                    >
+                                      Suspend
+                                    </button>
+                                  )}
+                                  <button
+                                    onClick={() => setExpandedAffiliate(expandedAffiliate === aff.id ? null : aff.id)}
+                                    className="bg-white/5 border border-white/10 hover:bg-white/10 text-white px-2 py-1 rounded-lg text-[10px]"
+                                  >
+                                    {expandedAffiliate === aff.id ? 'Hide' : 'Details'}
+                                  </button>
+                                </td>
+                              </tr>
+                              {expandedAffiliate === aff.id && (
+                                <tr>
+                                  <td colSpan={7} className="p-0 border-b border-white/5">
+                                    <div className="bg-space-900/60 p-5 space-y-4 animate-fade-in text-left border-l-2 border-alien-green">
+                                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs font-mono">
+                                        <div>
+                                          <span className="text-[9px] text-gray-500 block uppercase">Payment Method</span>
+                                          <span className="text-white font-bold mt-1 block uppercase">{aff.payoutMethod || 'TWINT'}</span>
+                                        </div>
+                                        <div>
+                                          <span className="text-[9px] text-gray-500 block uppercase">TWINT / Phone</span>
+                                          <span className="text-white font-bold mt-1 block">{aff.phone || aff.payoutDetails?.twint_phone || 'N/A'}</span>
+                                        </div>
+                                        <div>
+                                          <span className="text-[9px] text-gray-500 block uppercase">Bank IBAN</span>
+                                          <span className="text-white font-bold mt-1 block">{aff.payoutDetails?.bank_iban || 'N/A'}</span>
+                                        </div>
+                                        <div>
+                                          <span className="text-[9px] text-gray-500 block uppercase">Social Profile</span>
+                                          <span className="text-alien-green mt-1 block truncate">{aff.social || 'N/A'}</span>
+                                        </div>
+                                      </div>
+
+                                      <div className="flex items-center gap-3 pt-2 border-t border-white/5">
+                                        <label className="text-[10px] font-sans text-gray-400">Update Commission Rate (%):</label>
+                                        <input
+                                          type="number"
+                                          defaultValue={aff.commissionRate}
+                                          id={`rate-${aff.id}`}
+                                          className="input bg-space-950 border-white/10 text-white text-xs font-mono rounded px-2 py-1 w-20"
+                                          onClick={(e) => e.stopPropagation()}
+                                        />
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation()
+                                            const newRate = parseInt((document.getElementById(`rate-${aff.id}`) as HTMLInputElement)?.value) || 0
+                                            handleUpdateAffiliateRate(aff.id, newRate)
+                                          }}
+                                          className="bg-alien-green text-space-950 font-bold px-3 py-1 rounded-lg text-xs"
+                                        >
+                                          Save Commission Rate
+                                        </button>
+                                      </div>
+                                    </div>
+                                  </td>
+                                </tr>
+                              )}
+                            </React.Fragment>
+                          ))}
+                        </tbody>
+                      </table>
+                    )}
+                  </div>
+
+                  {/* 3. Athlete Payout Requests & Withdrawals Ledger */}
+                  <div className="bg-space-950 border border-white/5 rounded-2xl overflow-hidden text-xs pt-4 space-y-3">
+                    <div className="px-4 flex justify-between items-center text-left">
+                      <div>
+                        <span className="font-bold text-white font-sans text-[10px] uppercase text-gray-400">3. Athlete Payout Requests & Withdrawals Ledger</span>
+                        <p className="text-[10px] text-gray-500">TWINT and bank transfer payout withdrawal requests submitted by athletes.</p>
+                      </div>
+                      <span className="text-[10px] font-mono text-gray-500">{payoutsList.length} REQUESTS</span>
+                    </div>
+
+                    {payoutsList.length === 0 ? (
+                      <div className="p-8 text-center text-gray-500 text-xs">
+                        No athlete withdrawal requests submitted yet. When an athlete clicks "Request Payout" in their partner dashboard, it will appear here for one-click approval.
+                      </div>
+                    ) : (
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="bg-white/5 border-b border-white/5 font-sans text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
+                            <th className="p-3">Date</th>
+                            <th className="p-3">Athlete</th>
+                            <th className="p-3">Amount</th>
+                            <th className="p-3">Method</th>
+                            <th className="p-3">Payment Destination</th>
+                            <th className="p-3">Status</th>
+                            <th className="p-3 text-right">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-white/5">
+                          {payoutsList.map((p) => (
+                            <tr key={p.id} className="hover:bg-white/[0.02] transition-colors">
+                              <td className="p-3 font-mono text-gray-400">{p.date}</td>
                               <td className="p-3">
-                                <div className="font-bold text-white">{aff.name}</div>
-                                <span className="text-[9px] text-gray-500 font-sans">Joined: {aff.joinedDate}</span>
+                                <div className="font-bold text-white">{p.affiliateName}</div>
+                                <span className="text-[9px] font-mono text-alien-green">{p.affiliateCode}</span>
                               </td>
-                              <td className="p-3">
-                                <div>{aff.email}</div>
-                                <span className="text-[10px] text-gray-400 font-sans">{aff.canton}</span>
+                              <td className="p-3 font-mono font-bold text-white text-sm">
+                                CHF {p.amount?.toFixed(2)}
                               </td>
-                              <td className="p-3">
-                                <a
-                                  href={`https://${aff.social}`}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className="text-alien-green hover:underline text-[10px]"
-                                  onClick={(e) => e.stopPropagation()}
-                                >
-                                  {aff.social}
-                                </a>
+                              <td className="p-3 font-mono uppercase text-alien-green">{p.method}</td>
+                              <td className="p-3 font-mono text-gray-300">
+                                {p.method === 'TWINT' ? (p.details?.twint_phone || 'TWINT Phone') : (p.details?.bank_iban || 'Bank IBAN')}
                               </td>
                               <td className="p-3">
                                 <span className={cn(
-                                  "px-2 py-0.5 rounded font-sans text-[8px] font-bold",
-                                  aff.status === 'APPROVED' ? "bg-alien-green/10 text-alien-green border border-alien-green/20" :
-                                  aff.status === 'SUSPENDED' ? "bg-red-500/10 text-red-500 border border-red-500/20" :
+                                  "px-2 py-0.5 rounded font-mono text-[9px] font-bold uppercase",
+                                  p.status === 'COMPLETED' ? "bg-alien-green/10 text-alien-green border border-alien-green/20" :
+                                  p.status === 'REJECTED' ? "bg-red-500/10 text-red-500 border border-red-500/20" :
                                   "bg-yellow-500/10 text-yellow-500 border border-yellow-500/20"
                                 )}>
-                                  {aff.status}
+                                  {p.status}
                                 </span>
                               </td>
-                              <td className="p-3 text-right space-x-1" onClick={(e) => e.stopPropagation()}>
-                                {aff.status !== 'APPROVED' && (
-                                  <button
-                                    onClick={() => handleApproveAffiliate(aff.id)}
-                                    className="bg-alien-green text-space-950 font-bold px-2 py-1 rounded text-[10px]"
-                                  >
-                                    Approve
-                                  </button>
-                                )}
-                                {aff.status === 'APPROVED' && (
-                                  <button
-                                    onClick={() => handleSuspendAffiliate(aff.id)}
-                                    className="bg-red-500/10 border border-red-500/20 text-red-500 px-2 py-1 rounded text-[10px]"
-                                  >
-                                    Suspend
-                                  </button>
+                              <td className="p-3 text-right space-x-1.5">
+                                {p.status === 'PENDING' && (
+                                  <>
+                                    <button
+                                      onClick={() => handleApprovePayout(p.id, p.affiliateId, p.amount)}
+                                      className="bg-alien-green hover:bg-alien-green/80 text-space-950 font-bold px-2.5 py-1 rounded text-[10px]"
+                                    >
+                                      Mark Paid
+                                    </button>
+                                    <button
+                                      onClick={() => handleRejectPayout(p.id)}
+                                      className="bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500/20 px-2.5 py-1 rounded text-[10px]"
+                                    >
+                                      Reject
+                                    </button>
+                                  </>
                                 )}
                               </td>
                             </tr>
-                            {expandedAffiliate === aff.id && (
-                              <tr>
-                                <td colSpan={5} className="p-0 border-b border-white/5">
-                                  <div className="bg-space-900/60 p-4 space-y-4 animate-fade-in text-left">
-                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                      <div>
-                                        <span className="text-[8px] text-gray-500 font-sans block uppercase">Promo Code</span>
-                                        <span className="text-white font-bold font-sans mt-0.5 block">{aff.code}</span>
-                                      </div>
-                                      <div>
-                                        <span className="text-[8px] text-gray-500 font-sans block uppercase">Current Commission Rate</span>
-                                        <span className="text-white font-bold font-sans mt-0.5 block">{aff.commissionRate}%</span>
-                                      </div>
-                                      <div>
-                                        <span className="text-[8px] text-gray-500 font-sans block uppercase">Configure Commission (%)</span>
-                                        <div className="flex items-center gap-2 mt-1">
-                                          <input
-                                            type="number"
-                                            defaultValue={aff.commissionRate}
-                                            id={`rate-${aff.id}`}
-                                            className="input bg-space-950 border-white/10 text-white text-[10px] rounded px-1.5 py-0.5 focus:outline-none w-16"
-                                            onClick={(e) => e.stopPropagation()}
-                                          />
-                                          <button
-                                            onClick={(e) => {
-                                              e.stopPropagation()
-                                              const newRate = parseInt((document.getElementById(`rate-${aff.id}`) as HTMLInputElement).value) || 0
-                                              handleUpdateAffiliateRate(aff.id, newRate)
-                                            }}
-                                            className="text-[10px] text-alien-green underline block hover:text-white"
-                                          >
-                                            Update Rate
-                                          </button>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </td>
-                              </tr>
-                            )}
-                          </React.Fragment>
-                        ))}
-                      </tbody>
-                    </table>
+                          ))}
+                        </tbody>
+                      </table>
+                    )}
                   </div>
 
+                  {/* 4. Affiliate Referral Transactions & Commission Ledger */}
+                  <div className="bg-space-950 border border-white/5 rounded-2xl overflow-hidden text-xs pt-4 space-y-3">
+                    <div className="px-4 flex justify-between items-center text-left">
+                      <div>
+                        <span className="font-bold text-white font-sans text-[10px] uppercase text-gray-400">4. Affiliate Referral Transactions & Commission Ledger</span>
+                        <p className="text-[10px] text-gray-500">Live feed of orders placed using partner referral links and discount promo codes.</p>
+                      </div>
+                      <span className="text-[10px] font-mono text-gray-500">{commissionsList.length} TRANSACTIONS</span>
+                    </div>
+
+                    {commissionsList.length === 0 ? (
+                      <div className="p-8 text-center text-gray-500 text-xs">
+                        No affiliate referral orders recorded yet. As customers check out using promo codes (e.g. AVADH10, BAJAJ15) or partner referral links, transactions will automatically populate here.
+                      </div>
+                    ) : (
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="bg-white/5 border-b border-white/5 font-sans text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
+                            <th className="p-3">Date</th>
+                            <th className="p-3">Order Number</th>
+                            <th className="p-3">Customer</th>
+                            <th className="p-3">Referring Partner</th>
+                            <th className="p-3">Order Total</th>
+                            <th className="p-3">Rate</th>
+                            <th className="p-3">Commission Earned</th>
+                            <th className="p-3">Status</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-white/5">
+                          {commissionsList.map((comm) => (
+                            <tr key={comm.id} className="hover:bg-white/[0.02] transition-colors">
+                              <td className="p-3 font-mono text-gray-400">{comm.date}</td>
+                              <td className="p-3 font-mono text-white font-bold">#{comm.orderNumber}</td>
+                              <td className="p-3 text-gray-300">{comm.customerEmail}</td>
+                              <td className="p-3">
+                                <div className="font-bold text-white">{comm.affiliateName}</div>
+                                <span className="text-[9px] font-mono text-alien-green">{comm.affiliateCode}</span>
+                              </td>
+                              <td className="p-3 font-mono text-white">CHF {comm.orderTotal?.toFixed(2)}</td>
+                              <td className="p-3 font-mono text-gray-400">{comm.rate}%</td>
+                              <td className="p-3 font-mono font-bold text-alien-green">CHF {comm.amount?.toFixed(2)}</td>
+                              <td className="p-3">
+                                <span className={cn(
+                                  "px-2 py-0.5 rounded font-mono text-[9px] font-bold uppercase",
+                                  comm.status === 'PAID' ? "bg-alien-green/10 text-alien-green border border-alien-green/20" :
+                                  comm.status === 'APPROVED' ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20" :
+                                  "bg-yellow-500/10 text-yellow-500 border border-yellow-500/20"
+                                )}>
+                                  {comm.status}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    )}
+                  </div>
                 </div>
               )}
 

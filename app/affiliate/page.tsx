@@ -128,8 +128,8 @@ export default function AffiliatePage() {
             comms.map((c: any) => ({
               id: c.id.slice(0, 8),
               name: 'Supplement Referral',
-              sale: Number(c.commission_amount) * 10,
-              comm: Number(c.commission_amount),
+              sale: Number(c.order_total || (Number(c.amount || 0) * 100 / 15) || 0),
+              comm: Number(c.amount || c.commission_amount || 0),
               status: c.status.toUpperCase(),
             }))
           )
@@ -143,9 +143,9 @@ export default function AffiliatePage() {
         if (payouts && isMounted) {
           setPayoutsList(
             payouts.map((p: any) => ({
-              date: p.created_at.split('T')[0],
-              amount: Number(p.amount),
-              method: p.payout_method?.toUpperCase() || 'TWINT',
+              date: p.created_at ? p.created_at.split('T')[0] : 'N/A',
+              amount: Number(p.amount || 0),
+              method: (p.method || p.payout_method || 'TWINT').toUpperCase(),
               status: p.status.toUpperCase(),
             }))
           )
@@ -306,7 +306,7 @@ export default function AffiliatePage() {
       .insert({
         affiliate_id: affiliateRecord.id,
         amount,
-        payout_method: withdrawalMethod,
+        method: withdrawalMethod,
         status: 'pending'
       })
       .select()
