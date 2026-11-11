@@ -21,9 +21,9 @@ export const metadata: Metadata = {
       'max-video-preview': -1,
     },
   },
-  verification: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
-    ? { google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION }
-    : undefined,
+  verification: {
+    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || 'google97d03441cbab61fc',
+  },
   openGraph: {
     title: 'UFO LABZ — Alien Performance Technology',
     description: 'Premium science-backed supplements engineered for peak performance. Free delivery in Switzerland on orders over CHF 99.',
