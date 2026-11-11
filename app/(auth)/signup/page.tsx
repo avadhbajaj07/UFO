@@ -84,7 +84,7 @@ function SignupForm() {
 
     const callbackUrl = `${window.location.origin}/auth/callback?next=${encodeURIComponent(redirect)}`
 
-    const { error: signupError } = await supabase.auth.signUp({
+    const { data, error: signupError } = await supabase.auth.signUp({
       email: email.trim(),
       password,
       options: {
@@ -100,6 +100,10 @@ function SignupForm() {
           ? 'An unexpected error occurred during account creation. Please try again.'
           : signupError.message
       )
+    } else if (data?.session) {
+      // User is confirmed and logged in immediately!
+      router.push(redirect || '/account')
+      router.refresh()
     } else {
       setSuccess(true)
     }
