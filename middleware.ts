@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { createServerClient } from '@supabase/ssr'
 import { getCurrencyForCountry } from '@/lib/config/pricing'
 
 // ── Pre-launch Coming Soon Flag ──────────────────────────────────────────
 // Set to `false` for LIVE PRE-ORDER store.
 const COMING_SOON = false
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   const host = (request.headers.get('host') || request.nextUrl.hostname).toLowerCase()
 
@@ -25,6 +26,39 @@ export function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
+  let response = NextResponse.next({
+    request: {
+      headers: request.headers,
+    },
+  })
+
+  // 3. Refresh Supabase auth session token
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://qhwbmniqplygipszkhcb.supabase.co'
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_lzpNvYE27E-8hXthNbNosQ_adMOOA8x'
+
+  try {
+    const supabase = createServerClient(supabaseUrl, supabaseKey, {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll()
+        },
+        setAll(cookiesToSet: Array<{ name: string; value: string; options?: any }>) {
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
+          response = NextResponse.next({
+            request,
+          })
+          cookiesToSet.forEach(({ name, value, options }) =>
+            response.cookies.set(name, value, options)
+          )
+        },
+      },
+    })
+
+    await supabase.auth.getUser()
+  } catch (err) {
+    // Session refresh error handled gracefully
+  }
+
   if (COMING_SOON) {
     // Allow admin portal, api endpoints, and static files
     if (
@@ -34,7 +68,7 @@ export function middleware(request: NextRequest) {
       pathname.startsWith('/images') ||
       pathname.includes('.')
     ) {
-      return NextResponse.next()
+      return response
     }
 
     // Redirect any deep links or direct page visits to root
@@ -43,10 +77,10 @@ export function middleware(request: NextRequest) {
       url.pathname = '/'
       return NextResponse.redirect(url)
     }
-    return NextResponse.next()
+    return response
   }
 
-  // 3. Geo-IP Currency Detection
+  // 4. Geo-IP Currency Detection
   // Extract country from Vercel edge geo, CF-IPCountry header, or x-vercel-ip-country
   const geoCountry = (
     (request as any).geo?.country ||
@@ -66,8 +100,6 @@ export function middleware(request: NextRequest) {
     manualCookie && (existingCurrencyCookie === 'CHF' || existingCurrencyCookie === 'EUR')
       ? existingCurrencyCookie
       : detectedCurrency || 'CHF'
-
-  const response = NextResponse.next()
 
   // Set response headers for server components & APIs
   response.headers.set('x-user-country', geoCountry || 'CH')

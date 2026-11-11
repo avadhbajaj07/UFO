@@ -30,10 +30,11 @@ export default function AffiliatePage() {
     return <ComingSoon />
   }
 
-  const { user, profile, isLoading } = useAuthStore()
+  const { user, profile, setUser, isLoading } = useAuthStore()
   const [affiliateRecord, setAffiliateRecord] = useState<any>(null)
   const [isCheckingRecord, setIsCheckingRecord] = useState(true)
   const [dbProducts, setDbProducts] = useState<any[]>([])
+  const [googleLoading, setGoogleLoading] = useState(false)
 
   // Registration Form
   const [name, setName] = useState('')
@@ -64,43 +65,62 @@ export default function AffiliatePage() {
   const [newCouponCode, setNewCouponCode] = useState('')
 
   useEffect(() => {
-    if (!user) return
-    
+    let isMounted = true
+
     const fetchData = async () => {
       const supabase = createClient() as any
-      
+
+      // Directly verify user session from Supabase in case store hydration is in progress
+      let currentUser = user
+      if (!currentUser) {
+        const { data: { session } } = await supabase.auth.getSession()
+        if (session?.user) {
+          currentUser = session.user as any
+          setUser(session.user as any)
+        }
+      }
+
+      if (!currentUser) {
+        if (isMounted) setIsCheckingRecord(false)
+        return
+      }
+
       // 1. Fetch affiliate record
       const { data: aff } = await supabase
         .from('affiliates')
         .select('*')
-        .eq('profile_id', user.id)
+        .eq('profile_id', currentUser.id)
         .maybeSingle()
-        
+
+      if (!isMounted) return
+
       if (aff) {
         setAffiliateRecord(aff)
-        setWalletBalance(Number(aff.balance))
+        setWalletBalance(Number(aff.balance || 0))
         setCustomSlug(aff.code)
-        
+
         // Load stored details
         if (aff.payout_method) setWithdrawalMethod(aff.payout_method)
         if (aff.payout_details?.twint_phone) setTwintPhone(aff.payout_details.twint_phone)
         if (aff.payout_details?.bank_iban) setBankIban(aff.payout_details.bank_iban)
         if (aff.payout_details?.website) setWebsite(aff.payout_details.website)
         if (aff.payout_details?.social_link) setSocialLink(aff.payout_details.social_link)
-        
+
         // Fetch commissions
         const { data: comms } = await supabase
           .from('affiliate_commissions')
           .select('*')
           .eq('affiliate_id', aff.id)
-        if (comms) {
-          setCommissionsList(comms.map((c: any) => ({
-            id: c.id.slice(0, 8),
-            name: 'Supplement Referral',
-            sale: Number(c.commission_amount) * 10,
-            comm: Number(c.commission_amount),
-            status: c.status.toUpperCase()
-          })))
+        if (comms && isMounted) {
+          setCommissionsList(
+            comms.map((c: any) => ({
+              id: c.id.slice(0, 8),
+              name: 'Supplement Referral',
+              sale: Number(c.commission_amount) * 10,
+              comm: Number(c.commission_amount),
+              status: c.status.toUpperCase(),
+            }))
+          )
         }
 
         // Fetch payouts
@@ -108,13 +128,15 @@ export default function AffiliatePage() {
           .from('affiliate_payouts')
           .select('*')
           .eq('affiliate_id', aff.id)
-        if (payouts) {
-          setPayoutsList(payouts.map((p: any) => ({
-            date: p.created_at.split('T')[0],
-            amount: Number(p.amount),
-            method: p.payout_method?.toUpperCase() || 'TWINT',
-            status: p.status.toUpperCase()
-          })))
+        if (payouts && isMounted) {
+          setPayoutsList(
+            payouts.map((p: any) => ({
+              date: p.created_at.split('T')[0],
+              amount: Number(p.amount),
+              method: p.payout_method?.toUpperCase() || 'TWINT',
+              status: p.status.toUpperCase(),
+            }))
+          )
         }
 
         // Fetch coupons
@@ -122,38 +144,45 @@ export default function AffiliatePage() {
           .from('coupons')
           .select('*')
           .eq('affiliate_id', aff.id)
-        if (coups) {
-          setCouponsList(coups.map((c: any) => ({
-            code: c.code,
-            affiliateId: c.affiliate_id,
-            discountPct: Number(c.value),
-            commissionPct: Number(aff.commission_rate),
-            status: c.is_active ? 'APPROVED' : 'PENDING',
-            salesCount: c.uses_count || 0,
-            totalCommission: Number(c.uses_count || 0) * (Number(aff.commission_rate) / 100) * 45 // dynamic mock sum
-          })))
+        if (coups && isMounted) {
+          setCouponsList(
+            coups.map((c: any) => ({
+              code: c.code,
+              affiliateId: c.affiliate_id,
+              discountPct: Number(c.value),
+              commissionPct: Number(aff.commission_rate),
+              status: c.is_active ? 'APPROVED' : 'PENDING',
+              salesCount: c.uses_count || 0,
+              totalCommission:
+                Number(c.uses_count || 0) * (Number(aff.commission_rate) / 100) * 45,
+            }))
+          )
         }
       } else {
         setAffiliateRecord(null)
       }
-      
+
       // 2. Fetch products for link generator
       const { data: prods } = await supabase
         .from('products')
         .select('id, name, slug, base_price, featured, is_new')
         .eq('status', 'active')
-      if (prods) {
+      if (prods && isMounted) {
         setDbProducts(prods)
         if (prods.length > 0) {
           setDeepLinkProduct(prods[0].slug)
         }
       }
-      
-      setIsCheckingRecord(false)
+
+      if (isMounted) setIsCheckingRecord(false)
     }
-    
+
     fetchData()
-  }, [user, activeTab])
+
+    return () => {
+      isMounted = false
+    }
+  }, [user, activeTab, setUser])
 
   // Custom deep link outputs
   const referralBase = `https://ufolabz.com/?ref=${customSlug}`
@@ -306,12 +335,56 @@ export default function AffiliatePage() {
           <div className="relative z-10">
             <h2 className="font-display text-2xl tracking-wider text-white uppercase">PARTNER ZONE ACCESS</h2>
             <p className="text-gray-400 mt-2 text-[10px] leading-relaxed">
-              Please sign in to access your Orbital Affiliate Dashboard, commissions logs, deep links, and payout panel.
+              Sign in with Google or your email to access your Orbital Affiliate Dashboard, commission logs, custom referral links, and TWINT payouts.
             </p>
           </div>
-          <div className="relative z-10 pt-2">
-            <Link href={`/login?redirect=/affiliate`} className="btn-primary w-full justify-center py-3 shadow-glow-green">
-              Sign In
+          <div className="relative z-10 pt-2 space-y-3">
+            <button
+              onClick={async () => {
+                setGoogleLoading(true)
+                const supabase = createClient()
+                const callbackUrl = `${window.location.origin}/auth/callback?next=/affiliate`
+                const { error } = await supabase.auth.signInWithOAuth({
+                  provider: 'google',
+                  options: {
+                    redirectTo: callbackUrl,
+                    queryParams: {
+                      access_type: 'offline',
+                      prompt: 'select_account',
+                    },
+                  },
+                })
+                if (error) {
+                  alert(error.message)
+                  setGoogleLoading(false)
+                }
+              }}
+              disabled={googleLoading}
+              className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl bg-white text-space-950 font-bold text-xs hover:bg-gray-100 transition-all shadow-md disabled:opacity-50"
+            >
+              <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
+                <path
+                  fill="#4285F4"
+                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                />
+                <path
+                  fill="#34A853"
+                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                />
+                <path
+                  fill="#FBBC05"
+                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+                />
+                <path
+                  fill="#EA4335"
+                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+                />
+              </svg>
+              <span>{googleLoading ? 'Connecting to Google…' : 'Continue with Google'}</span>
+            </button>
+
+            <Link href="/login?redirect=/affiliate" className="btn-primary w-full justify-center py-3 shadow-glow-green block">
+              Sign In with Email / Password
             </Link>
           </div>
         </div>
