@@ -31,6 +31,7 @@ import { PREORDER_CONFIG } from '@/lib/config/preorder'
 import { getLocalizedField } from '@/types'
 import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/store/auth'
+import { createClient } from '@/lib/supabase/client'
 import ComingSoon from '@/components/ComingSoon'
 
 const CANTONS = [
@@ -223,29 +224,84 @@ export default function CheckoutPage() {
   const taxAmount = Math.round(finalTotal * (8.1 / 108.1) * 100) / 100
   const loyaltyPoints = Math.round(finalTotal * 5)
 
-  // Validate coupon codes
-  const handleApplyCoupon = (e: React.FormEvent) => {
+  const [isApplyingCoupon, setIsApplyingCoupon] = useState(false)
+
+  // Validate coupon codes via Supabase Database & Fallback
+  const handleApplyCoupon = async (e: React.FormEvent) => {
     e.preventDefault()
     setCouponError('')
     const code = couponCode.trim().toUpperCase()
+    if (!code) return
 
-    if (code === 'UFO99' || code === 'ALIEN99') {
-      const discount = discountedSubtotal * 0.99
-      setCouponDiscount(discount)
-      setAppliedCoupon(`${code} (99% Off)`)
-      setCouponCode('')
-    } else if (code === 'ALIEN10') {
-      const discount = discountedSubtotal * 0.1
-      setCouponDiscount(discount)
-      setAppliedCoupon('ALIEN10 (10% Off)')
-      setCouponCode('')
-    } else if (code === 'WELCOME10') {
-      const discount = Math.min(10, discountedSubtotal)
-      setCouponDiscount(discount)
-      setAppliedCoupon(`WELCOME10 (${currency} 10.00 Off)`)
-      setCouponCode('')
-    } else {
-      setCouponError('Invalid coupon code')
+    setIsApplyingCoupon(true)
+    try {
+      const supabase = createClient() as any
+
+      // 1. Check Supabase active coupons table
+      const { data: dbCoupon } = await supabase
+        .from('coupons')
+        .select('*')
+        .ilike('code', code)
+        .eq('is_active', true)
+        .maybeSingle()
+
+      if (dbCoupon) {
+        let discount = 0
+        const val = Number(dbCoupon.value)
+        if (dbCoupon.type === 'percentage') {
+          discount = Math.round(discountedSubtotal * (val / 100) * 100) / 100
+          setAppliedCoupon(`${dbCoupon.code} (${val}% Off)`)
+        } else if (dbCoupon.type === 'fixed') {
+          discount = Math.min(val, discountedSubtotal)
+          setAppliedCoupon(`${dbCoupon.code} (${currency} ${val.toFixed(2)} Off)`)
+        } else {
+          setAppliedCoupon(`${dbCoupon.code} (Free Shipping)`)
+        }
+        setCouponDiscount(discount)
+        setCouponCode('')
+        return
+      }
+
+      // 2. Check Supabase approved affiliate athlete codes
+      const { data: dbAff } = await supabase
+        .from('affiliates')
+        .select('*')
+        .ilike('code', code)
+        .eq('status', 'approved')
+        .maybeSingle()
+
+      if (dbAff) {
+        const discount = Math.round(discountedSubtotal * 0.1 * 100) / 100
+        setCouponDiscount(discount)
+        setAppliedCoupon(`${dbAff.code} (10% Athlete Discount)`)
+        setCouponCode('')
+        return
+      }
+
+      // 3. Fallback promo codes
+      if (code === 'UFO99' || code === 'ALIEN99') {
+        const discount = discountedSubtotal * 0.99
+        setCouponDiscount(discount)
+        setAppliedCoupon(`${code} (99% Off)`)
+        setCouponCode('')
+      } else if (code === 'ALIEN10' || code === 'SWISS' || code === 'UFOLABZ') {
+        const discount = discountedSubtotal * 0.1
+        setCouponDiscount(discount)
+        setAppliedCoupon(`${code} (10% Off)`)
+        setCouponCode('')
+      } else if (code === 'WELCOME10') {
+        const discount = Math.min(10, discountedSubtotal)
+        setCouponDiscount(discount)
+        setAppliedCoupon(`WELCOME10 (${currency} 10.00 Off)`)
+        setCouponCode('')
+      } else {
+        setCouponError('Invalid coupon code')
+      }
+    } catch (err: any) {
+      console.error('Coupon validation error:', err)
+      setCouponError('Could not validate coupon code. Please try again.')
+    } finally {
+      setIsApplyingCoupon(false)
     }
   }
 
@@ -957,8 +1013,12 @@ export default function CheckoutPage() {
                         onChange={(e) => setCouponCode(e.target.value)}
                         className="input text-xs font-mono py-2"
                       />
-                      <button type="submit" className="bg-white hover:bg-gray-100 text-space-950 font-bold px-3 rounded-xl text-xs">
-                        Apply
+                      <button
+                        type="submit"
+                        disabled={isApplyingCoupon}
+                        className="bg-white hover:bg-gray-100 text-space-950 font-bold px-3 rounded-xl text-xs disabled:opacity-50"
+                      >
+                        {isApplyingCoupon ? '...' : 'Apply'}
                       </button>
                     </form>
                   )}

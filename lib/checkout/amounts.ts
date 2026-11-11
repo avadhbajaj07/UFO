@@ -175,15 +175,55 @@ export async function buildValidatedCheckoutTotals(
     0,
     validatedSubtotal - preorderDiscountAmount - stackCalc.discountAmount
   )
-  const couponDiscountAmount = Math.min(
-    Math.max(
-      0,
-      resolveCouponDiscountAmount(
+
+  let resolvedCouponDiscount = 0
+  if (input.couponCode) {
+    const code = input.couponCode.trim().toUpperCase()
+    if (supabaseAdmin) {
+      try {
+        const { data: dbCoupon } = await supabaseAdmin
+          .from('coupons')
+          .select('*')
+          .ilike('code', code)
+          .eq('is_active', true)
+          .maybeSingle()
+
+        if (dbCoupon) {
+          if (dbCoupon.type === 'percentage') {
+            resolvedCouponDiscount =
+              Math.round(subtotalAfterLaunchAndStack * (Number(dbCoupon.value) / 100) * 100) / 100
+          } else if (dbCoupon.type === 'fixed') {
+            resolvedCouponDiscount = Math.min(Number(dbCoupon.value), subtotalAfterLaunchAndStack)
+          }
+        } else {
+          const { data: dbAff } = await supabaseAdmin
+            .from('affiliates')
+            .select('*')
+            .ilike('code', code)
+            .eq('status', 'approved')
+            .maybeSingle()
+
+          if (dbAff) {
+            resolvedCouponDiscount =
+              Math.round(subtotalAfterLaunchAndStack * 0.1 * 100) / 100
+          }
+        }
+      } catch (err) {
+        console.warn('Coupon lookup error in checkout totals:', err)
+      }
+    }
+
+    if (resolvedCouponDiscount === 0) {
+      resolvedCouponDiscount = resolveCouponDiscountAmount(
         subtotalAfterLaunchAndStack,
         input.discountAmount,
         input.couponCode
       )
-    ),
+    }
+  }
+
+  const couponDiscountAmount = Math.min(
+    Math.max(0, resolvedCouponDiscount),
     subtotalAfterLaunchAndStack
   )
 

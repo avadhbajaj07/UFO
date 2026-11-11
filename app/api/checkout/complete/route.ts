@@ -128,28 +128,42 @@ export async function POST(req: NextRequest) {
 
     // 3. Resolve coupon code if present
     let couponId = null
-    if (couponCode) {
-      const { data: couponData } = await supabaseAdmin
-        .from('coupons')
-        .select('id')
-        .eq('code', couponCode.trim().toUpperCase())
-        .maybeSingle()
-      if (couponData) {
-        couponId = couponData.id
-      }
-    }
-
-    // 3b. Resolve referral code from cookie if present
-    const referralCookie = req.cookies.get('ufo_referral_code')?.value || null
     let orderAffiliateId = null
     let commissionRate = 0
 
-    if (referralCookie) {
+    if (couponCode) {
+      const { data: couponData } = await supabaseAdmin
+        .from('coupons')
+        .select('id, affiliate_id')
+        .ilike('code', couponCode.trim())
+        .maybeSingle()
+      if (couponData) {
+        couponId = couponData.id
+        if (couponData.affiliate_id) {
+          orderAffiliateId = couponData.affiliate_id
+          commissionRate = 15 // 15% referral commission
+        }
+      } else {
+        // Direct athlete code entered as promo code
+        const { data: directAff } = await supabaseAdmin
+          .from('affiliates')
+          .select('id, commission_rate')
+          .ilike('code', couponCode.trim())
+          .maybeSingle()
+        if (directAff) {
+          orderAffiliateId = directAff.id
+          commissionRate = Number(directAff.commission_rate || 15)
+        }
+      }
+    }
+
+    // 3b. Resolve referral code from cookie if present and not already resolved from coupon
+    const referralCookie = req.cookies.get('ufo_referral_code')?.value || null
+    if (referralCookie && !orderAffiliateId) {
       const { data: affiliateData } = await supabaseAdmin
         .from('affiliates')
         .select('id, commission_rate')
         .ilike('code', referralCookie.trim())
-        .eq('status', 'active')
         .maybeSingle()
 
       if (affiliateData) {
