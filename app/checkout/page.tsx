@@ -18,6 +18,7 @@ import {
   AlertCircle,
 } from 'lucide-react'
 import { useCart } from '@/hooks/useCart'
+import { useCurrency } from '@/hooks/useCurrency'
 import {
   SupportedCurrency,
   formatCurrencyPrice,
@@ -62,13 +63,28 @@ export default function CheckoutPage() {
     return <ComingSoon />
   }
 
-  const { items, clearCart } = useCart()
-  const { user } = useAuthStore()
+  const { currency: geoCurrency, country: geoCountry, setCurrency: setGlobalCurrency } = useCurrency()
 
   // Delivery method and currency
   const [deliveryMethod, setDeliveryMethod] = useState<'shipping_ch' | 'shipping_eu'>('shipping_ch')
   const [manualCurrency, setManualCurrency] = useState<SupportedCurrency | null>(null)
   const [euCountry, setEuCountry] = useState('FR')
+  const [hasInitializedGeo, setHasInitializedGeo] = useState(false)
+
+  // Initialize from Geo-IP detection
+  useEffect(() => {
+    if (!hasInitializedGeo && geoCurrency) {
+      if (geoCurrency === 'EUR') {
+        setDeliveryMethod('shipping_eu')
+        if (geoCountry && geoCountry !== 'CH') {
+          setEuCountry(geoCountry)
+        }
+      } else {
+        setDeliveryMethod('shipping_ch')
+      }
+      setHasInitializedGeo(true)
+    }
+  }, [geoCurrency, geoCountry, hasInitializedGeo])
 
   // Auto-detect currency by destination unless manually overridden
   const currency: SupportedCurrency = useMemo(() => {
@@ -76,6 +92,9 @@ export default function CheckoutPage() {
     if (deliveryMethod === 'shipping_eu') return 'EUR'
     return 'CHF'
   }, [manualCurrency, deliveryMethod])
+
+  const { items, clearCart } = useCart(currency)
+  const { user } = useAuthStore()
 
   // Customer Contact States
   const [email, setEmail] = useState('')
@@ -452,7 +471,11 @@ export default function CheckoutPage() {
             <span className="text-[11px] font-mono text-gray-400 px-2 uppercase">Currency:</span>
             <button
               type="button"
-              onClick={() => setManualCurrency('CHF')}
+              onClick={() => {
+                setManualCurrency('CHF')
+                setGlobalCurrency('CHF', true)
+                setDeliveryMethod('shipping_ch')
+              }}
               className={cn(
                 'px-3 py-1 rounded-lg text-xs font-mono font-bold transition-all',
                 currency === 'CHF'
@@ -464,7 +487,11 @@ export default function CheckoutPage() {
             </button>
             <button
               type="button"
-              onClick={() => setManualCurrency('EUR')}
+              onClick={() => {
+                setManualCurrency('EUR')
+                setGlobalCurrency('EUR', true)
+                setDeliveryMethod('shipping_eu')
+              }}
               className={cn(
                 'px-3 py-1 rounded-lg text-xs font-mono font-bold transition-all',
                 currency === 'EUR'

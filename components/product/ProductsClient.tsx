@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Star, ShoppingBag, SlidersHorizontal, Layers } from 'lucide-react'
+import { useCurrency } from '@/hooks/useCurrency'
 import { formatPrice } from '@/lib/utils/pricing'
 import { getCanonicalUnitPrice, getPreorderLaunchPrice } from '@/lib/config/pricing'
 import { PREORDER_CONFIG } from '@/lib/config/preorder'
@@ -39,6 +40,7 @@ function ProductLoopCard({
   addItem: any
   isLoading: boolean
 }) {
+  const { currency } = useCurrency()
   const { flavors } = getProductFlavors(product.slug)
   const [selectedFlavorSlug, setSelectedFlavorSlug] = useState<string>(
     flavors[0]?.slug ?? product.slug
@@ -61,10 +63,10 @@ function ProductLoopCard({
     product.variants?.find((v: any) => v.is_default) ?? product.variants?.[0]
   const canonicalPrice = getCanonicalUnitPrice(
     targetSlug,
-    'CHF',
+    currency,
     variant?.price ?? product.base_price
   )
-  const launchPrice = getPreorderLaunchPrice(targetSlug, 'CHF', canonicalPrice)
+  const launchPrice = getPreorderLaunchPrice(targetSlug, currency, canonicalPrice)
 
   return (
     <div className="group bg-space-800 border border-muted/10 rounded-2xl overflow-hidden hover:border-alien-green/40 transition-all duration-300 flex flex-col h-full shadow-lg">
@@ -170,10 +172,10 @@ function ProductLoopCard({
           <div className="flex items-baseline justify-between gap-1.5 flex-wrap min-h-[24px]">
             <div className="flex items-baseline gap-2">
               <span className="text-base sm:text-lg font-bold font-mono text-white">
-                {formatPrice(launchPrice)}
+                {formatPrice(launchPrice, currency)}
               </span>
               <span className="text-xs font-mono text-gray-500 line-through">
-                {formatPrice(canonicalPrice)}
+                {formatPrice(canonicalPrice, currency)}
               </span>
             </div>
             <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-alien-green/20 border border-alien-green/40 text-alien-green">

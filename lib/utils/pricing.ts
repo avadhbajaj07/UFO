@@ -8,6 +8,10 @@ import {
   CORE_PRODUCTS_PRICING,
   SHIPPING_CONFIG,
   NUTRIFIT_STORE_INFO,
+  EUROPEAN_COUNTRY_CODES,
+  isSwissCountry,
+  isEuropeanCountry,
+  getCurrencyForCountry,
 } from '@/lib/config/pricing'
 
 export {
@@ -19,6 +23,10 @@ export {
   CORE_PRODUCTS_PRICING,
   SHIPPING_CONFIG,
   NUTRIFIT_STORE_INFO,
+  EUROPEAN_COUNTRY_CODES,
+  isSwissCountry,
+  isEuropeanCountry,
+  getCurrencyForCountry,
 }
 export type { SupportedCurrency }
 

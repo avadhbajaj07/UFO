@@ -144,7 +144,7 @@ const DEFAULT_STACK_PRODUCTS: StackProductCardItem[] = [
     flavors: [
       {
         slug: 'astro-collagen-peptide',
-        flavorName: 'Tropical Fruit',
+        flavorName: 'Tropical Fruits',
         color: '#FF2244',
         imageUrl:
           'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1794316727/NEW_NOVA_COLLAGEN_1_y4eyr2.png',

@@ -92,11 +92,11 @@ export const FLAVOR_FAMILIES: Record<string, { familyKey: string; title: string;
     flavors: [
       {
         slug: 'astro-collagen-peptide',
-        name: 'Nova Marine Collagen (Tropical Fruit)',
-        flavorName: 'Tropical Fruit',
+        name: 'Nova Marine Collagen (Tropical Fruits)',
+        flavorName: 'Tropical Fruits',
         description: 'Bioactive hydrolysed marine collagen peptides infused with tropical fruits for joints & skin elasticity.',
         color: '#FF2244',
-        colorName: 'Tropical Fruit Red',
+        colorName: 'Tropical Fruits Red',
         imageUrl: 'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1794316727/NEW_NOVA_COLLAGEN_1_y4eyr2.png',
       },
     ],

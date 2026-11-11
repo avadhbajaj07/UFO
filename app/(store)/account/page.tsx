@@ -76,7 +76,7 @@ export default function AccountPage() {
 
   const displayProfile = isDemoMode ? {
     full_name: 'Commander Shikha Swiss',
-    email: 'shikha@ufolabz.ch',
+    email: 'shikha@ufolabz.com',
     membership: 'VIP Galaxy Elite',
     points: 1240,
     credit: 45.00,
@@ -848,12 +848,12 @@ export default function AccountPage() {
                             <input
                               type="text"
                               readOnly
-                              value={typeof window !== 'undefined' ? `${window.location.origin}/ref/${user?.email?.split('@')[0] || 'commander'}` : `https://ufolabz.ch/ref/${user?.email?.split('@')[0] || 'commander'}`}
+                              value={typeof window !== 'undefined' ? `${window.location.origin}/ref/${user?.email?.split('@')[0] || 'commander'}` : `https://ufolabz.com/ref/${user?.email?.split('@')[0] || 'commander'}`}
                               className="input text-xs font-mono py-2 bg-space-900 border-white/5"
                             />
                             <button
                               onClick={() => {
-                                const link = typeof window !== 'undefined' ? `${window.location.origin}/ref/${user?.email?.split('@')[0] || 'commander'}` : `https://ufolabz.ch/ref/${user?.email?.split('@')[0] || 'commander'}`
+                                const link = typeof window !== 'undefined' ? `${window.location.origin}/ref/${user?.email?.split('@')[0] || 'commander'}` : `https://ufolabz.com/ref/${user?.email?.split('@')[0] || 'commander'}`
                                 navigator.clipboard.writeText(link)
                                 alert('Referral link copied to clipboard!')
                               }}

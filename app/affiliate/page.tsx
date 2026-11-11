@@ -23,22 +23,6 @@ const CANTONS = [
   'Solothurn', 'St. Gallen', 'Thurgau', 'Ticino', 'Uri', 'Valais', 'Vaud', 'Zug', 'Zurich'
 ]
 
-// Mock marketplace products
-const MARKETPLACE_PRODUCTS = [
-  { id: '1', name: 'Astro Creatine Pure', slug: 'astro-creatine', rate: '15%', epc: 'CHF 1.42', convRate: '5.2%', isBest: true, isNew: false, price: 19.00 },
-  { id: '2', name: 'Blast Pre-Workout Energy', slug: 'blast-pre-workout-energy', rate: '20%', epc: 'CHF 2.10', convRate: '4.8%', isBest: true, isNew: false, price: 24.00 },
-  { id: '3', name: 'Amino Fuel EAA Mango', slug: 'amino-fuel-mango', rate: '15%', epc: 'CHF 1.15', convRate: '3.9%', isBest: false, isNew: false, price: 17.90 },
-  { id: '4', name: 'Astro Collagen Peptide', slug: 'astro-collagen', rate: '25%', epc: 'CHF 3.50', convRate: '6.1%', isBest: false, isNew: true, price: 34.00 }
-]
-
-// Mock Marketing Downloads
-const MARKETING_ASSETS = [
-  { title: 'Instagram Story Frame', type: 'IMAGE/PSD', size: '12.4 MB' },
-  { title: 'Astro Creatine Reel Overlay', type: 'VIDEO/MP4', size: '24.1 MB' },
-  { title: 'Blast Pre-Workout Banner (728x90)', type: 'IMAGE/PNG', size: '1.2 MB' },
-  { title: 'UFO LABZ Logo Pack (Vector)', type: 'ZIP/SVG', size: '3.5 MB' }
-]
-
 const COMING_SOON = false
 
 export default function AffiliatePage() {
@@ -67,12 +51,6 @@ export default function AffiliatePage() {
   const [deepLinkProduct, setDeepLinkProduct] = useState('astro-creatine')
   const [showQrCode, setShowQrCode] = useState(false)
 
-  // AI Prompt copywriter
-  const [aiProduct, setAiProduct] = useState('blast-pre-workout-energy')
-  const [aiChannel, setAiChannel] = useState('instagram')
-  const [generatedCaption, setGeneratedCaption] = useState('')
-  const [isGenerating, setIsGenerating] = useState(false)
-
   // Payout forms
   const [withdrawalMethod, setWithdrawalMethod] = useState<'twint' | 'bank' | 'paypal'>('twint')
   const [twintPhone, setTwintPhone] = useState('+41 79 123 45 67')
@@ -84,20 +62,6 @@ export default function AffiliatePage() {
   const [commissionsList, setCommissionsList] = useState<any[]>([])
   const [couponsList, setCouponsList] = useState<any[]>([])
   const [newCouponCode, setNewCouponCode] = useState('')
-
-  const marketplaceProducts = dbProducts.length > 0 
-    ? dbProducts.map((p) => ({
-        id: p.id,
-        name: typeof p.name === 'object' ? (p.name.en || p.name.de || 'UFO Product') : p.name,
-        slug: p.slug,
-        rate: '10%',
-        epc: 'CHF 1.50',
-        convRate: '5.0%',
-        isBest: p.featured,
-        isNew: p.is_new,
-        price: p.base_price
-      }))
-    : []
 
   useEffect(() => {
     if (!user) return
@@ -192,8 +156,8 @@ export default function AffiliatePage() {
   }, [user, activeTab])
 
   // Custom deep link outputs
-  const referralBase = `https://ufolabz.ch/?ref=${customSlug}`
-  const deepLinkResult = `https://ufolabz.ch/products/${deepLinkProduct}/?ref=${customSlug}`
+  const referralBase = `https://ufolabz.com/?ref=${customSlug}`
+  const deepLinkResult = `https://ufolabz.com/products/${deepLinkProduct}/?ref=${customSlug}`
 
   const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -211,7 +175,7 @@ export default function AffiliatePage() {
         status: 'pending',
         payout_method: withdrawalMethod,
         payout_details: { bank_iban: bankIban, twint_phone: twintPhone, website, canton, social_link: socialLink },
-        commission_rate: 10.00
+        commission_rate: 15.00
       })
       .select()
       .single()
@@ -230,27 +194,9 @@ export default function AffiliatePage() {
       setName(profile?.full_name || user.email.split('@')[0])
       setEmail(user.email)
       setPhone('+41 79 987 65 43')
-      setWebsite('https://ufolabz.ch')
+      setWebsite('https://ufolabz.com')
       setSocialLink('instagram.com/' + (profile?.full_name || 'user').toLowerCase())
     }
-  }
-
-  const handleGenerateAiCaption = async () => {
-    setIsGenerating(true)
-    await new Promise((resolve) => setTimeout(resolve, 1200))
-    setIsGenerating(false)
-
-    let copy = ''
-    if (aiProduct === 'blast-pre-workout-energy') {
-      copy = aiChannel === 'instagram' 
-        ? `⚡ BLAST OFF! Reached new heights in training today with UFO LABZ Pre-Workout. Insane pump and zero crash. Use my code ${customSlug} to get 10% off your next energy boost! Link in bio. 🛸 #ufolabz #preworkout #fitswiss`
-        : `📥 Hey team! Just released my review of the Blast Pre-Workout. The focus is unlike anything I’ve tested this year. 200mg Caffeine + L-Citrulline. Grab yours here for 10% off: https://ufolabz.ch/products/blast-pre-workout-energy/?ref=${customSlug}`
-    } else {
-      copy = aiChannel === 'instagram'
-        ? `🪐 Clean strength synthesis. Astro Creatine is 100% pure micronized monohydrate. Easy mix, pure absorption. Support your recovery with 10% off using code ${customSlug}. Link in bio! 🏋️ #creatine #supplements #swissfit`
-        : `📝 Muscle growth requires nutritional consistency. Astro Creatine monohydrate has been a game changer for ATP replenishment. Get it with 10% off: https://ufolabz.ch/products/astro-creatine/?ref=${customSlug}`
-    }
-    setGeneratedCaption(copy)
   }
 
   // Request custom coupon
@@ -378,11 +324,8 @@ export default function AffiliatePage() {
     { id: 'dashboard', label: 'Dashboard', icon: BarChart2 },
     { id: 'links', label: 'Referral Links', icon: QrCode },
     { id: 'coupons', label: 'Promo Coupons', icon: Percent },
-    { id: 'marketplace', label: 'Marketplace', icon: Share2 },
     { id: 'commissions', label: 'Commissions', icon: DollarSign },
     { id: 'wallet', label: 'Wallet & Payouts', icon: Shield },
-    { id: 'marketing', label: 'Assets Hub', icon: Download },
-    { id: 'ai', label: 'AI Caption Writer', icon: Sparkles }
   ]
 
   return (
@@ -857,7 +800,7 @@ export default function AffiliatePage() {
                         </button>
                       </div>
                       <p className="text-[10px] text-gray-400">
-                        When approved by Admin, customers using this code get **10% OFF** and you earn **10% COMMISSION** on their order.
+                        When approved by Admin, customers using this code get **10% OFF** and you earn **15% COMMISSION** on their order.
                       </p>
                     </form>
 
@@ -880,49 +823,6 @@ export default function AffiliatePage() {
                               {coup.status}
                             </span>
                             <div className="text-[10px] text-gray-400 mt-1">Orders: {coup.salesCount} · Earned: {formatPrice(coup.totalCommission)}</div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* 🛍 MARKETPLACE PANEL */}
-                {activeTab === 'marketplace' && (
-                  <div className="space-y-6 animate-fade-in">
-                    <h2 className="font-display text-3xl tracking-wide uppercase text-white">COMMISSION MARKETPLACE</h2>
-                    
-                    <div className="space-y-4">
-                      {marketplaceProducts.map((prod) => (
-                        <div key={prod.id} className="bg-space-950 border border-white/5 p-4 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 text-xs">
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <span className="font-bold text-sm text-white">{prod.name}</span>
-                              {prod.isBest && <span className="text-[8px] bg-alien-green/10 text-alien-green border border-alien-green/20 px-1.5 py-0.5 rounded font-mono">BEST SELLER</span>}
-                              {prod.isNew && <span className="text-[8px] bg-blue-500/10 text-blue-500 border border-blue-500/20 px-1.5 py-0.5 rounded font-mono">NEW</span>}
-                            </div>
-                            <div className="text-gray-400 mt-1">Base Price: {formatPrice(prod.price)} · Est. EPC: {prod.epc}</div>
-                          </div>
-
-                          <div className="flex items-center gap-6 text-right">
-                            <div>
-                              <span className="text-[9px] font-mono text-gray-500 block">Commission Rate</span>
-                              <span className="font-mono text-sm font-bold text-alien-green">{prod.rate}</span>
-                            </div>
-                            <div>
-                              <span className="text-[9px] font-mono text-gray-500 block">Est. Payout</span>
-                              <span className="font-mono text-sm font-bold text-white">{formatPrice(prod.price * parseFloat(prod.rate)/100)}</span>
-                            </div>
-                            <button 
-                              onClick={() => {
-                                const deepUrl = `https://ufolabz.ch/products/${prod.slug}/?ref=${customSlug}`
-                                navigator.clipboard.writeText(deepUrl)
-                                alert(`Deep link copied for ${prod.name}!`)
-                              }}
-                              className="bg-white hover:bg-gray-100 text-space-950 font-bold px-3 py-2 rounded-lg font-sans"
-                            >
-                              Share Link
-                            </button>
                           </div>
                         </div>
                       ))}
@@ -1079,94 +979,6 @@ export default function AffiliatePage() {
                             </div>
                           </div>
                         ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* 🎓 TRAINING & ASSETS PANEL */}
-                {activeTab === 'marketing' && (
-                  <div className="space-y-6 animate-fade-in">
-                    <h2 className="font-display text-3xl tracking-wide uppercase text-white">MARKETING ASSETS</h2>
-                    
-                    <div className="space-y-3">
-                      {MARKETING_ASSETS.map((asset, idx) => (
-                        <div key={idx} className="bg-space-950 border border-white/5 p-4 rounded-xl flex items-center justify-between gap-4 text-xs">
-                          <div>
-                            <div className="font-bold text-white">{asset.title}</div>
-                            <span className="text-[10px] text-gray-500 font-mono">Format: {asset.type}</span>
-                          </div>
-                          <button onClick={() => alert('Download initialized!')} className="bg-white/5 hover:bg-white/10 text-white font-mono text-[10px] py-2 px-3 rounded-lg border border-white/5 flex items-center gap-1.5">
-                            <Download className="w-3.5 h-3.5" />
-                            <span>Download ({asset.size})</span>
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* 🤖 AI CAPTION WRITER PANEL */}
-                {activeTab === 'ai' && (
-                  <div className="space-y-6 animate-fade-in">
-                    <h2 className="font-display text-3xl tracking-wide uppercase text-white">AI PROMOTION CAPTION WRITER</h2>
-                    
-                    <div className="bg-space-950 border border-white/5 p-6 rounded-3xl space-y-4 text-xs">
-                      <div>
-                        <h4 className="font-bold text-white text-sm">Generate copy text for social promotion</h4>
-                        <p className="text-[10px] text-gray-400">Select a product and media channel, and let our sports nutrition writer generate high-converting promotional copies.</p>
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="text-[10px] font-mono text-gray-500 block mb-1">Target Product</label>
-                          <select 
-                            value={aiProduct}
-                            onChange={(e) => setAiProduct(e.target.value)}
-                            className="input focus:outline-none bg-space-900 border-white/5 text-xs py-2 text-white font-mono"
-                          >
-                            <option value="astro-creatine">Astro Creatine monohydrate</option>
-                            <option value="blast-pre-workout-energy">Blast Pre-Workout energy</option>
-                          </select>
-                        </div>
-
-                        <div>
-                          <label className="text-[10px] font-mono text-gray-500 block mb-1">Social Channel</label>
-                          <select 
-                            value={aiChannel}
-                            onChange={(e) => setAiChannel(e.target.value)}
-                            className="input focus:outline-none bg-space-900 border-white/5 text-xs py-2 text-white font-mono"
-                          >
-                            <option value="instagram">Instagram Frame / Reel copy</option>
-                            <option value="email">Email Campaign pitch</option>
-                          </select>
-                        </div>
-                      </div>
-
-                      {/* Generated result */}
-                      {generatedCaption && (
-                        <div className="bg-space-900 border border-white/5 p-4 rounded-xl space-y-2 animate-fade-in">
-                          <span className="text-[9px] font-mono text-alien-green font-bold">Suggested copy text:</span>
-                          <p className="text-gray-200 leading-relaxed font-sans">{generatedCaption}</p>
-                          <button 
-                            type="button"
-                            onClick={() => navigator.clipboard.writeText(generatedCaption)}
-                            className="text-[10px] font-mono text-white hover:text-alien-green underline block"
-                          >
-                            Copy text to clipboard
-                          </button>
-                        </div>
-                      )}
-
-                      <div className="flex justify-end pt-2">
-                        <button 
-                          onClick={handleGenerateAiCaption}
-                          disabled={isGenerating}
-                          className="bg-alien-green text-space-950 font-bold px-6 py-2.5 rounded-xl text-xs flex items-center gap-1.5 hover:shadow-glow-green"
-                        >
-                          <Sparkles className="w-4 h-4" />
-                          <span>{isGenerating ? 'Generating caption...' : 'Write Promotion Copy'}</span>
-                        </button>
                       </div>
                     </div>
                   </div>

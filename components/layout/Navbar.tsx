@@ -5,6 +5,7 @@ import { ShoppingBag, User, Search, Menu, X, Globe, Settings } from 'lucide-reac
 import { useState } from 'react'
 import { useCartCount, useCartStore } from '@/store/cart'
 import { useAuthStore } from '@/store/auth'
+import { useCurrency } from '@/hooks/useCurrency'
 import { cn } from '@/lib/utils'
 
 const navLinks = [
@@ -21,6 +22,7 @@ export default function Navbar() {
   const itemCount = useCartCount()
   const openCart  = useCartStore((s) => s.openCart)
   const { user }  = useAuthStore()
+  const { currency, setCurrency } = useCurrency()
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 border-b border-white/[0.06] bg-space-950/80 backdrop-blur-xl">
@@ -53,7 +55,17 @@ export default function Navbar() {
           </nav>
 
           {/* Actions */}
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 sm:gap-2">
+
+            {/* Currency Switcher */}
+            <button
+              onClick={() => setCurrency(currency === 'CHF' ? 'EUR' : 'CHF', true)}
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 hover:border-alien-green/50 text-[11px] font-mono font-bold text-gray-300 hover:text-white transition-all"
+              title={`Active currency: ${currency}. Click to switch to ${currency === 'CHF' ? 'EUR' : 'CHF'}.`}
+            >
+              <span>{currency === 'CHF' ? '🇨🇭' : '🇪🇺'}</span>
+              <span>{currency}</span>
+            </button>
 
             <Link
               href="/search"
@@ -111,7 +123,34 @@ export default function Navbar() {
                 {link.label}
               </Link>
             ))}
-            <div className="pt-2 border-t border-white/[0.06]">
+            <div className="pt-2 border-t border-white/[0.06] flex items-center justify-between px-4 py-2">
+              <span className="text-xs text-muted font-mono">Currency</span>
+              <div className="flex gap-1">
+                <button
+                  onClick={() => setCurrency('CHF', true)}
+                  className={cn(
+                    'px-2.5 py-1 rounded text-xs font-mono font-bold transition-all',
+                    currency === 'CHF'
+                      ? 'bg-alien-green text-space-950'
+                      : 'bg-white/5 text-gray-400 hover:text-white'
+                  )}
+                >
+                  🇨🇭 CHF
+                </button>
+                <button
+                  onClick={() => setCurrency('EUR', true)}
+                  className={cn(
+                    'px-2.5 py-1 rounded text-xs font-mono font-bold transition-all',
+                    currency === 'EUR'
+                      ? 'bg-alien-green text-space-950'
+                      : 'bg-white/5 text-gray-400 hover:text-white'
+                  )}
+                >
+                  🇪🇺 EUR
+                </button>
+              </div>
+            </div>
+            <div className="pt-1">
               <Link
                 href={user ? '/account' : '/login'}
                 onClick={() => setMobileOpen(false)}

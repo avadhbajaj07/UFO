@@ -1205,7 +1205,7 @@ export default function AdminPage() {
 
     if (templateKey === 'win-back') {
       setEmailSubject(`We miss you, ${customer.name}! Get 15% off your next UFO order`)
-      setCustomEmailBody(`Hi ${customer.name},\n\nIt's been a while since your last purchase of ${productsText} with us. We noticed you haven't restocked yet!\n\nTo help you fuel your training and stretch your limits, we've loaded a custom 15% discount code into your account: COMEBACK15.\n\nClaim it here: ufolabz.ch/shop\n\nBest,\nThe UFO LABZ Team`)
+      setCustomEmailBody(`Hi ${customer.name},\n\nIt's been a while since your last purchase of ${productsText} with us. We noticed you haven't restocked yet!\n\nTo help you fuel your training and stretch your limits, we've loaded a custom 15% discount code into your account: COMEBACK15.\n\nClaim it here: ufolabz.com/products\n\nBest,\nThe UFO LABZ Team`)
     } else if (templateKey === 'welcome') {
       setEmailSubject(`Welcome to the UFO LABZ Fleet, ${customer.name}!`)
       setCustomEmailBody(`Hi ${customer.name},\n\nWelcome to the elite league of Swiss high-performance athletes.\n\nUse code SYSTEM10 for a flat 10% discount on your next formula stack.\n\nBest,\nThe UFO LABZ Team`)
@@ -1271,11 +1271,11 @@ export default function AdminPage() {
 
     let copy = ''
     if (adChannel === 'facebook') {
-      copy = `🪐 COSMIC FORMULAS FOR Swiss Peak Performance. Reorder your supplement stack with an extra 10% discount using code ${adPromoCode} during checkout. 🇨🇭 FAST Priority PostPac shipping. Shop now at ufolabz.ch!`
+      copy = `🪐 COSMIC FORMULAS FOR Swiss Peak Performance. Reorder your supplement stack with an extra 10% discount using code ${adPromoCode} during checkout. 🇨🇭 FAST Priority PostPac shipping. Shop now at ufolabz.com!`
     } else if (adChannel === 'instagram') {
       copy = `⚡️ LEVEL UP! Swiss-engineered pure performance supplements. Science-backed, lab-tested, sugar-free. Use my exclusive coupon code ${adPromoCode} to get 10% off your entire cart. 🛸 Link in bio! #ufolabz #swissfit`
     } else {
-      copy = `Subject: Upgrade your athletic parameters 🛸\n\nDear Athlete,\n\nWe have unlocked high-impact stacks at UFO LABZ. Get 10% off your entire order by entering coupon code ${adPromoCode} during checkout. Click here to shop: https://ufolabz.ch`
+      copy = `Subject: Upgrade your athletic parameters 🛸\n\nDear Athlete,\n\nWe have unlocked high-impact stacks at UFO LABZ. Get 10% off your entire order by entering coupon code ${adPromoCode} during checkout. Click here to shop: https://ufolabz.com`
     }
     setAdOutput(copy)
   }

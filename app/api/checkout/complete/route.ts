@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
         )
         const { error: profInsertError } = await supabaseAdmin.from('profiles').insert({
           id: profileId,
-          email: email || user?.email || 'customer@ufolabz.ch',
+          email: email || user?.email || 'customer@ufolabz.com',
           full_name: fullName || 'UFO Athlete',
           role: 'customer',
         })
@@ -154,7 +154,7 @@ export async function POST(req: NextRequest) {
 
       if (affiliateData) {
         orderAffiliateId = affiliateData.id
-        commissionRate = Number(affiliateData.commission_rate || 10)
+        commissionRate = Number(affiliateData.commission_rate || 15)
       }
     }
 

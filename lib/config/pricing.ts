@@ -193,6 +193,37 @@ export const SHIPPING_CONFIG = {
   },
 }
 
+/**
+ * European ISO 3166-1 alpha-2 country codes
+ * All EU-27 member states plus European neighbors
+ */
+export const EUROPEAN_COUNTRY_CODES = new Set([
+  // EU Member States
+  'AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR', 'DE', 'GR', 'HU',
+  'IE', 'IT', 'LV', 'LT', 'LU', 'MT', 'NL', 'PL', 'PT', 'RO', 'SK', 'SI', 'ES', 'SE',
+  // Non-EU European nations / territories
+  'GB', 'UK', 'NO', 'IS', 'LI', 'MC', 'AD', 'SM', 'VA', 'ME', 'XK', 'RS', 'BA', 'MK', 'AL', 'MD', 'UA', 'BY',
+])
+
+export function isSwissCountry(countryCode?: string | null): boolean {
+  if (!countryCode) return false
+  const c = countryCode.trim().toUpperCase()
+  return c === 'CH' || c === 'CHE' || c === 'SWITZERLAND'
+}
+
+export function isEuropeanCountry(countryCode?: string | null): boolean {
+  if (!countryCode) return false
+  const c = countryCode.trim().toUpperCase()
+  return EUROPEAN_COUNTRY_CODES.has(c)
+}
+
+export function getCurrencyForCountry(countryCode?: string | null): SupportedCurrency {
+  if (!countryCode) return 'CHF'
+  if (isSwissCountry(countryCode)) return 'CHF'
+  if (isEuropeanCountry(countryCode)) return 'EUR'
+  return 'CHF'
+}
+
 export const NUTRIFIT_STORE_INFO = {
   name: 'NutriFit Geneva Store',
   address: 'Rue de Genève, 1200 Genève, Switzerland',

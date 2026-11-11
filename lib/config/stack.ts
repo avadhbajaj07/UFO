@@ -97,7 +97,7 @@ export const DEFAULT_PRESET_STACKS: PresetStackDef[] = [
         sku: 'COL-300G',
         quantity: 1,
         name: 'Nova Marine Collagen',
-        flavorName: 'Tropical Fruit',
+        flavorName: 'Tropical Fruits',
         color: '#FF2244',
         imageUrl:
           'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1794316727/NEW_NOVA_COLLAGEN_1_y4eyr2.png',

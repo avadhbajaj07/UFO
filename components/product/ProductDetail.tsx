@@ -10,6 +10,7 @@ import {
   Truck, ArrowRight, Award, Flame, Info, Check, MessageCircle, HelpCircle, Phone, Send
 } from 'lucide-react'
 import { formatPrice, getPricedForQuantity } from '@/lib/utils/pricing'
+import { useCurrency } from '@/hooks/useCurrency'
 import { getCanonicalUnitPrice } from '@/lib/config/pricing'
 import { PREORDER_CONFIG } from '@/lib/config/preorder'
 import { getProductFlavors } from '@/lib/config/flavors'
@@ -278,8 +279,9 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
         'Vegan, GMP, HACCP, and gluten-free positioning where shown on pack.'
       ]
 
+  const { currency, formatPrice: formatCurrency } = useCurrency()
   const selectedVariant = product.variants?.find((v: any) => v.id === selectedVariantId) ?? product.variants?.[0]
-  const canonicalPrice = getCanonicalUnitPrice(product.slug, 'CHF', selectedVariant?.price ?? product.base_price)
+  const canonicalPrice = getCanonicalUnitPrice(product.slug, currency, selectedVariant?.price ?? product.base_price)
 
   const flavorInfo = getProductFlavors(slug || product.slug)
   const { hasMultipleFlavors, flavors, currentFlavor } = flavorInfo
@@ -572,7 +574,7 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
                           <CheckCircle2 className="w-4 h-4" style={{ color }} />
                           <span className="font-bold text-sm">Pure Active Concentration</span>
                         </div>
-                        <span className="text-xs font-mono font-bold">{formatPrice(canonicalPrice)}</span>
+                        <span className="text-xs font-mono font-bold">{formatCurrency(canonicalPrice)}</span>
                       </div>
                     )}
                   </div>
@@ -722,9 +724,13 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
                     <Truck className="w-4 h-4 text-alien-green" />
                   </div>
                   <div>
-                    <div className="font-bold text-sm text-white">Tracked Swiss Delivery</div>
+                    <div className="font-bold text-sm text-white">
+                      {currency === 'EUR' ? 'Tracked European Delivery' : 'Tracked Swiss Delivery'}
+                    </div>
                     <div className="text-xs text-gray-400 mt-0.5">
-                      Direct tracked dispatch throughout Switzerland. Free Swiss delivery on orders from CHF 75.
+                      {currency === 'EUR'
+                        ? 'Direct tracked dispatch across Europe. Free EU delivery on orders from €75.'
+                        : 'Direct tracked dispatch throughout Switzerland. Free Swiss delivery on orders from CHF 75.'}
                     </div>
                   </div>
                 </div>
@@ -888,7 +894,9 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
                   <span>{PREORDER_CONFIG.estimatedShipNotice}</span>
                 </div>
                 <p className="text-[11px] text-gray-400 leading-relaxed">
-                  Tracked Swiss Priority Dispatch · Free shipping in Switzerland on orders from CHF 75.
+                  {currency === 'EUR'
+                    ? 'Tracked European Priority Dispatch · Free shipping on orders from €75.'
+                    : 'Tracked Swiss Priority Dispatch · Free shipping in Switzerland on orders from CHF 75.'}
                 </p>
               </div>
 
@@ -896,11 +904,11 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
               <div className="space-y-2.5 text-sm">
                 <div className="flex justify-between text-gray-400">
                   <span>Retail Price</span>
-                  <span className="line-through">{formatPrice(canonicalPrice)}</span>
+                  <span className="line-through">{formatCurrency(canonicalPrice)}</span>
                 </div>
                 <div className="flex justify-between text-alien-green font-bold">
                   <span>Pre-Order Launch Offer (25% Off)</span>
-                  <span>{formatPrice(finalPricePerUnit)}</span>
+                  <span>{formatCurrency(finalPricePerUnit)}</span>
                 </div>
                 <div className="flex justify-between text-gray-400">
                   <span>Quantity</span>
@@ -909,9 +917,9 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
                 <div className="flex justify-between font-bold text-white text-lg pt-3 border-t border-white/5">
                   <span>Total (incl. VAT)</span>
                   <div className="text-right">
-                    <span className="text-xl text-alien-green font-bold font-mono">{formatPrice(totalFinalPrice)}</span>
+                    <span className="text-xl text-alien-green font-bold font-mono">{formatCurrency(totalFinalPrice)}</span>
                     {totalOriginalPrice > totalFinalPrice && (
-                      <div className="text-xs text-gray-500 line-through">{formatPrice(totalOriginalPrice)}</div>
+                      <div className="text-xs text-gray-500 line-through">{formatCurrency(totalOriginalPrice)}</div>
                     )}
                   </div>
                 </div>
@@ -1333,7 +1341,7 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
                   </div>
                   <div>
                     <div className="font-bold text-xs text-white max-w-[150px] truncate">{name}</div>
-                    <span className="text-xs text-alien-green font-mono font-bold">{formatPrice(finalPricePerUnit)}</span>
+                    <span className="text-xs text-alien-green font-mono font-bold">{formatCurrency(finalPricePerUnit)}</span>
                   </div>
                 </div>
 
@@ -1362,7 +1370,7 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
                       </div>
                       <div>
                         <div className="font-bold text-xs text-white max-w-[150px] truncate">{stackName}</div>
-                        <span className="text-xs text-alien-green font-mono font-bold">{formatPrice(discountedPrice)}</span>
+                        <span className="text-xs text-alien-green font-mono font-bold">{formatCurrency(discountedPrice)}</span>
                       </div>
                     </div>
                   )
@@ -1373,7 +1381,7 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
               <div className="pt-6 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-4">
                 <div className="text-left">
                   <div className="text-xs text-gray-400">Total Bundle Price:</div>
-                  <span className="text-2xl font-mono font-bold text-white">{formatPrice(getBundleTotal())}</span>
+                  <span className="text-2xl font-mono font-bold text-white">{formatCurrency(getBundleTotal())}</span>
                 </div>
                 <button
                   onClick={handleAddBundleToCart}

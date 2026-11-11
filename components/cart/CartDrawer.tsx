@@ -28,7 +28,8 @@ export default function CartDrawer() {
     return () => { document.body.style.overflow = '' }
   }, [isOpen])
 
-  const freeThreshold = SHIPPING_CONFIG.switzerland.freeThreshold
+  const currency = breakdown.currency || 'CHF'
+  const freeThreshold = breakdown.free_shipping_threshold || SHIPPING_CONFIG.switzerland.freeThreshold
   const discountedSubtotal = Math.max(0, breakdown.subtotal - (breakdown.stack_discount || 0))
   const shippingProgress = Math.min(100, (discountedSubtotal / freeThreshold) * 100)
   const remaining = Math.max(0, freeThreshold - discountedSubtotal)
@@ -84,7 +85,7 @@ export default function CartDrawer() {
         {remaining > 0 && items.length > 0 && (
           <div className="px-5 py-3 bg-alien-green/5 border-b border-alien-green/10">
             <p className="text-xs text-alien-green mb-2">
-              Add {formatPrice(remaining)} more for free shipping
+              Add {formatPrice(remaining, currency)} more for free shipping
             </p>
             <div className="h-1 bg-space-800 rounded-full overflow-hidden">
               <div
@@ -187,7 +188,8 @@ export default function CartDrawer() {
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-semibold text-white">
                           {formatPrice(
-                            getCanonicalUnitPrice(product?.slug || '', 'CHF', item.variant.price) * item.quantity
+                            getCanonicalUnitPrice(product?.slug || '', currency, item.variant.price) * item.quantity,
+                            currency
                           )}
                         </span>
                         <button
@@ -228,37 +230,37 @@ export default function CartDrawer() {
             <div className="space-y-1.5 text-sm">
               <div className="flex justify-between text-muted">
                 <span>Subtotal</span>
-                <span>{formatPrice(breakdown.subtotal)}</span>
+                <span>{formatPrice(breakdown.subtotal, currency)}</span>
               </div>
               {breakdown.coupon_discount > 0 && (
                 <div className="flex justify-between text-alien-green font-semibold">
                   <span>Coupon Discount</span>
-                  <span>−{formatPrice(breakdown.coupon_discount)}</span>
+                  <span>−{formatPrice(breakdown.coupon_discount, currency)}</span>
                 </div>
               )}
               {breakdown.stack_discount > 0 && (
                 <div className="flex justify-between text-alien-green font-semibold">
                   <span>Stack Volume Discount ({breakdown.stack_discount_percent}%)</span>
-                  <span>−{formatPrice(breakdown.stack_discount)}</span>
+                  <span>−{formatPrice(breakdown.stack_discount, currency)}</span>
                 </div>
               )}
               {(breakdown as any).preorder_discount > 0 && (
                 <div className="flex justify-between text-alien-green font-semibold">
                   <span>Pre-Order Launch Offer (25%)</span>
-                  <span>−{formatPrice((breakdown as any).preorder_discount)}</span>
+                  <span>−{formatPrice((breakdown as any).preorder_discount, currency)}</span>
                 </div>
               )}
               <div className="flex justify-between text-muted">
                 <span>Estimated Shipping</span>
-                <span>{breakdown.is_free_shipping ? 'FREE' : formatPrice(breakdown.shipping_amount)}</span>
+                <span>{breakdown.is_free_shipping ? 'FREE' : formatPrice(breakdown.shipping_amount, currency)}</span>
               </div>
               <div className="flex justify-between text-xs text-muted/60">
                 <span>VAT (incl.)</span>
-                <span>{formatPrice(breakdown.tax_amount)}</span>
+                <span>{formatPrice(breakdown.tax_amount, currency)}</span>
               </div>
               <div className="flex justify-between font-bold text-white text-base pt-1.5 border-t border-muted/10">
                 <span>Estimated Total</span>
-                <span>{formatPrice(breakdown.total)}</span>
+                <span>{formatPrice(breakdown.total, currency)}</span>
               </div>
             </div>
 

@@ -22,6 +22,7 @@ import {
   Check,
 } from 'lucide-react'
 import { formatPrice } from '@/lib/utils/pricing'
+import { useCurrency } from '@/hooks/useCurrency'
 import { getCanonicalUnitPrice, getPreorderLaunchPrice, SHIPPING_CONFIG } from '@/lib/config/pricing'
 import { PREORDER_CONFIG } from '@/lib/config/preorder'
 import {
@@ -103,6 +104,8 @@ export default function BuildYourStackClient({
 }: BuildYourStackClientProps) {
   const router = useRouter()
   const { addItem, openCart } = useCart()
+  const { currency, formatPrice: formatCurrency } = useCurrency()
+  const formatPrice = (p: number) => formatCurrency(p)
 
   // ─── Stack Selection State ─────────────────────────────────────────────
   const [stackItems, setStackItems] = useState<StackLineItem[]>([])
@@ -147,10 +150,10 @@ export default function BuildYourStackClient({
         quantity: item.quantity,
         unitPrice: item.unitPrice,
       })),
-      'CHF',
+      currency,
       initialTiers
     )
-  }, [stackItems, initialTiers])
+  }, [stackItems, initialTiers, currency])
 
   const preorderLaunchDiscount = Math.round(calculation.rawSubtotal * 0.25 * 100) / 100
   const subtotalAfterDiscounts = Math.max(
@@ -158,13 +161,15 @@ export default function BuildYourStackClient({
     calculation.rawSubtotal - preorderLaunchDiscount - calculation.discountAmount
   )
 
-  const freeShippingThreshold = SHIPPING_CONFIG.switzerland.freeThreshold // 75.0 CHF
+  const isEu = currency === 'EUR'
+  const freeShippingThreshold = isEu ? SHIPPING_CONFIG.eu.freeThreshold : SHIPPING_CONFIG.switzerland.freeThreshold
+  const standardShippingFee = isEu ? SHIPPING_CONFIG.eu.defaultStandardFee : SHIPPING_CONFIG.switzerland.standardFee
   const isFreeShipping = subtotalAfterDiscounts >= freeShippingThreshold || calculation.totalUnits === 0
   const amountUntilFreeShipping = Math.max(
     0,
     Math.round((freeShippingThreshold - subtotalAfterDiscounts) * 100) / 100
   )
-  const shippingFee = isFreeShipping ? 0 : SHIPPING_CONFIG.switzerland.standardFee
+  const shippingFee = isFreeShipping ? 0 : standardShippingFee
   const estimatedTotal =
     subtotalAfterDiscounts + (calculation.totalUnits > 0 ? shippingFee : 0)
 
@@ -207,7 +212,7 @@ export default function BuildYourStackClient({
       targetImage = chosen.imageUrl
     }
 
-    const canonicalPrice = getCanonicalUnitPrice(targetSlug, 'CHF', product.basePrice)
+    const canonicalPrice = getCanonicalUnitPrice(targetSlug, currency, product.basePrice)
 
     setStackItems((prev) => {
       const existingIdx = prev.findIndex((i) => i.slug === targetSlug)
@@ -252,7 +257,7 @@ export default function BuildYourStackClient({
 
   const handleLoadPreset = (preset: PresetStackDef) => {
     const loadedItems: StackLineItem[] = preset.items.map((item) => {
-      const price = getCanonicalUnitPrice(item.slug, 'CHF')
+      const price = getCanonicalUnitPrice(item.slug, currency)
       return {
         id: `preset-${item.slug}-${Date.now()}`,
         slug: item.slug,
@@ -407,7 +412,9 @@ export default function BuildYourStackClient({
             <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-space-900 border border-white/10 text-xs font-mono">
               <Truck className="w-3.5 h-3.5 text-alien-green" />
               <span className="text-gray-400">Bonus:</span>
-              <strong className="text-white">Free Swiss Delivery over CHF 75</strong>
+              <strong className="text-white">
+                {currency === 'EUR' ? 'Free EU Delivery over €75' : 'Free Swiss Delivery over CHF 75'}
+              </strong>
             </div>
           </div>
 
@@ -435,7 +442,7 @@ export default function BuildYourStackClient({
               <span>·</span>
               <span>AUTOMATICALLY APPLIED AT CHECKOUT</span>
               <span>·</span>
-              <span>FREE SWISS POSTAGE FROM CHF 75</span>
+              <span>{currency === 'EUR' ? 'FREE EU POSTAGE FROM €75' : 'FREE SWISS POSTAGE FROM CHF 75'}</span>
               <span>·</span>
               <span>100% PRE-ORDER GUARANTEE</span>
               <span>·</span>
@@ -503,12 +510,12 @@ export default function BuildYourStackClient({
 
                 const canonicalPrice = getCanonicalUnitPrice(
                   activeFlavor.slug || product.slug,
-                  'CHF',
+                  currency,
                   product.basePrice
                 )
                 const discountedLaunchPrice = getPreorderLaunchPrice(
                   activeFlavor.slug || product.slug,
-                  'CHF',
+                  currency,
                   canonicalPrice
                 )
 
@@ -1112,7 +1119,7 @@ export default function BuildYourStackClient({
             {initialPresets.map((preset) => {
               // Calculate preset raw subtotal and discounted price
               const presetRawSubtotal = preset.items.reduce(
-                (sum, item) => sum + getCanonicalUnitPrice(item.slug, 'CHF') * item.quantity,
+                (sum, item) => sum + getCanonicalUnitPrice(item.slug, currency) * item.quantity,
                 0
               )
               const presetDiscountAmount =

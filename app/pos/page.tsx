@@ -14,13 +14,13 @@ import { createClient } from '@/lib/supabase/client'
 
 // Seeded products for POS catalog matching storefront
 const SEEDED_POS_PRODUCTS = [
-  { id: 'prod-col', title: 'Nova Marine Collagen (Tropical Fruit) (300g)', sku: 'COL-300G', barcode: '764000111222', category: 'special-edition', price: 39.90, base_price: 39.90, stock: 500, desc: 'Premium hydrolyzed marine collagen peptides infused with tropical fruits for joint strength and radiant skin elasticity.', image: 'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1794316727/NEW_NOVA_COLLAGEN_1_y4eyr2.png', color: '#FF2244', expiry: '2028-12-31' },
+  { id: 'prod-col', title: 'Nova Marine Collagen (Tropical Fruits) (300g)', sku: 'COL-300G', barcode: '764000111222', category: 'special-edition', price: 39.90, base_price: 39.90, stock: 500, desc: 'Premium hydrolyzed marine collagen peptides infused with tropical fruits for joint strength and radiant skin elasticity.', image: 'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1794316727/NEW_NOVA_COLLAGEN_1_y4eyr2.png', color: '#FF2244', expiry: '2028-12-31' },
   { id: 'prod-blast-blue', title: 'Blast Pre-Workout (Blue Raspberry)', sku: 'BLAST-BLUE-300G', barcode: '764000999000', category: 'pre-workout', price: 24, base_price: 29, stock: 350, desc: 'Extreme pre-workout energy and focus formula featuring an electric blue raspberry flavor profile.', image: 'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782667544/UFO2_hnupdu.png', color: '#00CFFF', expiry: '2027-11-25' },
   { id: 'prod-amino-blue', title: 'Amino Fuel EAA (Blue Raspberry)', sku: 'AMNO-BLUE-300G', barcode: '764000888999', category: 'amino-acids', price: 17.90, base_price: 21.90, stock: 350, desc: 'Full essential amino acids matrix paired with advanced electrolytes in a cold blue raspberry flavor.', image: 'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782667544/UFO6_uhxvep.png', color: '#00CFFF', expiry: '2028-01-10' }
 ]
 
 const SEEDED_CUSTOMERS = [
-  { id: 'cust-1', firstName: 'Shikha', lastName: 'Swiss', phone: '+41 79 123 45 67', email: 'shikha@ufolabz.ch', address: 'Route de Chêne 12', city: 'Genève', state: 'GE', zip: '1207', loyaltyPoints: 2400, walletBalance: 150.00, avgSpend: 112.50 },
+  { id: 'cust-1', firstName: 'Shikha', lastName: 'Swiss', phone: '+41 79 123 45 67', email: 'shikha@ufolabz.com', address: 'Route de Chêne 12', city: 'Genève', state: 'GE', zip: '1207', loyaltyPoints: 2400, walletBalance: 150.00, avgSpend: 112.50 },
   { id: 'cust-2', firstName: 'John', lastName: 'Zurich', phone: '+41 79 987 65 43', email: 'john@zurich.ch', address: 'Rua de la Tour 4', city: 'Geneva', state: 'GE', zip: '1201', loyaltyPoints: 595, walletBalance: 0.00, avgSpend: 59.00 }
 ]
 

@@ -36,7 +36,8 @@ export default function CartPage() {
     )
   }
 
-  const freeThreshold = SHIPPING_CONFIG.switzerland.freeThreshold
+  const currency = breakdown.currency || 'CHF'
+  const freeThreshold = breakdown.free_shipping_threshold || 75.0
   const discountedSubtotal = Math.max(0, breakdown.subtotal - (breakdown.stack_discount || 0))
   const shippingProgress = Math.min(100, (discountedSubtotal / freeThreshold) * 100)
   const remaining = Math.max(0, freeThreshold - discountedSubtotal)
@@ -101,7 +102,7 @@ export default function CartPage() {
                 const name = getLocalizedField(product?.name)
                 const color = product?.product_color ?? '#00FF88'
                 
-                const canonicalUnitPrice = getCanonicalUnitPrice(product?.slug || '', 'CHF', item.variant.price)
+                const canonicalUnitPrice = getCanonicalUnitPrice(product?.slug || '', currency, item.variant.price)
                 const unitPrice = canonicalUnitPrice
                 const comparePrice = item.variant.compare_at_price ?? product?.compare_at_price
                 const hasSavings = comparePrice && comparePrice > unitPrice
@@ -180,16 +181,16 @@ export default function CartPage() {
                           <div className="flex items-center justify-end gap-1.5">
                             {hasSavings && (
                               <span className="text-xs text-muted/50 line-through">
-                                {formatPrice(comparePrice * item.quantity)}
+                                {formatPrice(comparePrice * item.quantity, currency)}
                               </span>
                             )}
                             <span className="font-mono font-bold text-white text-base">
-                              {formatPrice(unitPrice * item.quantity)}
+                              {formatPrice(unitPrice * item.quantity, currency)}
                             </span>
                           </div>
                           {hasSavings && (
                             <span className="text-[10px] font-mono text-alien-green">
-                              Save {savingsPct}% ({formatPrice((comparePrice - unitPrice) * item.quantity)})
+                              Save {savingsPct}% ({formatPrice((comparePrice - unitPrice) * item.quantity, currency)})
                             </span>
                           )}
                         </div>
@@ -206,9 +207,13 @@ export default function CartPage() {
               {/* Shipping Status Meter */}
               <div className="card-glass p-5 space-y-3">
                 <div className="flex justify-between items-center text-xs">
-                  <span className="text-muted uppercase font-mono tracking-wider">Swiss Cargo Transit</span>
+                  <span className="text-muted uppercase font-mono tracking-wider">
+                    {currency === 'EUR' ? 'European Cargo Transit' : 'Swiss Cargo Transit'}
+                  </span>
                   {remaining > 0 ? (
-                    <span className="text-alien-green font-bold">CHF {remaining.toFixed(2)} to Free Delivery</span>
+                    <span className="text-alien-green font-bold">
+                      {formatPrice(remaining, currency)} to Free Delivery
+                    </span>
                   ) : (
                     <span className="text-alien-green font-bold font-mono">🚀 FREE SHIPPING EARNED</span>
                   )}
@@ -220,7 +225,7 @@ export default function CartPage() {
                   />
                 </div>
                 <p className="text-[10px] text-muted/60 leading-relaxed">
-                  We ship directly from our Swiss performance laboratory. Free delivery in Switzerland on orders exceeding CHF {freeThreshold}.
+                  We ship directly from our Swiss performance laboratory. Free delivery on orders exceeding {formatPrice(freeThreshold, currency)}.
                 </p>
               </div>
 
@@ -255,41 +260,41 @@ export default function CartPage() {
                     <span>{PREORDER_CONFIG.estimatedShipDate}</span>
                   </div>
                   <p className="text-[11px] text-gray-400">
-                    Tracked Swiss Priority Dispatch · Free shipping in Switzerland on orders from CHF {freeThreshold}.
+                    Tracked Priority Dispatch · Free shipping on orders from {formatPrice(freeThreshold, currency)}.
                   </p>
                 </div>
 
                 <div className="space-y-3 text-sm">
                   <div className="flex justify-between text-muted">
                     <span>Pre-order Subtotal</span>
-                    <span className="font-mono text-white font-semibold">{formatPrice(breakdown.subtotal)}</span>
+                    <span className="font-mono text-white font-semibold">{formatPrice(breakdown.subtotal, currency)}</span>
                   </div>
                   {breakdown.coupon_discount > 0 && (
                     <div className="flex justify-between text-alien-green font-semibold">
                       <span>Coupon Discount</span>
-                      <span className="font-mono font-semibold">−{formatPrice(breakdown.coupon_discount)}</span>
+                      <span className="font-mono font-semibold">−{formatPrice(breakdown.coupon_discount, currency)}</span>
                     </div>
                   )}
                   {breakdown.stack_discount > 0 && (
                     <div className="flex justify-between text-alien-green font-semibold">
                       <span>Stack Volume Discount ({breakdown.stack_discount_percent}%)</span>
-                      <span className="font-mono">−{formatPrice(breakdown.stack_discount)}</span>
+                      <span className="font-mono">−{formatPrice(breakdown.stack_discount, currency)}</span>
                     </div>
                   )}
                   <div className="flex justify-between text-muted">
                     <span>Standard Shipping</span>
                     <span className="font-mono text-white font-semibold">
-                      {breakdown.is_free_shipping ? 'FREE' : formatPrice(breakdown.shipping_amount)}
+                      {breakdown.is_free_shipping ? 'FREE' : formatPrice(breakdown.shipping_amount, currency)}
                     </span>
                   </div>
                   <div className="flex justify-between text-xs text-muted/50 pt-1">
-                    <span>Includes 8.1% Swiss VAT</span>
-                    <span className="font-mono">{formatPrice(breakdown.tax_amount)}</span>
+                    <span>Includes VAT</span>
+                    <span className="font-mono">{formatPrice(breakdown.tax_amount, currency)}</span>
                   </div>
 
                   <div className="flex justify-between font-display text-white text-2xl pt-4 border-t border-white/5">
                     <span>TOTAL</span>
-                    <span className="text-glow-green text-alien-green font-mono">{formatPrice(breakdown.total)}</span>
+                    <span className="text-glow-green text-alien-green font-mono">{formatPrice(breakdown.total, currency)}</span>
                   </div>
                 </div>
 
