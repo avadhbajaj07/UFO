@@ -30,11 +30,20 @@ export default function AffiliatePage() {
     return <ComingSoon />
   }
 
-  const { user, profile, setUser, isLoading } = useAuthStore()
+  const { user, profile, setUser, isLoading, setIsLoading } = useAuthStore()
   const [affiliateRecord, setAffiliateRecord] = useState<any>(null)
   const [isCheckingRecord, setIsCheckingRecord] = useState(true)
   const [dbProducts, setDbProducts] = useState<any[]>([])
   const [googleLoading, setGoogleLoading] = useState(false)
+
+  // Safety timeout: Never stay stuck on loading screen longer than 1.2s
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsCheckingRecord(false)
+      setIsLoading(false)
+    }, 1200)
+    return () => clearTimeout(timer)
+  }, [setIsLoading])
 
   // Registration Form
   const [name, setName] = useState('')
@@ -81,7 +90,10 @@ export default function AffiliatePage() {
       }
 
       if (!currentUser) {
-        if (isMounted) setIsCheckingRecord(false)
+        if (isMounted) {
+          setIsCheckingRecord(false)
+          setIsLoading(false)
+        }
         return
       }
 
@@ -174,7 +186,10 @@ export default function AffiliatePage() {
         }
       }
 
-      if (isMounted) setIsCheckingRecord(false)
+      if (isMounted) {
+        setIsCheckingRecord(false)
+        setIsLoading(false)
+      }
     }
 
     fetchData()

@@ -32,31 +32,36 @@ export async function middleware(request: NextRequest) {
     },
   })
 
-  // 3. Refresh Supabase auth session token
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://qhwbmniqplygipszkhcb.supabase.co'
-  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_lzpNvYE27E-8hXthNbNosQ_adMOOA8x'
+  // 3. Refresh Supabase auth session token only when auth cookies exist or on protected paths
+  const hasAuthCookie = request.cookies.getAll().some(c => c.name.includes('-auth-token') || c.name.startsWith('sb-'))
+  const isProtectedPath = pathname.startsWith('/admin') || pathname.startsWith('/account') || pathname.startsWith('/affiliate')
 
-  try {
-    const supabase = createServerClient(supabaseUrl, supabaseKey, {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll()
-        },
-        setAll(cookiesToSet: Array<{ name: string; value: string; options?: any }>) {
-          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
-          response = NextResponse.next({
-            request,
-          })
-          cookiesToSet.forEach(({ name, value, options }) =>
-            response.cookies.set(name, value, options)
-          )
-        },
-      },
-    })
+  if (hasAuthCookie || isProtectedPath) {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://qhwbmniqplygipszkhcb.supabase.co'
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_lzpNvYE27E-8hXthNbNosQ_adMOOA8x'
 
-    await supabase.auth.getUser()
-  } catch (err) {
-    // Session refresh error handled gracefully
+    try {
+      const supabase = createServerClient(supabaseUrl, supabaseKey, {
+        cookies: {
+          getAll() {
+            return request.cookies.getAll()
+          },
+          setAll(cookiesToSet: Array<{ name: string; value: string; options?: any }>) {
+            cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
+            response = NextResponse.next({
+              request,
+            })
+            cookiesToSet.forEach(({ name, value, options }) =>
+              response.cookies.set(name, value, options)
+            )
+          },
+        },
+      })
+
+      await supabase.auth.getUser()
+    } catch (err) {
+      // Session refresh error handled gracefully
+    }
   }
 
   if (COMING_SOON) {

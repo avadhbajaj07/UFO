@@ -265,10 +265,18 @@ export default function AdminPage() {
     const fetchData = async () => {
       const supabase = createClient() as any
 
-      // 1. Fetch products
-      const { data: prods } = await supabase
-        .from('products')
-        .select(`
+      // Parallelize all initial admin queries for instant loading
+      const [
+        { data: prods },
+        { data: ords, error: ordsError },
+        { data: affs, error: affsError },
+        { data: coups },
+        { data: custs },
+        { data: revs },
+        { data: cats },
+        flavsResult,
+      ] = await Promise.all([
+        supabase.from('products').select(`
           *,
           images:product_images(*),
           videos:product_videos(*),
@@ -277,7 +285,24 @@ export default function AdminPage() {
             *,
             nutrition:nutrition_facts(*)
           )
-        `)
+        `),
+        supabase.from('orders').select(`
+          *,
+          items:order_items(*)
+        `).order('created_at', { ascending: false }),
+        supabase.from('affiliates').select(`
+          *,
+          profile:profiles!profile_id(id, email, full_name, phone)
+        `),
+        supabase.from('coupons').select('*'),
+        supabase.from('profiles').select(`
+          *,
+          loyalty:loyalty_accounts(points)
+        `).order('created_at', { ascending: false }),
+        supabase.from('reviews').select('*'),
+        supabase.from('categories').select('*'),
+        supabase.from('flavors').select('*').catch(() => ({ data: null })),
+      ])
 
       const mappedProds = prods ? prods.map((p: any) => {
         const primaryVariant = p.variants?.[0] || {}
@@ -331,14 +356,7 @@ export default function AdminPage() {
       }) : []
       setLiveProducts(mappedProds)
 
-      // 2. Fetch orders
-      const { data: ords, error: ordsError } = await supabase
-        .from('orders')
-        .select(`
-          *,
-          items:order_items(*)
-        `)
-        .order('created_at', { ascending: false })
+      // 2. Map orders
       if (ordsError) console.error('Error fetching orders:', ordsError)
 
       const mappedOrds = ords ? ords.map((o: any) => ({
@@ -366,13 +384,7 @@ export default function AdminPage() {
       })) : []
       setOrdersList(mappedOrds)
 
-      // 3. Fetch affiliates
-      const { data: affs, error: affsError } = await supabase
-        .from('affiliates')
-        .select(`
-          *,
-          profile:profiles!profile_id(id, email, full_name, phone)
-        `)
+      // 3. Map affiliates
       if (affsError) console.error('Error fetching affiliates:', affsError)
 
       const mappedAffs = affs ? affs.map((a: any) => ({
@@ -393,11 +405,7 @@ export default function AdminPage() {
       })) : []
       setAffiliates(mappedAffs)
 
-      // 4. Fetch coupons
-      const { data: coups } = await supabase
-        .from('coupons')
-        .select('*')
-
+      // 4. Map coupons
       const mappedCoups = coups ? coups.map((c: any) => ({
         code: c.code,
         affiliateId: c.affiliate_id || 'N/A',
@@ -411,15 +419,7 @@ export default function AdminPage() {
       })) : []
       setCoupons(mappedCoups)
 
-      // 5. Fetch customers (profiles)
-      const { data: custs } = await supabase
-        .from('profiles')
-        .select(`
-          *,
-          loyalty:loyalty_accounts(points)
-        `)
-        .order('created_at', { ascending: false })
-
+      // 5. Map customers
       const mappedCusts = custs ? custs.map((c: any) => ({
         id: c.id,
         name: c.full_name || c.email.split('@')[0],
@@ -435,11 +435,7 @@ export default function AdminPage() {
       })) : []
       setCustomersList(mappedCusts)
 
-      // 6. Fetch reviews
-      const { data: revs } = await supabase
-        .from('reviews')
-        .select('*')
-
+      // 6. Map reviews
       const mappedRevs = revs ? revs.map((r: any) => ({
         id: r.id,
         author: r.author_name || 'Guest',
@@ -450,25 +446,9 @@ export default function AdminPage() {
       })) : []
       setReviews(mappedRevs)
 
-      // 7. Fetch categories
-      const { data: cats } = await supabase
-        .from('categories')
-        .select('*')
+      // 7. Categories & Flavors
       if (cats) setDbCategories(cats)
-
-      // 8. Fetch flavors safely
-      try {
-        const { data: flavs, error: flavsError } = await supabase
-          .from('flavors')
-          .select('*')
-        if (flavs && !flavsError) {
-          setDbFlavors(flavs)
-        } else {
-          console.warn('Flavors table not initialized or empty. Please run DDL migration.')
-        }
-      } catch (err) {
-        console.error('Failed to fetch flavors:', err)
-      }
+      if (flavsResult?.data) setDbFlavors(flavsResult.data)
     }
 
     fetchData()
