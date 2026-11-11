@@ -17,7 +17,7 @@ function getBaseUrl(req: NextRequest) {
   if (origin) return origin
 
   const host = req.headers.get('host')
-  return host ? `https://${host}` : 'http://localhost:3000'
+  return host ? `https://${host}` : 'https://ufolabz.com'
 }
 
 export async function POST(req: NextRequest) {

@@ -1223,10 +1223,37 @@ export default function AdminPage() {
     handleTemplateChange(templateType, customer)
   }
 
-  const handleSendEmail = (e: React.FormEvent) => {
+  const [isSendingEmail, setIsSendingEmail] = useState(false)
+
+  const handleSendEmail = async (e: React.FormEvent) => {
     e.preventDefault()
-    alert(`Email successfully dispatched via SMTP gateway!\nTo: ${emailTargetCustomer?.email}\nSubject: ${emailSubject}`)
-    setEmailTargetCustomer(null)
+    if (!emailTargetCustomer?.email) return
+    setIsSendingEmail(true)
+    try {
+      const res = await fetch('/api/admin/trigger-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'custom_crm',
+          payload: {
+            email: emailTargetCustomer.email,
+            subject: emailSubject,
+            body: customEmailBody,
+          },
+        }),
+      })
+      const data = await res.json()
+      if (res.ok) {
+        alert(`Email successfully dispatched via Resend!\nTo: ${emailTargetCustomer.email}\nSubject: ${emailSubject}`)
+        setEmailTargetCustomer(null)
+      } else {
+        alert(`Failed to send email: ${data.error || 'Unknown error'}`)
+      }
+    } catch (err: any) {
+      alert(`Error sending email: ${err.message}`)
+    } finally {
+      setIsSendingEmail(false)
+    }
   }
 
   const handleSaveApiKey = (e: React.FormEvent) => {
@@ -3914,10 +3941,11 @@ export default function AdminPage() {
 
               <button
                 type="submit"
-                className="w-full bg-alien-green text-space-950 font-bold h-11 rounded-xl flex items-center justify-center gap-1.5 hover:shadow-glow-green"
+                disabled={isSendingEmail}
+                className="w-full bg-alien-green text-space-950 font-bold h-11 rounded-xl flex items-center justify-center gap-1.5 hover:shadow-glow-green disabled:opacity-50"
               >
                 <Send className="w-4 h-4" />
-                <span>Send Email Campaign</span>
+                <span>{isSendingEmail ? 'Dispatching via Resend...' : 'Send Email Campaign'}</span>
               </button>
             </form>
           </div>

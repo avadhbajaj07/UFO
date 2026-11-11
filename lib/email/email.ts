@@ -36,7 +36,7 @@ const getResendClient = () => {
 // Configuration parameters
 const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'UFO LABZ <hello@ufolabz.com>';
 const ADMIN_EMAIL = process.env.ADMIN_NOTIFICATION_EMAIL || 'marco.scarpantoni@hotmail.com';
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://ufolabz.com';
 
 /**
  * Standard interface for emails return value
@@ -630,6 +630,29 @@ export const emailService = {
       return { success: true, id: data?.id };
     } catch (err) {
       return logEmailError('sendReplenishment', err);
+    }
+  },
+
+  async sendCustomEmail(email: string, subject: string, textOrHtml: string): Promise<EmailSendResult> {
+    try {
+      const resend = getResendClient();
+      if (!resend) {
+        console.log(`[MOCK EMAIL] sendCustomEmail to ${email}: ${subject}`);
+        return { success: true, id: 'mock-custom-id' };
+      }
+
+      const { data, error } = await resend.emails.send({
+        from: FROM_EMAIL,
+        to: email,
+        replyTo: 'hello@ufolabz.com',
+        subject,
+        text: textOrHtml,
+      });
+
+      if (error) throw new Error(error.message);
+      return { success: true, id: data?.id };
+    } catch (err) {
+      return logEmailError('sendCustomEmail', err);
     }
   },
 };

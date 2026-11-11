@@ -1,14 +1,14 @@
 import { createClient } from '@supabase/supabase-js'
 
 export function createAdminClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://qhwbmniqplygipszkhcb.supabase.co'
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-  if (!url || !serviceRoleKey) {
+  if (!url || !key) {
     throw new Error('Supabase server credentials are not configured.')
   }
 
-  return createClient<any>(url, serviceRoleKey, {
+  return createClient<any>(url, key, {
     auth: { persistSession: false, autoRefreshToken: false },
   })
 }

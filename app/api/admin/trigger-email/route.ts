@@ -49,6 +49,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: true, message: 'Affiliate rate change email sent.' });
     }
 
+    if (type === 'custom_crm') {
+      const { email, subject, body: emailBody } = payload;
+      if (!email || !subject || !emailBody) {
+        return NextResponse.json({ error: 'Missing required fields: email, subject, or body.' }, { status: 400 });
+      }
+      const result = await emailService.sendCustomEmail(email, subject, emailBody);
+      if (!result.success) {
+        return NextResponse.json({ error: result.error || 'Failed to send custom email.' }, { status: 500 });
+      }
+      return NextResponse.json({ success: true, message: 'Custom email sent successfully.' });
+    }
+
     return NextResponse.json({ error: 'Invalid email trigger type.' }, { status: 400 });
   } catch (err: any) {
     console.error('Error in trigger-email API handler:', err);
