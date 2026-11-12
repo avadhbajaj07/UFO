@@ -1263,7 +1263,7 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
                 <div className="bg-space-900 border border-white/5 p-4 rounded-xl space-y-2">
                   <Award className="w-6 h-6 text-alien-green" />
                   <div className="font-bold text-sm">Shipping Costs</div>
-                  <p className="text-xs text-gray-400">Free delivery for orders above CHF 99. Otherwise CHF 9.00 flat.</p>
+                  <p className="text-xs text-gray-400">Free delivery for orders above CHF 75. Otherwise CHF 9.99 flat.</p>
                 </div>
 
                 <div className="bg-space-900 border border-white/5 p-4 rounded-xl space-y-2">

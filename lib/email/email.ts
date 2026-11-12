@@ -118,7 +118,7 @@ export const emailService = {
       discount_code: discountCode || 'ORBITAL10',
       subtotal: `CHF ${subtotal.toFixed(2)}`,
       discount: `CHF ${(subtotal * 0.25).toFixed(2)}`,
-      shipping: subtotal >= 75 ? 'FREE' : 'CHF 7.90',
+      shipping: subtotal >= 75 ? 'FREE' : 'CHF 9.99',
       total: `CHF ${(subtotal * 0.75).toFixed(2)}`,
     }
 

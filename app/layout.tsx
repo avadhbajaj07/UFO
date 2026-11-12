@@ -8,7 +8,7 @@ export const metadata: Metadata = {
     default: 'UFO LABZ | Sports Supplements Switzerland',
     template: '%s',
   },
-  description: 'Premium science-backed supplements engineered for peak performance. Free delivery in Switzerland on orders over CHF 99.',
+  description: 'Premium science-backed supplements engineered for peak performance. Free delivery in Switzerland on orders over CHF 75.',
   metadataBase: new URL('https://ufolabz.com'),
   applicationName: 'UFO LABZ',
   alternates: { canonical: 'https://ufolabz.com' },
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: 'UFO LABZ — Alien Performance Technology',
-    description: 'Premium science-backed supplements engineered for peak performance. Free delivery in Switzerland on orders over CHF 99.',
+    description: 'Premium science-backed supplements engineered for peak performance. Free delivery in Switzerland on orders over CHF 75.',
     url: 'https://ufolabz.com',
     siteName: 'UFO LABZ',
     images: [
@@ -45,7 +45,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'UFO LABZ — Alien Performance Technology',
-    description: 'Premium science-backed supplements engineered for peak performance. Free delivery in Switzerland on orders over CHF 99.',
+    description: 'Premium science-backed supplements engineered for peak performance. Free delivery in Switzerland on orders over CHF 75.',
     images: ['https://qhwbmniqplygipszkhcb.supabase.co/storage/v1/object/public/product-images/astro-creatine.png'],
   },
 }

@@ -163,32 +163,32 @@ export const SHIPPING_CONFIG = {
   switzerland: {
     currency: 'CHF' as SupportedCurrency,
     freeThreshold: 75.0, // Free delivery from CHF 75
-    standardFee: 10.0, // CHF 10 if under CHF 75
+    standardFee: 9.99, // CHF 9.99 if under CHF 75
     pickupFee: 0.0, // Free pickup at NutriFit Geneva
   },
   eu: {
     currency: 'EUR' as SupportedCurrency,
     freeThreshold: 75.0, // Free delivery from EUR 75
-    defaultStandardFee: 9.9, // Configurable placeholder
+    defaultStandardFee: 9.99, // Standard EU delivery fee under EUR 75
     countryRates: {
-      FR: 9.9,
-      DE: 9.9,
-      IT: 9.9,
-      AT: 9.9,
-      ES: 10.9,
-      NL: 9.9,
-      BE: 9.9,
-      PT: 11.9,
-      PL: 10.9,
-      SE: 12.9,
-      DK: 11.9,
-      FI: 12.9,
-      IE: 11.9,
-      LU: 9.9,
-      CZ: 10.9,
-      GR: 12.9,
-      RO: 11.9,
-      HU: 10.9,
+      FR: 9.99,
+      DE: 9.99,
+      IT: 9.99,
+      AT: 9.99,
+      ES: 9.99,
+      NL: 9.99,
+      BE: 9.99,
+      PT: 9.99,
+      PL: 9.99,
+      SE: 9.99,
+      DK: 9.99,
+      FI: 9.99,
+      IE: 9.99,
+      LU: 9.99,
+      CZ: 9.99,
+      GR: 9.99,
+      RO: 9.99,
+      HU: 9.99,
     } as Record<string, number>,
   },
 }

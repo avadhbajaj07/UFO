@@ -53,7 +53,7 @@ export default function ShippingPage() {
               </li>
               <li className="text-sm text-muted flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-alien-green shrink-0" />
-                CHF 10.00 standard (under CHF 75)
+                CHF 9.99 standard (under CHF 75)
               </li>
               <li className="text-sm text-muted flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-alien-green shrink-0" />

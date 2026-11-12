@@ -604,12 +604,12 @@ export default function CheckoutPage() {
                               <span className="text-[10px] font-mono bg-white/10 px-1.5 py-0.5 rounded text-gray-300">CH</span>
                             </div>
                             <div className="text-xs text-gray-400">
-                              CHF 10 if under CHF 75 · Free shipping for orders CHF 75+
+                              CHF 9.99 if under CHF 75 · Free shipping for orders CHF 75+
                             </div>
                           </div>
                         </div>
                         <span className="font-mono text-xs font-bold text-alien-green">
-                          {subtotal >= SHIPPING_CONFIG.switzerland.freeThreshold ? 'FREE' : 'CHF 10.00'}
+                          {subtotal >= SHIPPING_CONFIG.switzerland.freeThreshold ? 'FREE' : 'CHF 9.99'}
                         </span>
                       </div>
 
@@ -752,7 +752,7 @@ export default function CheckoutPage() {
                             <div className="text-[11px] text-gray-400">Regular batch dispatch</div>
                           </div>
                           <span className="font-mono text-xs font-bold text-alien-green">
-                            {subtotal >= SHIPPING_CONFIG.switzerland.freeThreshold ? 'FREE' : 'CHF 10.00'}
+                            {subtotal >= SHIPPING_CONFIG.switzerland.freeThreshold ? 'FREE' : 'CHF 9.99'}
                           </span>
                         </div>
                         <div

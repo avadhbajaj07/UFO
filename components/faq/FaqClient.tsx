@@ -23,7 +23,7 @@ const faqData = [
       },
       {
         q: 'Do you ship internationally?',
-        a: 'Yes! We ship to all EU countries and select international destinations. Free shipping on Swiss orders over CHF 99.',
+        a: 'Yes! We ship to all EU countries and select international destinations. Free shipping on Swiss orders over CHF 75.',
       },
       {
         q: 'How can I track my order?',
