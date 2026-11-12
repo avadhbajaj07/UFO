@@ -32,28 +32,72 @@ export const isLiteLayout = (): boolean =>
 /* Artwork                                                             */
 /* ------------------------------------------------------------------ */
 
-const ALIEN_FULL =
-  '<svg viewBox="0 0 54 54"><g class="afx-bob">' +
-  '<ellipse cx="29" cy="46" rx="9" ry="6" fill="#4fc23f"/>' +
-  '<ellipse cx="29" cy="22" rx="15" ry="16" fill="#7cff6b"/>' +
-  '<ellipse cx="23" cy="24" rx="5" ry="7.5" fill="#05050a" transform="rotate(18 23 24)"/>' +
-  '<ellipse cx="35" cy="24" rx="5" ry="7.5" fill="#05050a" transform="rotate(-18 35 24)"/>' +
-  '<circle cx="21.5" cy="21.5" r="1.4" fill="#fff"/><circle cx="33.5" cy="21.5" r="1.4" fill="#fff"/>' +
-  '<line x1="22" y1="8" x2="19" y2="1" stroke="#7cff6b" stroke-width="2"/><circle cx="19" cy="1.5" r="2" fill="#fff36b"/>' +
-  '<line x1="36" y1="8" x2="39" y2="1" stroke="#7cff6b" stroke-width="2"/><circle cx="39" cy="1.5" r="2" fill="#fff36b"/>' +
-  '<path d="M22 44 L12 36" stroke="#4fc23f" stroke-width="3.5" stroke-linecap="round"/>' +
-  '<rect x="2" y="30" width="14" height="7" rx="2" fill="#2b2f4a" stroke="#a6a9ff" stroke-width="1" transform="rotate(-30 9 33)"/>' +
-  '<circle cx="3" cy="29" r="2.2" fill="#8dff7a"/></g></svg>';
+const UFO_FULL =
+  '<svg viewBox="0 0 64 44" fill="none" xmlns="http://www.w3.org/2000/svg"><g class="afx-bob">' +
+  // Cockpit glass dome
+  '<path d="M20 20 C20 9, 44 9, 44 20 Z" fill="#0d1f18" stroke="#a855f7" stroke-width="1.3"/>' +
+  '<path d="M22 19 C23 11, 41 11, 42 19 Z" fill="#133624" opacity="0.85"/>' +
+  // Alien Pilot
+  '<ellipse cx="32" cy="16.5" rx="5" ry="6" fill="#1fff6b"/>' +
+  '<ellipse cx="30" cy="16.5" rx="1.5" ry="2.5" fill="#030712" transform="rotate(16 30 16.5)"/>' +
+  '<ellipse cx="34" cy="16.5" rx="1.5" ry="2.5" fill="#030712" transform="rotate(-16 34 16.5)"/>' +
+  '<circle cx="29.7" cy="15.6" r="0.5" fill="#fff"/><circle cx="33.7" cy="15.6" r="0.5" fill="#fff"/>' +
+  // Cockpit antenna
+  '<line x1="32" y1="9" x2="32" y2="4" stroke="#1fff6b" stroke-width="1.5"/>' +
+  '<circle cx="32" cy="3" r="1.8" fill="#a855f7" stroke="#1fff6b" stroke-width="0.8"/>' +
+  // Glare
+  '<path d="M24 15 Q28 11 34 11" stroke="#fff" stroke-width="1.2" stroke-linecap="round" fill="none" opacity="0.75"/>' +
+  // Saucer lower hull
+  '<path d="M16 24 C16 33, 48 33, 48 24 Z" fill="#0a0e17" stroke="#1fff6b" stroke-width="1.2"/>' +
+  // Main disc
+  '<ellipse cx="32" cy="23" rx="27" ry="7.5" fill="#111726" stroke="#a855f7" stroke-width="1.4"/>' +
+  '<ellipse cx="32" cy="22.5" rx="25" ry="5.5" fill="#1a2236"/>' +
+  // Rim LEDs
+  '<circle cx="7" cy="23" r="1.6" fill="#1fff6b"/>' +
+  '<circle cx="15" cy="25.5" r="1.8" fill="#a855f7"/>' +
+  '<circle cx="23" cy="27" r="2" fill="#1fff6b"/>' +
+  '<circle cx="32" cy="27.5" r="2.2" fill="#00ff88"/>' +
+  '<circle cx="41" cy="27" r="2" fill="#1fff6b"/>' +
+  '<circle cx="49" cy="25.5" r="1.8" fill="#a855f7"/>' +
+  '<circle cx="57" cy="23" r="1.6" fill="#1fff6b"/>' +
+  // Bottom tractor emitter
+  '<ellipse cx="32" cy="30" rx="6" ry="2.4" fill="#a855f7" stroke="#1fff6b" stroke-width="1"/>' +
+  '<circle cx="32" cy="30" r="2" fill="#fff"/>' +
+  '</g></svg>';
 
-const ALIEN_LITE =
-  '<svg viewBox="0 0 28 34"><ellipse cx="14" cy="28" rx="5" ry="4" fill="#3fbf6f"/>' +
-  '<ellipse cx="14" cy="13" rx="9" ry="10" fill="#7cff6b"/>' +
-  '<ellipse cx="10.5" cy="14.5" rx="2.8" ry="4.3" fill="#05050a" transform="rotate(18 10.5 14.5)"/>' +
-  '<ellipse cx="17.5" cy="14.5" rx="2.8" ry="4.3" fill="#05050a" transform="rotate(-18 17.5 14.5)"/>' +
-  '<circle cx="10" cy="13" r=".9" fill="#fff"/><circle cx="17" cy="13" r=".9" fill="#fff"/>' +
-  '<line x1="10" y1="4" x2="8" y2="0.5" stroke="#7cff6b" stroke-width="1.2"/>' +
-  '<line x1="18" y1="4" x2="20" y2="0.5" stroke="#7cff6b" stroke-width="1.2"/>' +
-  '<rect x="13" y="26" width="3" height="8" rx="1" fill="#2b2f4a" stroke="#a6a9ff" stroke-width=".6"/></svg>';
+const UFO_LITE =
+  '<svg viewBox="0 0 48 32" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+  // Cockpit glass dome
+  '<path d="M15 15 C15 7, 33 7, 33 15 Z" fill="#0d1f18" stroke="#a855f7" stroke-width="1"/>' +
+  '<path d="M16 14 C17 8.5, 31 8.5, 32 14 Z" fill="#133624" opacity="0.8"/>' +
+  // Alien pilot inside dome
+  '<ellipse cx="24" cy="12.5" rx="3.5" ry="4.2" fill="#1fff6b"/>' +
+  '<ellipse cx="22.5" cy="12.5" rx="1.1" ry="1.8" fill="#030712" transform="rotate(16 22.5 12.5)"/>' +
+  '<ellipse cx="25.5" cy="12.5" rx="1.1" ry="1.8" fill="#030712" transform="rotate(-16 25.5 12.5)"/>' +
+  '<circle cx="22.3" cy="11.8" r="0.4" fill="#fff"/>' +
+  '<circle cx="25.3" cy="11.8" r="0.4" fill="#fff"/>' +
+  // Cockpit antenna / beacon
+  '<line x1="24" y1="7" x2="24" y2="3.5" stroke="#1fff6b" stroke-width="1.2"/>' +
+  '<circle cx="24" cy="2.5" r="1.3" fill="#a855f7" stroke="#1fff6b" stroke-width="0.6"/>' +
+  // Glass glare reflection
+  '<path d="M18 11 Q21 8 26 8" stroke="#fff" stroke-width="0.9" stroke-linecap="round" fill="none" opacity="0.7"/>' +
+  // Saucer lower hull
+  '<path d="M12 18 C12 24, 36 24, 36 18 Z" fill="#0a0e17" stroke="#1fff6b" stroke-width="0.9"/>' +
+  // Saucer main disc (body)
+  '<ellipse cx="24" cy="17" rx="20" ry="5.5" fill="#111726" stroke="#a855f7" stroke-width="1.1"/>' +
+  '<ellipse cx="24" cy="16.5" rx="18.5" ry="4" fill="#1a2236"/>' +
+  // Saucer rim running lights (green and purple LEDs)
+  '<circle cx="6.5" cy="17" r="1.2" fill="#1fff6b"/>' +
+  '<circle cx="12" cy="18.8" r="1.3" fill="#a855f7"/>' +
+  '<circle cx="18" cy="19.8" r="1.4" fill="#1fff6b"/>' +
+  '<circle cx="24" cy="20.2" r="1.6" fill="#00ff88"/>' +
+  '<circle cx="30" cy="19.8" r="1.4" fill="#1fff6b"/>' +
+  '<circle cx="36" cy="18.8" r="1.3" fill="#a855f7"/>' +
+  '<circle cx="41.5" cy="17" r="1.2" fill="#1fff6b"/>' +
+  // Bottom tractor emitter core
+  '<ellipse cx="24" cy="22" rx="4.5" ry="1.8" fill="#a855f7" stroke="#1fff6b" stroke-width="0.8"/>' +
+  '<circle cx="24" cy="22" r="1.5" fill="#fff"/>' +
+  '</svg>';
 
 /* ------------------------------------------------------------------ */
 /* Helpers                                                             */
@@ -167,9 +211,9 @@ function playFull(x: number, y: number): void {
   const alien = document.createElement("div");
   alien.className = "afx-alien";
   alien.setAttribute("aria-hidden", "true");
-  alien.innerHTML = ALIEN_FULL;
-  alien.style.top = `${y - 14}px`;
-  alien.style.left = `${side > 0 ? x + 26 : x - 26 - 54}px`;
+  alien.innerHTML = UFO_FULL;
+  alien.style.top = `${y - 24}px`;
+  alien.style.left = `${side > 0 ? x + 24 : x - 24 - 64}px`;
   if (side < 0) (alien.firstElementChild as SVGElement).style.transform = "scaleX(-1)";
 
   document.body.append(overlay, flash, alien);
@@ -178,8 +222,8 @@ function playFull(x: number, y: number): void {
     ? document.querySelector<HTMLElement>(AFX_CONFIG.shakeSelector)
     : null;
 
-  const tx = side > 0 ? x + 29 : x - 29;
-  const ty = y + 15;
+  const tx = side > 0 ? x + 56 : x - 56;
+  const ty = y + 6;
   let beam: SVGLineElement | null = null;
 
   requestAnimationFrame(() => alien.classList.add("afx-in"));
@@ -243,13 +287,16 @@ function playLite(x: number, y: number, icon?: Element | null): void {
   });
   svg.appendChild(g);
 
+  const tractor = document.createElement("div");
+  tractor.className = "afx-tractor-lite";
+
   const beam = document.createElement("div");
   beam.className = "afx-beam-lite";
   const alien = document.createElement("div");
   alien.className = "afx-al";
-  alien.innerHTML = ALIEN_LITE;
+  alien.innerHTML = UFO_LITE;
 
-  zap.append(svg, beam, alien);
+  zap.append(svg, tractor, beam, alien);
   document.body.appendChild(zap);
   startDraw(g);
 
