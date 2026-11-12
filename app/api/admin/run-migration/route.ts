@@ -122,11 +122,11 @@ export async function GET(req: NextRequest) {
       },
       {
         slugs: ['astro-collagen', 'astro-collagen-peptide'],
-        url: 'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1794316727/NEW_NOVA_COLLAGEN_1_y4eyr2.png',
+        url: 'https://qhwbmniqplygipszkhcb.supabase.co/storage/v1/object/public/product-images/nova-marine-collagen.png',
       },
       {
         slugs: ['magnesium'],
-        url: 'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1794316725/Flacon_de_magne%CC%81sium_au_design_extraterrestre_1_oo2r28.png',
+        url: 'https://qhwbmniqplygipszkhcb.supabase.co/storage/v1/object/public/product-images/magnesium.png',
       },
     ]
 

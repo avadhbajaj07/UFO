@@ -371,7 +371,7 @@ DELETE FROM ingredients WHERE id IN (
 
 -- Re-populate child tables
 INSERT INTO product_images (product_id, url, alt, is_primary, sort_order)
-SELECT id, 'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1794316727/NEW_NOVA_COLLAGEN_1_y4eyr2.png', '{"en":"Astro Collagen Peptide Premium Bottle"}', true, 1 FROM products WHERE slug = 'astro-collagen';
+SELECT id, 'https://qhwbmniqplygipszkhcb.supabase.co/storage/v1/object/public/product-images/nova-marine-collagen.png', '{"en":"Astro Collagen Peptide Premium Bottle"}', true, 1 FROM products WHERE slug = 'astro-collagen';
 
 INSERT INTO product_images (product_id, url, alt, is_primary, sort_order)
 SELECT id, 'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782667544/UFO3_bfwhlr.png', '{"en":"Blast Pre-Workout Energy Drink"}', true, 1 FROM products WHERE slug = 'blast-pre-workout-energy';
@@ -389,7 +389,7 @@ INSERT INTO product_images (product_id, url, alt, is_primary, sort_order)
 SELECT id, 'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782667544/UFO6_uhxvep.png', '{"en":"Amino Fuel EAA Blue Raspberry"}', true, 1 FROM products WHERE slug = 'amino-fuel-blue-raspberry';
 
 INSERT INTO product_images (product_id, url, alt, is_primary, sort_order)
-SELECT id, 'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1794316725/Flacon_de_magne%CC%81sium_au_design_extraterrestre_1_oo2r28.png', '{"en":"Magnesium 90 Capsules"}', true, 1 FROM products WHERE slug = 'magnesium';
+SELECT id, 'https://qhwbmniqplygipszkhcb.supabase.co/storage/v1/object/public/product-images/magnesium.png', '{"en":"Magnesium 90 Capsules"}', true, 1 FROM products WHERE slug = 'magnesium';
 
 -- ─── INGREDIENTS MATRIX ────────────────────────────────────────
 INSERT INTO ingredients (id, name, description, benefits, is_active) VALUES

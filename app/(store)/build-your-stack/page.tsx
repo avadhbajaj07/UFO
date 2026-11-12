@@ -139,7 +139,7 @@ const DEFAULT_STACK_PRODUCTS: StackProductCardItem[] = [
     basePrice: 39.90,
     color: '#FF2244',
     imageUrl:
-      'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1794316727/NEW_NOVA_COLLAGEN_1_y4eyr2.png',
+      'https://qhwbmniqplygipszkhcb.supabase.co/storage/v1/object/public/product-images/nova-marine-collagen.png',
     hasVariants: false,
     flavors: [
       {
@@ -147,7 +147,7 @@ const DEFAULT_STACK_PRODUCTS: StackProductCardItem[] = [
         flavorName: 'Tropical Fruits',
         color: '#FF2244',
         imageUrl:
-          'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1794316727/NEW_NOVA_COLLAGEN_1_y4eyr2.png',
+          'https://qhwbmniqplygipszkhcb.supabase.co/storage/v1/object/public/product-images/nova-marine-collagen.png',
       },
     ],
     variantId: '4ecb2866-9067-45cc-bddf-1e79b549c64d',
@@ -162,7 +162,7 @@ const DEFAULT_STACK_PRODUCTS: StackProductCardItem[] = [
     basePrice: 34.90,
     color: '#00FF88',
     imageUrl:
-      'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1794316725/Flacon_de_magne%CC%81sium_au_design_extraterrestre_1_oo2r28.png',
+      'https://qhwbmniqplygipszkhcb.supabase.co/storage/v1/object/public/product-images/magnesium.png',
     hasVariants: false,
     flavors: [
       {
@@ -170,7 +170,7 @@ const DEFAULT_STACK_PRODUCTS: StackProductCardItem[] = [
         flavorName: '90 Vegan Caps',
         color: '#00FF88',
         imageUrl:
-          'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1794316725/Flacon_de_magne%CC%81sium_au_design_extraterrestre_1_oo2r28.png',
+          'https://qhwbmniqplygipszkhcb.supabase.co/storage/v1/object/public/product-images/magnesium.png',
       },
     ],
     variantId: 'b08be57c-17b4-49d3-a2bc-df41cb88ad4b',
