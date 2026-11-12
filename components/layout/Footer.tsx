@@ -148,11 +148,29 @@ export default function Footer() {
 
       {/* Bottom bar */}
       <div className="relative border-t border-white/[0.06]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-muted/60">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
+          <p className="text-xs text-muted/60 order-1 md:order-none">
             © {new Date().getFullYear()} UFO LABZ GmbH. All rights reserved.
           </p>
-          <div className="flex items-center gap-6">
+
+          <p className="text-xs text-muted/70 flex items-center justify-center gap-1.5 font-mono order-2 md:order-none">
+            <span>Architected on Earth by</span>
+            <a
+              href="https://avadhbajaj.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-white hover:text-alien-green font-medium transition-all duration-200 inline-flex items-center gap-1 group hover:drop-shadow-[0_0_8px_rgba(31,255,107,0.6)]"
+            >
+              <span className="underline decoration-white/20 group-hover:decoration-alien-green underline-offset-4">
+                Avadh Bajaj
+              </span>
+              <span className="text-sm transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 inline-block">
+                🛸
+              </span>
+            </a>
+          </p>
+
+          <div className="flex items-center gap-6 flex-wrap justify-center order-3 md:order-none">
             {legalLinks.map((link) => (
               <Link
                 key={link.href}
