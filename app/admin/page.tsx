@@ -285,9 +285,9 @@ export default function AdminPage() {
       // Parallelize all initial admin queries for instant loading
       const [
         { data: prods },
-        { data: ords, error: ordsError },
+        ordersRes,
         affData,
-        { data: custs },
+        customersRes,
         { data: revs },
         { data: cats },
         flavsResult,
@@ -302,19 +302,16 @@ export default function AdminPage() {
             nutrition:nutrition_facts(*)
           )
         `),
-        supabase.from('orders').select(`
-          *,
-          items:order_items(*)
-        `).order('created_at', { ascending: false }),
+        fetch('/api/admin/orders').then(r => r.json()).catch(() => ({ orders: [] })),
         fetch('/api/admin/affiliates').then(r => r.json()).catch(() => ({ affiliates: [], coupons: [], commissions: [], payouts: [] })),
-        supabase.from('profiles').select(`
-          *,
-          loyalty:loyalty_accounts(points)
-        `).order('created_at', { ascending: false }),
+        fetch('/api/admin/customers').then(r => r.json()).catch(() => ({ customers: [] })),
         supabase.from('reviews').select('*'),
         supabase.from('categories').select('*'),
         supabase.from('flavors').select('*').catch(() => ({ data: null })),
       ])
+
+      const ords = ordersRes?.orders || []
+      const custs = customersRes?.customers || []
 
       const mappedProds = prods ? prods.map((p: any) => {
         const primaryVariant = p.variants?.[0] || {}
@@ -369,7 +366,7 @@ export default function AdminPage() {
       setLiveProducts(mappedProds)
 
       // 2. Map orders
-      if (ordsError) console.error('Error fetching orders:', ordsError)
+      if (ordersRes?.error) console.error('Error fetching orders:', ordersRes.error)
 
       const mappedOrds = ords ? ords.map((o: any) => {
         let labelData: any = null
@@ -1039,7 +1036,10 @@ export default function AdminPage() {
     try {
       const res = await fetch(`/api/admin/orders/${order.dbId}/label${regenerate ? '?regenerate=true' : ''}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-secret': 'UFOLabzAdmin2026!',
+        },
         body: JSON.stringify({
           przl: [serviceCode],
           weightKg: packageWeight,
@@ -1776,15 +1776,16 @@ export default function AdminPage() {
                                   if (nextStatus === 'Ready for Pickup') dbStatus = 'out_for_delivery'
                                   if (nextStatus === 'Completed') dbStatus = 'shipped'
 
-                                  // 3. Update Supabase
-                                  const supabase = createClient() as any
-                                  supabase
-                                    .from('orders')
-                                    .update({ status: dbStatus })
-                                    .eq('id', order.dbId)
-                                    .then(({ error }: any) => {
-                                      if (error) {
-                                        alert('Database sync failed: ' + error.message)
+                                  // 3. Update Supabase via Admin API
+                                  fetch('/api/admin/orders', {
+                                    method: 'PATCH',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ orderId: order.dbId, status: dbStatus }),
+                                  })
+                                    .then(r => r.json())
+                                    .then((res: any) => {
+                                      if (!res.success) {
+                                        alert('Database sync failed: ' + (res.error || 'Unknown error'))
                                       } else {
                                         // Trigger order status email notice
                                         if (order.customerEmail && order.customerEmail !== 'N/A') {
@@ -3063,15 +3064,16 @@ export default function AdminPage() {
                                     if (nextStatus === 'Ready for Pickup') dbStatus = 'out_for_delivery'
                                     if (nextStatus === 'Completed') dbStatus = 'shipped'
 
-                                    // 3. Update Supabase
-                                    const supabase = createClient() as any
-                                    supabase
-                                      .from('orders')
-                                      .update({ status: dbStatus })
-                                      .eq('id', order.dbId)
-                                      .then(({ error }: any) => {
-                                        if (error) {
-                                          alert('Database sync failed: ' + error.message)
+                                    // 3. Update Supabase via Admin API
+                                    fetch('/api/admin/orders', {
+                                      method: 'PATCH',
+                                      headers: { 'Content-Type': 'application/json' },
+                                      body: JSON.stringify({ orderId: order.dbId, status: dbStatus }),
+                                    })
+                                      .then(r => r.json())
+                                      .then((res: any) => {
+                                        if (!res.success) {
+                                          alert('Database sync failed: ' + (res.error || 'Unknown error'))
                                         } else {
                                           // Trigger order status email notice
                                           if (order.customerEmail && order.customerEmail !== 'N/A') {

@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
-const ADMIN_LOGIN_EMAIL = 'marco.scarpantoni@hotmail.com'
+const ADMIN_LOGIN_EMAIL = 'shouryasaad6@gmail.com'
 
 function GoogleIcon({ className }: { className?: string }) {
   return (
@@ -55,7 +55,10 @@ function LoginForm() {
     if (queryError) {
       setError(decodeURIComponent(queryError))
     }
-  }, [searchParams])
+    if (isAdminLogin && !email) {
+      setEmail('shouryasaad6@gmail.com')
+    }
+  }, [searchParams, isAdminLogin])
 
   // Google OAuth Sign In
   const handleGoogleSignIn = async () => {
@@ -89,7 +92,7 @@ function LoginForm() {
     setError(null)
     setMessage(null)
 
-    const targetEmail = (isAdminLogin ? ADMIN_LOGIN_EMAIL : email).trim()
+    const targetEmail = (email || (isAdminLogin ? ADMIN_LOGIN_EMAIL : '')).trim()
 
     const {
       data: { user },
@@ -245,20 +248,18 @@ function LoginForm() {
           )}
 
           <form onSubmit={handleLogin} className="space-y-4">
-            {!isAdminLogin && (
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted pointer-events-none" />
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Email address"
-                  required
-                  className="input pl-10"
-                  autoComplete="email"
-                />
-              </div>
-            )}
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted pointer-events-none" />
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder={isAdminLogin ? "Admin email address" : "Email address"}
+                required
+                className="input pl-10"
+                autoComplete="email"
+              />
+            </div>
 
             {/* Password */}
             <div className="relative">
