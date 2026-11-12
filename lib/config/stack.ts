@@ -58,7 +58,7 @@ export const DEFAULT_PRESET_STACKS: PresetStackDef[] = [
         flavorName: 'Natural Taste',
         color: '#00FF88',
         imageUrl:
-          'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782667544/UFO4_nuzyls.png',
+          'https://qhwbmniqplygipszkhcb.supabase.co/storage/v1/object/public/product-images/astro-creatine.png',
       },
       {
         slug: 'amino-fuel-mango',
@@ -68,7 +68,7 @@ export const DEFAULT_PRESET_STACKS: PresetStackDef[] = [
         flavorName: 'Mango',
         color: '#FF8C00',
         imageUrl:
-          'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782667544/UFO5_l42elt.png',
+          'https://qhwbmniqplygipszkhcb.supabase.co/storage/v1/object/public/product-images/amino-fuel-mango.png',
       },
     ],
   },
@@ -122,7 +122,7 @@ export const DEFAULT_PRESET_STACKS: PresetStackDef[] = [
         flavorName: 'Energy Drink',
         color: '#FF2244',
         imageUrl:
-          'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782667544/UFO3_bfwhlr.png',
+          'https://qhwbmniqplygipszkhcb.supabase.co/storage/v1/object/public/product-images/blast-pre-workout-energy.png',
       },
       {
         slug: 'astro-creatine',
@@ -132,7 +132,7 @@ export const DEFAULT_PRESET_STACKS: PresetStackDef[] = [
         flavorName: 'Natural Taste',
         color: '#00FF88',
         imageUrl:
-          'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782667544/UFO4_nuzyls.png',
+          'https://qhwbmniqplygipszkhcb.supabase.co/storage/v1/object/public/product-images/astro-creatine.png',
       },
       {
         slug: 'amino-fuel-mango',
@@ -142,7 +142,7 @@ export const DEFAULT_PRESET_STACKS: PresetStackDef[] = [
         flavorName: 'Mango',
         color: '#FF8C00',
         imageUrl:
-          'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782667544/UFO5_l42elt.png',
+          'https://qhwbmniqplygipszkhcb.supabase.co/storage/v1/object/public/product-images/amino-fuel-mango.png',
       },
     ],
   },

@@ -33,7 +33,7 @@ export const metadata: Metadata = {
     siteName: 'UFO LABZ',
     images: [
       {
-        url: 'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782667544/UFO4_nuzyls.png',
+        url: 'https://qhwbmniqplygipszkhcb.supabase.co/storage/v1/object/public/product-images/astro-creatine.png',
         width: 1200,
         height: 630,
         alt: 'UFO LABZ Supplements',
@@ -46,7 +46,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'UFO LABZ — Alien Performance Technology',
     description: 'Premium science-backed supplements engineered for peak performance. Free delivery in Switzerland on orders over CHF 99.',
-    images: ['https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782667544/UFO4_nuzyls.png'],
+    images: ['https://qhwbmniqplygipszkhcb.supabase.co/storage/v1/object/public/product-images/astro-creatine.png'],
   },
 }
 

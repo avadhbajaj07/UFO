@@ -118,7 +118,7 @@ export async function GET(req: NextRequest) {
     const imageUpdates = [
       {
         slugs: ['astro-creatine'],
-        url: 'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782667544/UFO4_nuzyls.png',
+        url: 'https://qhwbmniqplygipszkhcb.supabase.co/storage/v1/object/public/product-images/astro-creatine.png',
       },
       {
         slugs: ['astro-collagen', 'astro-collagen-peptide'],

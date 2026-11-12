@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     type: 'website',
     images: [
       {
-        url: 'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782667544/UFO4_nuzyls.png',
+        url: 'https://qhwbmniqplygipszkhcb.supabase.co/storage/v1/object/public/product-images/astro-creatine.png',
         width: 1200,
         height: 630,
         alt: 'UFO LABZ Build Your Stack Protocol',
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
     title: 'Build Your Stack — Save up to 15% | UFO LABZ',
     description:
       'Bundle 2 formulas to save 10%, or 3+ to save 15%. Automatic volume discounts applied at checkout.',
-    images: ['https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782667544/UFO4_nuzyls.png'],
+    images: ['https://qhwbmniqplygipszkhcb.supabase.co/storage/v1/object/public/product-images/astro-creatine.png'],
   },
 }
 
@@ -56,7 +56,7 @@ const DEFAULT_STACK_PRODUCTS: StackProductCardItem[] = [
     basePrice: 29.90,
     color: '#00FF88',
     imageUrl:
-      'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782667544/UFO4_nuzyls.png',
+      'https://qhwbmniqplygipszkhcb.supabase.co/storage/v1/object/public/product-images/astro-creatine.png',
     hasVariants: false,
     flavors: [
       {
@@ -64,7 +64,7 @@ const DEFAULT_STACK_PRODUCTS: StackProductCardItem[] = [
         flavorName: 'Natural Taste',
         color: '#00FF88',
         imageUrl:
-          'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782667544/UFO4_nuzyls.png',
+          'https://qhwbmniqplygipszkhcb.supabase.co/storage/v1/object/public/product-images/astro-creatine.png',
       },
     ],
     variantId: '41e83bf4-2c4b-4f87-9019-aca3960f268c',
@@ -79,7 +79,7 @@ const DEFAULT_STACK_PRODUCTS: StackProductCardItem[] = [
     basePrice: 39.90,
     color: '#FF8C00',
     imageUrl:
-      'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782667544/UFO5_l42elt.png',
+      'https://qhwbmniqplygipszkhcb.supabase.co/storage/v1/object/public/product-images/amino-fuel-mango.png',
     hasVariants: true,
     flavors: [
       {
@@ -87,14 +87,14 @@ const DEFAULT_STACK_PRODUCTS: StackProductCardItem[] = [
         flavorName: 'Mango',
         color: '#FF8C00',
         imageUrl:
-          'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782667544/UFO5_l42elt.png',
+          'https://qhwbmniqplygipszkhcb.supabase.co/storage/v1/object/public/product-images/amino-fuel-mango.png',
       },
       {
         slug: 'amino-fuel-blue-raspberry',
         flavorName: 'Blue Raspberry',
         color: '#00CFFF',
         imageUrl:
-          'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782667544/UFO6_uhxvep.png',
+          'https://qhwbmniqplygipszkhcb.supabase.co/storage/v1/object/public/product-images/amino-fuel-blue-raspberry.png',
       },
     ],
     variantId: 'e36a0dc0-9d4f-4d57-81b7-12cb7e61d43a',
@@ -109,7 +109,7 @@ const DEFAULT_STACK_PRODUCTS: StackProductCardItem[] = [
     basePrice: 39.90,
     color: '#FF2244',
     imageUrl:
-      'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782667544/UFO3_bfwhlr.png',
+      'https://qhwbmniqplygipszkhcb.supabase.co/storage/v1/object/public/product-images/blast-pre-workout-energy.png',
     hasVariants: true,
     flavors: [
       {
@@ -117,14 +117,14 @@ const DEFAULT_STACK_PRODUCTS: StackProductCardItem[] = [
         flavorName: 'Energy Drink',
         color: '#FF2244',
         imageUrl:
-          'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782667544/UFO3_bfwhlr.png',
+          'https://qhwbmniqplygipszkhcb.supabase.co/storage/v1/object/public/product-images/blast-pre-workout-energy.png',
       },
       {
         slug: 'blast-pre-workout-blue',
         flavorName: 'Blue Raspberry',
         color: '#00CFFF',
         imageUrl:
-          'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782667544/UFO2_hnupdu.png',
+          'https://qhwbmniqplygipszkhcb.supabase.co/storage/v1/object/public/product-images/blast-pre-workout-blue.png',
       },
     ],
     variantId: 'd17fe515-1b23-47f5-a017-898d03ab7ccc',

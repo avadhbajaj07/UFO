@@ -135,7 +135,7 @@ export default async function ProductPage({ params }: Props) {
     '@type': 'Product',
     name: localizedName,
     description: localizedDesc,
-    image: images.length > 0 ? images : ['https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782667544/UFO4_nuzyls.png'],
+    image: images.length > 0 ? images : ['https://qhwbmniqplygipszkhcb.supabase.co/storage/v1/object/public/product-images/astro-creatine.png'],
     sku: prod.variants?.[0]?.sku ?? prod.slug,
     category: categoryName,
     brand: {

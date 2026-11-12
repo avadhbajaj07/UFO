@@ -374,19 +374,19 @@ INSERT INTO product_images (product_id, url, alt, is_primary, sort_order)
 SELECT id, 'https://qhwbmniqplygipszkhcb.supabase.co/storage/v1/object/public/product-images/nova-marine-collagen.png', '{"en":"Astro Collagen Peptide Premium Bottle"}', true, 1 FROM products WHERE slug = 'astro-collagen';
 
 INSERT INTO product_images (product_id, url, alt, is_primary, sort_order)
-SELECT id, 'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782667544/UFO3_bfwhlr.png', '{"en":"Blast Pre-Workout Energy Drink"}', true, 1 FROM products WHERE slug = 'blast-pre-workout-energy';
+SELECT id, 'https://qhwbmniqplygipszkhcb.supabase.co/storage/v1/object/public/product-images/blast-pre-workout-energy.png', '{"en":"Blast Pre-Workout Energy Drink"}', true, 1 FROM products WHERE slug = 'blast-pre-workout-energy';
 
 INSERT INTO product_images (product_id, url, alt, is_primary, sort_order)
-SELECT id, 'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782667544/UFO4_nuzyls.png', '{"en":"Astro Creatine Pure Tub"}', true, 1 FROM products WHERE slug = 'astro-creatine';
+SELECT id, 'https://qhwbmniqplygipszkhcb.supabase.co/storage/v1/object/public/product-images/astro-creatine.png', '{"en":"Astro Creatine Pure Tub"}', true, 1 FROM products WHERE slug = 'astro-creatine';
 
 INSERT INTO product_images (product_id, url, alt, is_primary, sort_order)
-SELECT id, 'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782667544/UFO5_l42elt.png', '{"en":"Amino Fuel Mango EAA Bottle"}', true, 1 FROM products WHERE slug = 'amino-fuel-mango';
+SELECT id, 'https://qhwbmniqplygipszkhcb.supabase.co/storage/v1/object/public/product-images/amino-fuel-mango.png', '{"en":"Amino Fuel Mango EAA Bottle"}', true, 1 FROM products WHERE slug = 'amino-fuel-mango';
 
 INSERT INTO product_images (product_id, url, alt, is_primary, sort_order)
-SELECT id, 'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782667544/UFO2_hnupdu.png', '{"en":"Blast Pre-Workout Blue Raspberry"}', true, 1 FROM products WHERE slug = 'blast-pre-workout-blue';
+SELECT id, 'https://qhwbmniqplygipszkhcb.supabase.co/storage/v1/object/public/product-images/blast-pre-workout-blue.png', '{"en":"Blast Pre-Workout Blue Raspberry"}', true, 1 FROM products WHERE slug = 'blast-pre-workout-blue';
 
 INSERT INTO product_images (product_id, url, alt, is_primary, sort_order)
-SELECT id, 'https://res.cloudinary.com/dm4jfxbcs/image/upload/v1782667544/UFO6_uhxvep.png', '{"en":"Amino Fuel EAA Blue Raspberry"}', true, 1 FROM products WHERE slug = 'amino-fuel-blue-raspberry';
+SELECT id, 'https://qhwbmniqplygipszkhcb.supabase.co/storage/v1/object/public/product-images/amino-fuel-blue-raspberry.png', '{"en":"Amino Fuel EAA Blue Raspberry"}', true, 1 FROM products WHERE slug = 'amino-fuel-blue-raspberry';
 
 INSERT INTO product_images (product_id, url, alt, is_primary, sort_order)
 SELECT id, 'https://qhwbmniqplygipszkhcb.supabase.co/storage/v1/object/public/product-images/magnesium.png', '{"en":"Magnesium 90 Capsules"}', true, 1 FROM products WHERE slug = 'magnesium';
