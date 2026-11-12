@@ -8,6 +8,8 @@ import { useCartCount, useCartStore } from '@/store/cart'
 import { useAuthStore } from '@/store/auth'
 import { useCurrency } from '@/hooks/useCurrency'
 import { cn } from '@/lib/utils'
+import FxLink from '@/components/alien-fx/FxLink'
+import { playAlienFx } from '@/components/alien-fx/alien-fx'
 
 const navLinks = [
   { href: '/', label: 'Home' },
@@ -176,8 +178,9 @@ export default function Navbar() {
       >
         <div className="grid grid-cols-5 items-center justify-around px-2 pt-1.5 pb-1">
           {/* 1. Home */}
-          <Link
+          <FxLink
             href="/"
+            fx="lite"
             className={cn(
               "flex flex-col items-center justify-center gap-0.5 py-1 text-center transition-all duration-200 group relative",
               pathname === '/'
@@ -185,7 +188,7 @@ export default function Navbar() {
                 : "text-gray-400 hover:text-white"
             )}
           >
-            <div className="relative">
+            <span data-afx-icon className="relative">
               <Home className={cn(
                 "w-4 h-4 sm:w-5 sm:h-5 stroke-[1.3] transition-all duration-200 group-hover:scale-110",
                 pathname === '/' && "drop-shadow-[0_0_8px_rgba(31,255,107,0.7)]"
@@ -193,18 +196,19 @@ export default function Navbar() {
               {pathname === '/' && (
                 <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-alien-green shadow-[0_0_6px_#1fff6b]" />
               )}
-            </div>
+            </span>
             <span className={cn(
               "text-[9px] font-mono tracking-wider transition-colors",
               pathname === '/' ? "font-bold text-alien-green" : "font-normal group-hover:text-white"
             )}>
               Home
             </span>
-          </Link>
+          </FxLink>
 
           {/* 2. Shop */}
-          <Link
+          <FxLink
             href="/products"
+            fx="lite"
             className={cn(
               "flex flex-col items-center justify-center gap-0.5 py-1 text-center transition-all duration-200 group relative",
               pathname.startsWith('/products')
@@ -212,7 +216,7 @@ export default function Navbar() {
                 : "text-gray-400 hover:text-white"
             )}
           >
-            <div className="relative">
+            <span data-afx-icon className="relative">
               <Compass className={cn(
                 "w-4 h-4 sm:w-5 sm:h-5 stroke-[1.3] transition-all duration-200 group-hover:scale-110",
                 pathname.startsWith('/products') && "drop-shadow-[0_0_8px_rgba(31,255,107,0.7)]"
@@ -220,18 +224,19 @@ export default function Navbar() {
               {pathname.startsWith('/products') && (
                 <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-alien-green shadow-[0_0_6px_#1fff6b]" />
               )}
-            </div>
+            </span>
             <span className={cn(
               "text-[9px] font-mono tracking-wider transition-colors",
               pathname.startsWith('/products') ? "font-bold text-alien-green" : "font-normal group-hover:text-white"
             )}>
               Shop
             </span>
-          </Link>
+          </FxLink>
 
           {/* 3. Stack */}
-          <Link
+          <FxLink
             href="/build-your-stack"
+            fx="lite"
             className={cn(
               "flex flex-col items-center justify-center gap-0.5 py-1 text-center transition-all duration-200 group relative",
               pathname === '/build-your-stack'
@@ -239,7 +244,7 @@ export default function Navbar() {
                 : "text-gray-400 hover:text-white"
             )}
           >
-            <div className="relative">
+            <span data-afx-icon className="relative">
               <Zap className={cn(
                 "w-4 h-4 sm:w-5 sm:h-5 stroke-[1.3] transition-all duration-200 group-hover:scale-110",
                 pathname === '/build-your-stack' && "drop-shadow-[0_0_8px_rgba(31,255,107,0.7)]"
@@ -247,18 +252,19 @@ export default function Navbar() {
               {pathname === '/build-your-stack' && (
                 <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-alien-green shadow-[0_0_6px_#1fff6b]" />
               )}
-            </div>
+            </span>
             <span className={cn(
               "text-[9px] font-mono tracking-wider transition-colors",
               pathname === '/build-your-stack' ? "font-bold text-alien-green" : "font-normal group-hover:text-white"
             )}>
               Stack
             </span>
-          </Link>
+          </FxLink>
 
           {/* 4. Search */}
-          <Link
+          <FxLink
             href="/search"
+            fx="lite"
             className={cn(
               "flex flex-col items-center justify-center gap-0.5 py-1 text-center transition-all duration-200 group relative",
               pathname === '/search'
@@ -266,7 +272,7 @@ export default function Navbar() {
                 : "text-gray-400 hover:text-white"
             )}
           >
-            <div className="relative">
+            <span data-afx-icon className="relative">
               <Search className={cn(
                 "w-4 h-4 sm:w-5 sm:h-5 stroke-[1.3] transition-all duration-200 group-hover:scale-110",
                 pathname === '/search' && "drop-shadow-[0_0_8px_rgba(31,255,107,0.7)]"
@@ -274,29 +280,34 @@ export default function Navbar() {
               {pathname === '/search' && (
                 <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-alien-green shadow-[0_0_6px_#1fff6b]" />
               )}
-            </div>
+            </span>
             <span className={cn(
               "text-[9px] font-mono tracking-wider transition-colors",
               pathname === '/search' ? "font-bold text-alien-green" : "font-normal group-hover:text-white"
             )}>
               Search
             </span>
-          </Link>
+          </FxLink>
 
           {/* 5. Cart */}
           <button
-            onClick={openCart}
+            onClick={(e) => {
+              const icon = e.currentTarget.querySelector<HTMLElement>('[data-afx-icon]') ?? e.currentTarget
+              const r = icon.getBoundingClientRect()
+              playAlienFx(r.left + r.width / 2, r.top + r.height / 2, 'lite', icon)
+              openCart()
+            }}
             className="flex flex-col items-center justify-center gap-0.5 py-1 text-center transition-all duration-200 group relative text-gray-400 hover:text-alien-green active:scale-95"
             aria-label={`Cart (${itemCount} items)`}
           >
-            <div className="relative">
+            <span data-afx-icon className="relative">
               <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5 stroke-[1.3] transition-all duration-200 group-hover:scale-110 group-hover:drop-shadow-[0_0_8px_rgba(31,255,107,0.7)]" />
               {itemCount > 0 && (
                 <span className="absolute -top-1.5 -right-2 min-w-[15px] h-[15px] px-0.5 bg-alien-green text-space-950 text-[9px] font-black rounded-full flex items-center justify-center shadow-[0_0_8px_rgba(31,255,107,0.9)] animate-scale-in">
                   {itemCount > 99 ? '99+' : itemCount}
                 </span>
               )}
-            </div>
+            </span>
             <span className="text-[9px] font-mono tracking-wider transition-colors font-normal group-hover:text-alien-green">
               Cart
             </span>
