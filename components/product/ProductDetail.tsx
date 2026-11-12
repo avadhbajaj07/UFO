@@ -367,7 +367,7 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
 
       {/* ─── 1. DYNAMIC NOTIFICATION TOAST ─── */}
       <div className={cn(
-        "fixed bottom-6 left-6 z-50 max-w-sm bg-space-900/90 border border-white/10 backdrop-blur-xl p-4 rounded-xl shadow-glow-green transition-all duration-500 transform",
+        "fixed bottom-20 left-4 sm:bottom-6 sm:left-6 z-50 max-w-sm bg-space-900/90 border border-white/10 backdrop-blur-xl p-4 rounded-xl shadow-glow-green transition-all duration-500 transform",
         showNotification ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0 pointer-events-none"
       )}>
         <div className="flex items-center gap-3">
@@ -377,7 +377,7 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
       </div>
 
       {/* ─── 2. FLOATING SUPPORT WIDGET ─── */}
-      <div className="fixed bottom-6 right-6 z-50">
+      <div className="fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-50">
         <button
           onClick={() => setShowSupport(!showSupport)}
           className="w-14 h-14 rounded-full flex items-center justify-center text-space-950 hover:shadow-2xl transition-all active:scale-95 duration-200"

@@ -38,7 +38,7 @@ const legalLinks = [
 
 export default function Footer() {
   return (
-    <footer className="border-t border-white/[0.06] bg-space-900 mt-24 relative overflow-hidden">
+    <footer className="border-t border-white/[0.06] bg-space-900 mt-24 relative overflow-hidden pb-16 md:pb-0">
       {/* Ambient purple glow */}
       <div className="absolute bottom-0 left-1/4 w-[500px] h-[300px] rounded-full opacity-[0.04] pointer-events-none"
            style={{ background: 'radial-gradient(circle, #7B2FBE, transparent 70%)' }} />
@@ -50,11 +50,11 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8">
           {/* Brand Column */}
           <div className="lg:col-span-1">
-            <Link href="/" className="inline-flex items-center mb-6 group">
+            <Link href="/" className="inline-flex items-center mb-5 group">
               <img
-                src="/images/ufolabz-logo-horizontal.png"
+                src="/images/ufo-logo-new.png"
                 alt="UFO LABZ"
-                className="h-14 sm:h-16 w-auto object-contain opacity-95 group-hover:opacity-100 transition-opacity drop-shadow-[0_0_20px_rgba(31,255,107,0.25)]"
+                className="h-8 sm:h-9 md:h-10 w-auto object-contain opacity-95 group-hover:opacity-100 transition-opacity drop-shadow-[0_0_15px_rgba(31,255,107,0.2)]"
               />
             </Link>
             <p className="text-sm text-muted leading-relaxed mb-5">

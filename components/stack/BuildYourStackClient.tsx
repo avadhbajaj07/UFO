@@ -967,7 +967,7 @@ export default function BuildYourStackClient({
       </section>
 
       {/* ─── 4. MOBILE FLOATING BOTTOM BAR & DRAWER ─── */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-space-950/95 border-t border-white/10 backdrop-blur-xl p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] flex items-center justify-between shadow-2xl">
+      <div className="lg:hidden fixed bottom-14 sm:bottom-16 left-0 right-0 z-40 bg-space-950/95 border-t border-white/10 backdrop-blur-xl p-3 sm:p-4 flex items-center justify-between shadow-2xl">
         <div>
           <div className="text-[11px] font-mono text-gray-400">
             {calculation.totalUnits} {calculation.totalUnits === 1 ? 'item' : 'items'} in stack
