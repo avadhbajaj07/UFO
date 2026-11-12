@@ -280,38 +280,39 @@ export default function AdminPage() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const supabase = createClient() as any
+      try {
+        const supabase = createClient() as any
 
-      // Parallelize all initial admin queries for instant loading
-      const [
-        { data: prods },
-        ordersRes,
-        affData,
-        customersRes,
-        { data: revs },
-        { data: cats },
-        flavsResult,
-      ] = await Promise.all([
-        supabase.from('products').select(`
-          *,
-          images:product_images(*),
-          videos:product_videos(*),
-          faqs:product_faqs(*),
-          variants:product_variants(
+        // Parallelize all initial admin queries for instant loading
+        const [
+          { data: prods },
+          ordersRes,
+          affData,
+          customersRes,
+          { data: revs },
+          { data: cats },
+          flavsResult,
+        ] = await Promise.all([
+          supabase.from('products').select(`
             *,
-            nutrition:nutrition_facts(*)
-          )
-        `),
-        fetch('/api/admin/orders').then(r => r.json()).catch(() => ({ orders: [] })),
-        fetch('/api/admin/affiliates').then(r => r.json()).catch(() => ({ affiliates: [], coupons: [], commissions: [], payouts: [] })),
-        fetch('/api/admin/customers').then(r => r.json()).catch(() => ({ customers: [] })),
-        supabase.from('reviews').select('*'),
-        supabase.from('categories').select('*'),
-        supabase.from('flavors').select('*').catch(() => ({ data: null })),
-      ])
+            images:product_images(*),
+            videos:product_videos(*),
+            faqs:product_faqs(*),
+            variants:product_variants(
+              *,
+              nutrition:nutrition_facts(*)
+            )
+          `),
+          fetch('/api/admin/orders').then(r => r.json()).catch(() => ({ orders: [] })),
+          fetch('/api/admin/affiliates').then(r => r.json()).catch(() => ({ affiliates: [], coupons: [], commissions: [], payouts: [] })),
+          fetch('/api/admin/customers').then(r => r.json()).catch(() => ({ customers: [] })),
+          supabase.from('reviews').select('*'),
+          supabase.from('categories').select('*'),
+          supabase.from('flavors').select('*').then((r: any) => r, () => ({ data: null })),
+        ])
 
-      const ords = ordersRes?.orders || []
-      const custs = customersRes?.customers || []
+        const ords = ordersRes?.orders || []
+        const custs = customersRes?.customers || []
 
       const mappedProds = prods ? prods.map((p: any) => {
         const primaryVariant = p.variants?.[0] || {}
@@ -451,9 +452,12 @@ export default function AdminPage() {
       // 7. Categories & Flavors
       if (cats) setDbCategories(cats)
       if (flavsResult?.data) setDbFlavors(flavsResult.data)
+    } catch (err) {
+      console.error('[ADMIN] Error in fetchData:', err)
     }
+  }
 
-    fetchData()
+  fetchData()
   }, [activeTab])
 
   // Save live products helper
