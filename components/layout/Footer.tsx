@@ -18,6 +18,13 @@ const companyLinks = [
   { href: '/pages/contact', label: 'Contact' },
 ]
 
+const toolsLinks = [
+  { href: '/tools', label: 'All Fitness Calculators' },
+  { href: '/tools/protein-calculator', label: 'Protein Calculator' },
+  { href: '/tools/tdee-calculator', label: 'TDEE & Calories' },
+  { href: '/tools/macro-calculator', label: 'Macronutrient Split' },
+]
+
 const contactInfo = [
   { label: 'support@ufolabz.com', href: 'mailto:support@ufolabz.com' },
 ]
@@ -47,9 +54,9 @@ export default function Footer() {
 
       {/* Main footer */}
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-10 lg:gap-8">
           {/* Brand Column */}
-          <div className="lg:col-span-1">
+          <div className="sm:col-span-2 md:col-span-1 lg:col-span-1">
             <Link href="/" className="inline-flex items-center mb-5 group">
               <img
                 src="/images/ufo-logo-new.png"
@@ -85,6 +92,26 @@ export default function Footer() {
             </h4>
             <ul className="space-y-2.5">
               {shopLinks.map((item) => (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    className="text-sm text-muted hover:text-white hover:pl-1 transition-all duration-200"
+                  >
+                    {item.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Calculators & Tools Links */}
+          <div>
+            <h4 className="text-xs font-bold uppercase tracking-widest text-alien-green mb-5 flex items-center gap-2">
+              <span className="w-5 h-px bg-gradient-to-r from-alien-green to-transparent" />
+              Calculators
+            </h4>
+            <ul className="space-y-2.5">
+              {toolsLinks.map((item) => (
                 <li key={item.href}>
                   <Link
                     href={item.href}

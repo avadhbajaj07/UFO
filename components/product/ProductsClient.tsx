@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Star, ShoppingBag, SlidersHorizontal, Layers } from 'lucide-react'
+import { Star, ShoppingBag, SlidersHorizontal, Layers, Calculator } from 'lucide-react'
 import { useCurrency } from '@/hooks/useCurrency'
 import { formatPrice } from '@/lib/utils/pricing'
 import { getCanonicalUnitPrice, getPreorderLaunchPrice } from '@/lib/config/pricing'
@@ -377,6 +377,38 @@ export default function ProductsClient({
             isLoading={isLoading}
           />
         ))}
+      </div>
+
+      {/* Free Nutrition Calculators Banner */}
+      <div className="mt-16 p-6 sm:p-8 rounded-2xl bg-gradient-to-r from-space-900 via-space-850 to-space-900 border border-white/10 hover:border-alien-green/40 transition-all flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden group">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-alien-green/5 rounded-full blur-3xl pointer-events-none" />
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-alien-green/10 border border-alien-green/30 flex items-center justify-center shrink-0">
+            <Calculator className="w-6 h-6 text-alien-green" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="font-mono text-xs uppercase tracking-wider text-alien-green font-bold">
+                Science-Backed Nutrition Tools
+              </span>
+              <span className="text-[10px] bg-alien-green/20 text-alien-green border border-alien-green/30 px-2 py-0.5 rounded-full font-mono font-bold">
+                100% Free
+              </span>
+            </div>
+            <h3 className="text-white text-base sm:text-lg font-bold">
+              Know Exactly What Your Body Needs
+            </h3>
+            <p className="text-muted text-xs sm:text-sm mt-0.5 max-w-xl">
+              Calculate your daily protein requirements, maintenance calories (TDEE), and optimal macronutrient split tailored to your exact weight and goals.
+            </p>
+          </div>
+        </div>
+        <Link
+          href="/tools"
+          className="whitespace-nowrap px-5 py-3 rounded-xl bg-alien-green text-space-950 font-mono text-xs sm:text-sm font-bold hover:bg-alien-green/90 transition-all active:scale-95 shadow-[0_0_20px_rgba(0,255,136,0.25)] shrink-0"
+        >
+          Explore Free Calculators →
+        </Link>
       </div>
 
       {groupedProducts.length === 0 && (

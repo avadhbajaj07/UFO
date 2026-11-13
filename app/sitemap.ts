@@ -2,6 +2,7 @@ import { MetadataRoute } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { isExcludedPublicProductSlug } from '@/lib/products/catalog'
 import { CATEGORY_SEO } from '@/lib/seo/catalog'
+import { toolsSitemapEntries } from '@/lib/tools/sitemap-entries'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://ufolabz.com'
@@ -48,5 +49,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: route === '' ? 1.0 : route === '/build-your-stack' ? 0.9 : 0.6,
   }))
 
-  return [...staticPages, ...categoryUrls, ...productUrls]
+  return [...staticPages, ...categoryUrls, ...productUrls, ...toolsSitemapEntries()]
 }

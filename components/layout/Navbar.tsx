@@ -15,6 +15,7 @@ const navLinks = [
   { href: '/', label: 'Home' },
   { href: '/build-your-stack', label: 'Build Your Stack', badge: 'Save 15%' },
   { href: '/products', label: 'Shop' },
+  { href: '/tools', label: 'Tools', badge: 'Free' },
   { href: '/pages/about', label: 'About' },
   { href: '/pages/faq', label: 'FAQ' },
   { href: '/pages/contact', label: 'Contact' },
@@ -51,9 +52,14 @@ export default function Navbar() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="relative text-sm font-medium text-muted hover:text-white px-4 py-2 rounded-lg hover:bg-white/[0.04] transition-all duration-200 group"
+                  className="relative text-sm font-medium text-muted hover:text-white px-3.5 py-2 rounded-lg hover:bg-white/[0.04] transition-all duration-200 group flex items-center gap-1.5"
                 >
-                  {link.label}
+                  <span>{link.label}</span>
+                  {link.badge && (
+                    <span className="text-[10px] font-mono font-bold uppercase px-1.5 py-0.5 rounded-full bg-alien-green/20 border border-alien-green/40 text-alien-green tracking-wider">
+                      {link.badge}
+                    </span>
+                  )}
                   <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-gradient-to-r from-nebula-600 to-alien-green rounded-full group-hover:w-2/3 transition-all duration-300" />
                 </Link>
               ))}
@@ -124,9 +130,14 @@ export default function Navbar() {
                   key={link.href}
                   href={link.href}
                   onClick={() => setMobileOpen(false)}
-                  className="block px-4 py-3 text-sm font-medium text-muted hover:text-white hover:bg-white/[0.04] rounded-lg transition-all"
+                  className="flex items-center justify-between px-4 py-3 text-sm font-medium text-muted hover:text-white hover:bg-white/[0.04] rounded-lg transition-all"
                 >
-                  {link.label}
+                  <span>{link.label}</span>
+                  {link.badge && (
+                    <span className="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded-full bg-alien-green/20 border border-alien-green/40 text-alien-green tracking-wider">
+                      {link.badge}
+                    </span>
+                  )}
                 </Link>
               ))}
               <div className="pt-2 border-t border-white/[0.06] flex items-center justify-between px-4 py-2">

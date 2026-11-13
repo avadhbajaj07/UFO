@@ -1,3 +1,18 @@
+const DEFAULT_LOCALE = process.env.NEXT_PUBLIC_DEFAULT_LOCALE || 'en'
+const LOCALES = ['en', 'fr', 'de']
+const SEGMENT = { en: 'tools', fr: 'outils', de: 'tools' }
+
+const toolsRewrites = LOCALES.flatMap((l) => {
+  const prefix = l === DEFAULT_LOCALE ? '' : `/${l}`
+  const hubSrc = `${prefix}/${SEGMENT[l]}`
+  const hubDst = `/${l}/tools`
+  if (hubSrc === hubDst) return []
+  return [
+    { source: hubSrc, destination: hubDst },
+    { source: `${hubSrc}/:slug`, destination: `${hubDst}/:slug` },
+  ]
+})
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   poweredByHeader: false,
@@ -28,6 +43,9 @@ const nextConfig = {
     return [
       { source: '/shop', destination: '/products', permanent: true },
     ]
+  },
+  async rewrites() {
+    return toolsRewrites
   },
 }
 
