@@ -471,10 +471,16 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
                 {activeSlide === 0 && (
                   <div className="space-y-4 animate-fade-in">
                     <div className="flex items-center gap-2">
-                      <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                      <span className="text-xs font-mono text-gray-300 font-bold">{product.avg_rating || '4.9'} rating</span>
-                      <span className="text-white/20">|</span>
+                      {product.total_reviews > 0 ? (
+                        <>
+                          <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                          <span className="text-xs font-mono text-gray-300 font-bold">{product.avg_rating} rating</span>
+                          <span className="text-white/20">|</span>
+                        </>
+                      ) : null}
                       <span className="text-xs text-alien-green bg-alien-green/10 border border-alien-green/20 px-2 py-0.5 rounded-full uppercase tracking-wider font-mono">Swiss engineered</span>
+                      <span className="text-white/20">|</span>
+                      <span className="text-xs text-alien-green/80 font-mono uppercase tracking-wider">Batch 01 Pre-order</span>
                     </div>
 
                     <h1 className="font-display text-5xl md:text-7xl tracking-wider text-white uppercase leading-none">
@@ -1320,25 +1326,6 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
         </div>
       </section>
 
-      {/* ─── 7. SOCIAL PROOF STATISTICS ─── */}
-      <section className="py-16 bg-space-950 text-center">
-        <div className="max-w-4xl mx-auto container-px">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="space-y-1">
-              <div className="font-display text-4xl md:text-5xl text-white tracking-widest uppercase">50,000+</div>
-              <p className="text-xs text-gray-400 font-mono">HAPPY ATHLETES SERVED</p>
-            </div>
-            <div className="space-y-1 border-t border-b md:border-t-0 md:border-b-0 md:border-l md:border-r border-white/10 py-6 md:py-0">
-              <div className="font-display text-4xl md:text-5xl text-alien-green tracking-widest uppercase" style={{ color }}>4.9★ RATING</div>
-              <p className="text-xs text-gray-400 font-mono">FROM 3,000+ VERIFIED REVIEWS</p>
-            </div>
-            <div className="space-y-1">
-              <div className="font-display text-4xl md:text-5xl text-white tracking-widest uppercase">1M+ SERVINGS</div>
-              <p className="text-xs text-gray-400 font-mono">SHIPPED AND CONSUMED</p>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* ─── 8. FREQUENTLY BOUGHT TOGETHER ─── */}
       {stacks.length > 0 && (
