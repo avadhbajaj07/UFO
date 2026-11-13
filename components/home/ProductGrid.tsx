@@ -42,7 +42,6 @@ function ProductCard({ product }: { product: any }) {
     : product.images?.find((i: any) => i.is_primary) ?? product.images?.[0]
 
   const targetSlug = activeFlavor?.slug ?? product.slug
-  const isCreatine = Boolean(product.slug?.includes('creatine') || targetSlug?.includes('creatine'))
   const variant =
     product.variants?.find((v: any) => v.is_default) ?? product.variants?.[0]
   const canonicalPrice = getCanonicalUnitPrice(
@@ -68,22 +67,14 @@ function ProductCard({ product }: { product: any }) {
       {/* Image Container (overlay badges removed cleanly as requested) */}
       <Link
         href={`/products/${targetSlug}`}
-        className={cn(
-          "block relative bg-space-900/50 overflow-hidden shrink-0",
-          isCreatine ? "aspect-[4/3] sm:aspect-square" : "aspect-square"
-        )}
+        className="block relative aspect-square bg-space-900/50 overflow-hidden shrink-0"
       >
         {primary?.url ? (
           <Image
             src={primary.url}
             alt={name}
             fill
-            className={cn(
-              "object-contain transition-all duration-500",
-              isCreatine
-                ? "p-6 sm:p-3 scale-[0.76] sm:scale-[1.14] md:scale-110 group-hover:scale-[0.82] sm:group-hover:scale-[1.24]"
-                : "p-2 sm:p-3 scale-[1.18] sm:scale-[1.14] md:scale-110 group-hover:scale-[1.24]"
-            )}
+            className="object-contain p-2 sm:p-3 scale-[1.18] sm:scale-[1.14] md:scale-110 group-hover:scale-[1.24] transition-all duration-500"
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
           />
         ) : (
