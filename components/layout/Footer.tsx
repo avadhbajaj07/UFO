@@ -19,10 +19,14 @@ const companyLinks = [
 ]
 
 const toolsLinks = [
-  { href: '/tools', label: 'All Fitness Calculators' },
+  { href: '/tools', label: 'All 10 Calculators' },
   { href: '/tools/protein-calculator', label: 'Protein Calculator' },
   { href: '/tools/tdee-calculator', label: 'TDEE & Calories' },
   { href: '/tools/macro-calculator', label: 'Macronutrient Split' },
+  { href: '/tools/bmi-calculator', label: 'BMI Calculator' },
+  { href: '/tools/body-fat-calculator', label: 'Body Fat %' },
+  { href: '/tools/one-rep-max-calculator', label: '1RM Calculator' },
+  { href: '/tools/creatine-calculator', label: 'Creatine Dosage' },
 ]
 
 const contactInfo = [

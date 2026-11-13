@@ -20,7 +20,7 @@ export type ToolContent = {
 };
 
 export type LocaleContent = {
-  hub: { metaTitle: string; metaDescription: string; h1: string; intro: string; groupNutrition: string };
+  hub: { metaTitle: string; metaDescription: string; h1: string; intro: string; groupNutrition: string; groupStrength: string; groupHydration: string };
   tools: Record<ToolId, ToolContent>;
 };
 

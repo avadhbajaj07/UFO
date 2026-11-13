@@ -3,8 +3,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import "@/components/tools/tools.css";
 import { JsonLd } from "@/components/tools/JsonLd";
+import { ToolIcon } from "@/components/tools/ToolIcon";
 import { absUrl, site } from "@/lib/site";
-import { LOCALES, TOOL_IDS, homePath, hubPath, isLocale, toolPath, type Locale } from "@/lib/tools/config";
+import { LOCALES, TOOL_IDS, homePath, hubPath, isLocale, toolPath, type Locale, type ToolId } from "@/lib/tools/config";
 import { CONTENT } from "@/lib/tools/content";
 import { breadcrumbLd, itemListLd, organizationLd } from "@/lib/tools/schema";
 import { UI_STRINGS } from "@/lib/tools/ui-strings";
@@ -33,10 +34,26 @@ export function generateMetadata({ params }: { params: { locale: string } }): Me
   };
 }
 
+const GROUPS: { titleKey: "groupNutrition" | "groupStrength" | "groupHydration"; tools: ToolId[] }[] = [
+  {
+    titleKey: "groupNutrition",
+    tools: ["protein", "tdee", "macro", "bmi", "bodyfat", "lbm"],
+  },
+  {
+    titleKey: "groupStrength",
+    tools: ["orm"],
+  },
+  {
+    titleKey: "groupHydration",
+    tools: ["water", "deficit", "creatine"],
+  },
+];
+
 export default function ToolsHub({ params }: { params: { locale: string } }) {
   const locale = loc(params);
   const c = CONTENT[locale];
   const ui = UI_STRINGS[locale];
+
   return (
     <>
       <JsonLd
@@ -53,17 +70,23 @@ export default function ToolsHub({ params }: { params: { locale: string } }) {
           </nav>
           <h1 className="tl-h1">{c.hub.h1}</h1>
           <p className="tl-answer">{c.hub.intro}</p>
-          <section className="tl-section">
-            <h2>{c.hub.groupNutrition}</h2>
-            <div className="tl-cards">
-              {TOOL_IDS.map((id) => (
-                <Link key={id} href={toolPath(locale, id)}>
-                  {c.tools[id].cardTitle}
-                  <small>{c.tools[id].cardBlurb}</small>
-                </Link>
-              ))}
-            </div>
-          </section>
+
+          {GROUPS.map((group) => (
+            <section key={group.titleKey} className="tl-section">
+              <h2>{c.hub[group.titleKey]}</h2>
+              <div className="tl-cards">
+                {group.tools.map((id) => (
+                  <Link key={id} href={toolPath(locale, id)}>
+                    <div className="tl-card-icon">
+                      <ToolIcon id={id} size={22} />
+                    </div>
+                    <span className="tl-card-title">{c.tools[id].cardTitle}</span>
+                    <small>{c.tools[id].cardBlurb}</small>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          ))}
         </main>
       </div>
     </>

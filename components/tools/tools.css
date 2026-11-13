@@ -55,6 +55,20 @@
   color: var(--tl-accent);
 }
 
+.tl-header-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: rgba(0, 255, 136, 0.1);
+  border: 1px solid rgba(0, 255, 136, 0.3);
+  color: var(--tl-accent);
+  box-shadow: 0 0 20px rgba(0, 255, 136, 0.2);
+  margin-bottom: 12px;
+}
+
 .tl-h1 {
   font-family: 'Bebas Neue', 'Inter', sans-serif;
   font-size: clamp(32px, 7vw, 54px);
@@ -709,22 +723,54 @@
 }
 
 .tl-cards a {
-  display: block;
-  padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+  padding: 22px 24px;
   background: var(--tl-surface);
   border: 1px solid var(--tl-line);
-  border-radius: 14px;
+  border-radius: 16px;
   color: #FFFFFF;
   text-decoration: none;
   font-weight: 700;
   font-size: 18px;
-  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.tl-card-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(0, 255, 136, 0.08);
+  border: 1px solid rgba(0, 255, 136, 0.2);
+  color: var(--tl-accent);
+  margin-bottom: 16px;
+  transition: all 0.25s ease;
+  box-shadow: 0 0 15px rgba(0, 255, 136, 0.1);
 }
 
 .tl-cards a:hover {
   border-color: var(--tl-accent);
-  transform: translateY(-3px);
-  box-shadow: 0 0 24px rgba(0, 255, 136, 0.18);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5), 0 0 24px rgba(0, 255, 136, 0.22);
+  background: #11112C;
+}
+
+.tl-cards a:hover .tl-card-icon {
+  background: rgba(0, 255, 136, 0.18);
+  border-color: var(--tl-accent);
+  transform: scale(1.08);
+  box-shadow: 0 0 20px rgba(0, 255, 136, 0.4);
+}
+
+.tl-cards a .tl-card-title {
+  color: #FFFFFF;
+  margin-top: 0;
+  line-height: 1.3;
 }
 
 .tl-cards a small {
@@ -733,7 +779,7 @@
   font-weight: 400;
   font-size: 14px;
   line-height: 1.5;
-  margin-top: 6px;
+  margin-top: 8px;
 }
 
 /* Author Box */

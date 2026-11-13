@@ -5,6 +5,13 @@ import { ToolLayout } from "@/components/tools/ToolLayout";
 import { MacroCalculator } from "@/components/tools/calculators/MacroCalculator";
 import { ProteinCalculator } from "@/components/tools/calculators/ProteinCalculator";
 import { TdeeCalculator } from "@/components/tools/calculators/TdeeCalculator";
+import { BmiCalculator } from "@/components/tools/calculators/BmiCalculator";
+import { BodyFatCalculator } from "@/components/tools/calculators/BodyFatCalculator";
+import { LbmCalculator } from "@/components/tools/calculators/LbmCalculator";
+import { OrmCalculator } from "@/components/tools/calculators/OrmCalculator";
+import { WaterCalculator } from "@/components/tools/calculators/WaterCalculator";
+import { DeficitCalculator } from "@/components/tools/calculators/DeficitCalculator";
+import { CreatineCalculator } from "@/components/tools/calculators/CreatineCalculator";
 import { absUrl, site } from "@/lib/site";
 import {
   LOCALES, TOOLS, TOOL_IDS, homePath, hubPath, isLocale, toolFromSlug, toolPath, type Locale, type ToolId,
@@ -13,14 +20,23 @@ import { CONTENT } from "@/lib/tools/content";
 import { GOALS } from "@/lib/tools/formulas";
 import { breadcrumbLd, faqLd, organizationLd, webApplicationLd, webPageLd } from "@/lib/tools/schema";
 import { UI_STRINGS } from "@/lib/tools/ui-strings";
+import type { ComponentType } from "react";
+import type { CalcProps } from "@/components/tools/calculators/types";
 
 type Params = { locale: string; slug: string };
 
-const CALCULATORS = {
+const CALCULATORS: Record<ToolId, ComponentType<CalcProps>> = {
   protein: ProteinCalculator,
   tdee: TdeeCalculator,
   macro: MacroCalculator,
-} as const;
+  bmi: BmiCalculator,
+  bodyfat: BodyFatCalculator,
+  lbm: LbmCalculator,
+  orm: OrmCalculator,
+  water: WaterCalculator,
+  deficit: DeficitCalculator,
+  creatine: CreatineCalculator,
+};
 
 export const dynamicParams = false;
 

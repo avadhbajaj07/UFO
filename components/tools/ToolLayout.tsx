@@ -6,6 +6,7 @@ import { homePath, hubPath, type Locale, type ToolId } from "@/lib/tools/config"
 import { CONTENT } from "@/lib/tools/content";
 import { tableFor } from "@/lib/tools/tables";
 import { UI_STRINGS } from "@/lib/tools/ui-strings";
+import { ToolIcon } from "./ToolIcon";
 import { AuthorBox } from "./AuthorBox";
 import { FaqSection } from "./FaqSection";
 import { ReferenceTable } from "./ReferenceTable";
@@ -21,6 +22,9 @@ export function ToolLayout({ locale, id, children }: { locale: Locale; id: ToolI
         <nav className="tl-crumbs" aria-label="Breadcrumb">
           <Link href={homePath(locale)}>{ui.home}</Link> › <Link href={hubPath(locale)}>{ui.tools}</Link> › {c.cardTitle}
         </nav>
+        <div className="tl-header-badge">
+          <ToolIcon id={id} size={24} />
+        </div>
         <h1 className="tl-h1">{c.h1}</h1>
         <p className="tl-answer">{c.answer}</p>
 
