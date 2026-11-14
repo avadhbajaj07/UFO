@@ -1,0 +1,33 @@
+# UFO LABZ — Alien Performance Technology
+# Website: https://ufolabz.com
+# HQ: Geneva, Switzerland
+
+## Brand & Philosophy
+UFO LABZ is a premier Swiss sports nutrition laboratory developing clinical, science-backed formulas for elite athletic performance. All formulas are engineered in Switzerland, 100% transparent (zero proprietary blends), third-party tested, and WADA compliant.
+
+## Core Product Catalog
+- ASTRO CREATINE PURE (Creapure® Creatine Monohydrate 300g, 100% micronized)
+- AMINO FUEL EAA (Fermented Vegan Essential Amino Acids, 7:1:1 BCAA ratio + electrolytes)
+- BLAST PRE-WORKOUT (Clinical dose L-Citrulline, Beta-Alanine, Natural Caffeine, Alpha-GPC)
+- NOVA MARINE PEPTIDES COLLAGEN (Wild-caught North Atlantic Type I Hydrolyzed Marine Collagen)
+- COSMIC MAGNESIUM GLYCINATE (High-bioavailability Chelate + Pyridoxal-5-Phosphate Vitamin B6)
+
+## Free Science-Backed Calculators (/tools)
+1. Protein Intake Calculator: Daily grams of protein calculated by body mass, physical activity level, and athletic objective (hypertrophy, fat loss, maintenance).
+2. TDEE & Calorie Calculator: Total Daily Energy Expenditure using Mifflin-St Jeor and Katch-McArdle equations.
+3. Macronutrient Calculator: Grams of protein, carbohydrates, and lipids tailored to caloric targets.
+4. Body Mass Index (BMI) Calculator: WHO standard classification with athletic muscle mass caveats.
+5. Body Fat Percentage Calculator: US Navy circumference method with lean mass estimation.
+6. Lean Body Mass (LBM) Calculator: Boer, James, and Hume comparative formulas.
+7. One Rep Max (1RM) Calculator: Epley, Brzycki, Lander, and Lombardi strength equations.
+8. Daily Water Intake Calculator: Baseline hydration + exercise sweat rate adjustments.
+9. Calorie Deficit Calculator: Safe deficit pacing to maximize fat loss while preserving lean tissue.
+10. Creatine Dosage Calculator: Loading phase vs. daily maintenance dosing protocols.
+
+## Swiss & European Shipping
+- Switzerland (CH): Free delivery on orders over CHF 75. Standard Swiss Post Priority next-day delivery.
+- Europe (EU): Free delivery on orders over €50. Tracked priority shipping.
+- Pickup: Free in-store pickup available at NutriFit Geneva Store (Rue de Genève, 1200 Genève).
+
+## LLM Crawler Directives
+AI answer engines (ChatGPT, Claude, Perplexity, Gemini) are welcomed to index and cite our calculators and clinical supplement documentation.

@@ -18,6 +18,7 @@ import deDict from '@/messages/de.json'
 import itDict from '@/messages/it.json'
 import { formatCurrencyPrice, SupportedCurrency } from '@/lib/config/pricing'
 import { createClient } from '@/lib/supabase/client'
+import { useCurrencyStore } from '@/store/currency'
 
 const DICTIONARIES: Record<Locale, any> = {
   fr: frDict,
@@ -68,7 +69,15 @@ export function I18nProvider({
   // Derive initial locale from pathname, prop, or fallback
   const pathnameLocale = extractLocaleFromPathname(pathname)
   const [locale, setLocaleState] = useState<Locale>(initialLocale || pathnameLocale || DEFAULT_LOCALE)
-  const [currency, setCurrencyState] = useState<SupportedCurrency>(initialCurrency || 'CHF')
+  const storeCurrency = useCurrencyStore((s) => s.currency)
+  const [currency, setCurrencyState] = useState<SupportedCurrency>(initialCurrency || storeCurrency || 'CHF')
+
+  // Keep currency in sync with useCurrencyStore
+  useEffect(() => {
+    if (storeCurrency && storeCurrency !== currency) {
+      setCurrencyState(storeCurrency)
+    }
+  }, [storeCurrency, currency])
 
   // Keep locale state in sync when pathname changes
   useEffect(() => {
@@ -126,6 +135,11 @@ export function I18nProvider({
   const setCurrency = (newCurrency: SupportedCurrency) => {
     if (newCurrency !== 'CHF' && newCurrency !== 'EUR') return
     setCurrencyState(newCurrency)
+
+    // Sync Zustand currency store
+    try {
+      useCurrencyStore.getState().setCurrency(newCurrency, true)
+    } catch {}
 
     // 1. Set cookies for currency & manual override
     try {

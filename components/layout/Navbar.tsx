@@ -37,9 +37,6 @@ export default function Navbar() {
     { href: '/build-your-stack', label: t('navbar.build_stack'), badge: t('navbar.save_stack_badge') },
     { href: '/products', label: t('navbar.shop') },
     { href: '/tools', label: t('navbar.tools'), badge: t('navbar.free_badge') },
-    { href: '/pages/about', label: t('navbar.about') },
-    { href: '/pages/faq', label: t('navbar.faq') },
-    { href: '/pages/contact', label: t('navbar.contact') },
   ]
 
   const currentMeta = LOCALE_METAS[locale] || LOCALE_METAS.fr
@@ -56,9 +53,6 @@ export default function Navbar() {
                 alt="UFO LABZ"
                 className="h-7 sm:h-8 md:h-9 w-auto object-contain opacity-95 group-hover:opacity-100 transition-opacity drop-shadow-[0_0_12px_rgba(31,255,107,0.25)]"
               />
-              <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full bg-alien-green/20 border border-alien-green/50 text-alien-green text-[10px] font-mono font-bold uppercase tracking-wider">
-                {t('common.batch_badge')}
-              </span>
             </Link>
 
             {/* Desktop nav */}

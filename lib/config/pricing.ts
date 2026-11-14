@@ -220,10 +220,9 @@ export function isEuropeanCountry(countryCode?: string | null): boolean {
 }
 
 export function getCurrencyForCountry(countryCode?: string | null): SupportedCurrency {
-  if (!countryCode) return 'CHF'
+  if (!countryCode) return 'CHF' // Fallback for Switzerland Swiss brand
   if (isSwissCountry(countryCode)) return 'CHF'
-  if (isEuropeanCountry(countryCode)) return 'EUR'
-  return 'CHF'
+  return 'EUR' // All other countries (EU + international) use EUR
 }
 
 export const NUTRIFIT_STORE_INFO = {

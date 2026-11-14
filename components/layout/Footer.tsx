@@ -1,6 +1,7 @@
 'use client'
 
 import { useTranslation, Link } from '@/lib/i18n'
+import { toolPath, hubPath } from '@/lib/tools/config'
 
 export default function Footer() {
   const { t, locale } = useTranslation()
@@ -23,19 +24,19 @@ export default function Footer() {
     { href: '/affiliate', label: 'Ambassador Team' },
   ]
 
-  // Complete list of ALL 10 science-backed calculators
+  // Complete list of ALL 10 science-backed calculators using canonical locale slugs
   const toolsLinks = [
-    { href: '/tools', label: t('footer.all_calculators') },
-    { href: '/tools/protein-calculator', label: t('footer.protein_calc') },
-    { href: '/tools/tdee-calculator', label: t('footer.tdee_calc') },
-    { href: '/tools/macro-calculator', label: t('footer.macro_calc') },
-    { href: '/tools/bmi-calculator', label: t('footer.bmi_calc') },
-    { href: '/tools/body-fat-calculator', label: t('footer.bodyfat_calc') },
-    { href: '/tools/lean-body-mass-calculator', label: t('footer.lbm_calc') },
-    { href: '/tools/one-rep-max-calculator', label: t('footer.orm_calc') },
-    { href: '/tools/water-intake-calculator', label: t('footer.water_calc') },
-    { href: '/tools/calorie-deficit-calculator', label: t('footer.deficit_calc') },
-    { href: '/tools/creatine-calculator', label: t('footer.creatine_calc') },
+    { href: hubPath(locale), label: t('footer.all_calculators') },
+    { href: toolPath(locale, 'protein'), label: t('footer.protein_calc') },
+    { href: toolPath(locale, 'tdee'), label: t('footer.tdee_calc') },
+    { href: toolPath(locale, 'macro'), label: t('footer.macro_calc') },
+    { href: toolPath(locale, 'bmi'), label: t('footer.bmi_calc') },
+    { href: toolPath(locale, 'bodyfat'), label: t('footer.bodyfat_calc') },
+    { href: toolPath(locale, 'lbm'), label: t('footer.lbm_calc') },
+    { href: toolPath(locale, 'orm'), label: t('footer.orm_calc') },
+    { href: toolPath(locale, 'water'), label: t('footer.water_calc') },
+    { href: toolPath(locale, 'deficit'), label: t('footer.deficit_calc') },
+    { href: toolPath(locale, 'creatine'), label: t('footer.creatine_calc') },
   ]
 
   const contactInfo = [

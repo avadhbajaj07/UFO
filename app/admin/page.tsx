@@ -82,7 +82,7 @@ interface Order {
 }
 
 export default function AdminPage() {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'products' | 'orders' | 'inventory' | 'pricing' | 'customers' | 'affiliates' | 'marketing' | 'reviews' | 'automations'>('dashboard')
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'products' | 'orders' | 'customers' | 'affiliates'>('dashboard')
 
 
   // Orders states
@@ -1485,10 +1485,6 @@ export default function AdminPage() {
           </div>
 
           <div className="flex items-center gap-4">
-            <div className="hidden sm:flex items-center gap-2 bg-white/5 border border-white/10 rounded-full px-3 py-1 text-[10px] font-sans text-gray-400">
-              <span className="w-1.5 h-1.5 rounded-full bg-alien-green animate-ping" />
-              <span>Live Visitors: 14</span>
-            </div>
             <Link href="/pos" className="text-xs font-sans text-alien-green hover:text-white flex items-center gap-1.5 bg-alien-green/10 border border-alien-green/20 px-3 py-1 rounded-full hover:bg-alien-green/20 transition-all font-bold">
               <ShoppingBag className="w-3.5 h-3.5" />
               <span>POS Terminal</span>
@@ -1542,22 +1538,6 @@ export default function AdminPage() {
             </button>
 
             <button
-              onClick={() => setActiveTab('inventory')}
-              className={getSidebarBtnClass('inventory')}
-            >
-              <Building className="w-4 h-4 flex-shrink-0" />
-              <span>Sourcing & Warehousing</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab('pricing')}
-              className={getSidebarBtnClass('pricing')}
-            >
-              <Percent className="w-4 h-4 flex-shrink-0" />
-              <span>Dynamic Pricing Rules</span>
-            </button>
-
-            <button
               onClick={() => setActiveTab('customers')}
               className={getSidebarBtnClass('customers')}
             >
@@ -1570,32 +1550,16 @@ export default function AdminPage() {
               className={getSidebarBtnClass('affiliates')}
             >
               <Award className="w-4 h-4 flex-shrink-0" />
-              <span>Affiliate Approvals</span>
+              <span>Affiliate & Athletes</span>
             </button>
 
-            <button
-              onClick={() => setActiveTab('marketing')}
-              className={getSidebarBtnClass('marketing')}
+            <Link
+              href="/admin/marketing"
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-sans transition-all text-gray-400 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5"
             >
-              <Sparkles className="w-4 h-4 flex-shrink-0" />
-              <span>Ad Campaigns</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab('reviews')}
-              className={getSidebarBtnClass('reviews')}
-            >
-              <Star className="w-4 h-4 flex-shrink-0" />
-              <span>Reviews Moderation</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab('automations')}
-              className={getSidebarBtnClass('automations')}
-            >
-              <Zap className="w-4 h-4 flex-shrink-0" />
-              <span>Automation Engine</span>
-            </button>
+              <Sparkles className="w-4 h-4 flex-shrink-0 text-alien-green" />
+              <span>Email Marketing Suite</span>
+            </Link>
 
           </aside>
 
@@ -1851,17 +1815,6 @@ export default function AdminPage() {
                         </div>
                       ))}
 
-                      {reviews.filter(review => review.status === 'PENDING').slice(0, 3).map(review => (
-                        <div key={review.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 rounded-xl bg-space-900 border border-white/5 gap-2 text-left">
-                          <div>
-                            <span className="px-1.5 py-0.5 rounded font-sans text-[8px] font-bold bg-alien-green/10 text-alien-green border border-alien-green/20 uppercase">Product Review</span>
-                            <div className="font-bold text-white mt-1">Unapproved product review</div>
-                            <p className="text-[10px] text-gray-400">{review.author} rated {review.product} {review.rating} stars.</p>
-                          </div>
-                          <button onClick={() => setActiveTab('reviews')} className="bg-white/5 border border-white/10 hover:bg-white/10 text-white font-sans text-[9px] px-3 py-1.5 rounded-lg shrink-0">Moderate Review</button>
-                        </div>
-                      ))}
-
                       {liveProducts.filter(product => product.stock <= 5).slice(0, 3).map(product => (
                         <div key={product.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 rounded-xl bg-space-900 border border-red-500/20 bg-red-500/[0.02] gap-2 text-left">
                           <div>
@@ -1869,11 +1822,11 @@ export default function AdminPage() {
                             <div className="font-bold text-white mt-1">Critical stock level</div>
                             <p className="text-[10px] text-red-300">{product.title}: {product.stock} units remaining.</p>
                           </div>
-                          <button onClick={() => setActiveTab('inventory')} className="bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 text-red-400 font-sans text-[9px] px-3 py-1.5 rounded-lg shrink-0">Manage Stock</button>
+                          <button onClick={() => setActiveTab('products')} className="bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 text-red-400 font-sans text-[9px] px-3 py-1.5 rounded-lg shrink-0">Manage Stock</button>
                         </div>
                       ))}
 
-                      {livePendingAffiliates === 0 && reviews.every(review => review.status !== 'PENDING') && liveInventoryAlertsCount === 0 && (
+                      {livePendingAffiliates === 0 && liveInventoryAlertsCount === 0 && (
                         <div className="py-8 text-center text-gray-500">No actions currently require review.</div>
                       )}
                     </div>
@@ -3181,192 +3134,7 @@ export default function AdminPage() {
                 </div>
               )}
 
-              {/* 🏭 TAB 3: INVENTORY & SOURCING */}
-              {activeTab === 'inventory' && (
-                <div className="space-y-6 animate-fade-in">
-                  <div>
-                    <h2 className="font-sans text-2xl font-bold tracking-tight text-white">Operational Logistics</h2>
-                    <p className="text-xs text-gray-400">Sourcing, Warehousing allocations, and Batch lot logs.</p>
-                  </div>
-
-                  {/* Warehouses lists */}
-                  <div className="space-y-3">
-                    <h3 className="text-xs font-sans font-bold tracking-widest text-muted text-gray-400 uppercase">1. Multi-Warehouse Allocations</h3>
-                    <div className="bg-space-950 border border-white/5 p-8 rounded-2xl text-center text-xs text-gray-500">
-                      No warehouse records configured.
-                    </div>
-                  </div>
-
-                  {/* Supplier Database & PO Generator */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Suppliers List */}
-                    <div className="bg-space-950 border border-white/5 p-5 rounded-2xl space-y-4 text-xs">
-                      <h3 className="font-bold text-white font-sans text-[10px] uppercase text-gray-400">2. Active Raw Suppliers</h3>
-                      <div className="py-6 text-center text-gray-500">No supplier records configured.</div>
-                    </div>
-
-                    {/* PO Generator Form */}
-                    <form onSubmit={handleCreatePO} className="bg-space-950 border border-white/5 p-5 rounded-2xl space-y-3 text-xs">
-                      <h3 className="font-bold text-white font-sans text-[10px] uppercase text-gray-400">3. Issue Purchase Order</h3>
-
-                      <div>
-                        <label className="text-[9px] font-sans text-gray-400 block mb-1">Target Supplier</label>
-                        <input
-                          type="text"
-                          value={poSupplier}
-                          onChange={(e) => setPoSupplier(e.target.value)}
-                          placeholder="Supplier name"
-                          className="input focus:outline-none bg-space-900 border-white/5 py-1 text-xs"
-                        />
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <label className="text-[9px] font-sans text-gray-400 block mb-1">Raw Ingredient</label>
-                          <input
-                            type="text"
-                            value={poItem}
-                            onChange={(e) => setPoItem(e.target.value)}
-                            placeholder="Ingredient or item"
-                            className="input py-1 text-xs"
-                          />
-                        </div>
-                        <div>
-                          <label className="text-[9px] font-sans text-gray-400 block mb-1">Quantity (kg/units)</label>
-                          <input
-                            type="number"
-                            value={poQty}
-                            onChange={(e) => setPoQty(parseInt(e.target.value) || 0)}
-                            className="input py-1 text-xs"
-                          />
-                        </div>
-                      </div>
-
-                      <button type="submit" className="w-full bg-white text-space-950 font-bold h-9 rounded-lg text-[10px] uppercase">
-                        Dispatch Purchase Order
-                      </button>
-                    </form>
-                  </div>
-
-                  {/* Batch Tracking Lot Ledger */}
-                  <div className="bg-space-950 border border-white/5 rounded-2xl overflow-hidden text-xs">
-                    <div className="p-4 border-b border-white/5 flex justify-between items-center">
-                      <span className="font-bold text-white">4. BATCH LOT LEDGER</span>
-                      <span className="text-[10px] text-gray-400 font-sans">Lot numbers & Expirations</span>
-                    </div>
-
-                    <table className="w-full text-left border-collapse">
-                      <thead>
-                        <tr className="bg-white/5 border-b border-white/5 font-sans text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
-                          <th className="p-3">Batch Number</th>
-                          <th className="p-3">Product Name</th>
-                          <th className="p-3">Mfg Date</th>
-                          <th className="p-3">Expiry Date</th>
-                          <th className="p-3">Lot No.</th>
-                          <th className="p-3">Safety status</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-white/5">
-                        <tr>
-                          <td colSpan={6} className="p-8 text-center text-gray-500">No batch records configured.</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-
-                </div>
-              )}
-
-              {/* 🪙 TAB 4: Dynamic Pricing Rules */}
-              {activeTab === 'pricing' && (
-                <div className="space-y-6 animate-fade-in">
-                  <div>
-                    <h2 className="font-sans text-2xl font-bold tracking-tight text-white">Dynamic Pricing Rules</h2>
-                    <p className="text-xs text-gray-400">Configure conditional rules based on inventory levels, time periods, and customer tier tags.</p>
-                  </div>
-
-                  {/* Active pricing rules list */}
-                  <div className="space-y-3">
-                    <h3 className="text-xs font-sans font-bold tracking-widest text-muted text-gray-400 uppercase">1. Active Price Rule Matrices</h3>
-
-                    <div className="space-y-3 text-xs">
-                      {pricingRules.map((rule) => (
-                        <div key={rule.id} className="bg-space-950 border border-white/5 p-4 rounded-xl flex items-center justify-between gap-4">
-                          <div>
-                            <div className="font-bold text-white flex items-center gap-2">
-                              <span>{rule.trigger}</span>
-                              <span className={cn(
-                                "px-1.5 py-0.5 rounded font-sans text-[8px] font-bold",
-                                rule.status === 'ACTIVE' ? "bg-alien-green/10 text-alien-green" : "bg-white/5 text-gray-500"
-                              )}>{rule.status}</span>
-                            </div>
-                            <div className="text-gray-400 mt-1 font-sans">Condition: {rule.condition} · Action: <strong className="text-alien-green">{rule.action}</strong></div>
-                          </div>
-
-                          <button
-                            onClick={() => togglePricingRule(rule.id)}
-                            className="bg-white/5 hover:bg-white/10 text-white font-sans text-[10px] py-1.5 px-3 rounded-lg border border-white/5"
-                          >
-                            Toggle Status
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* New Pricing Rule Form */}
-                  <form onSubmit={handleCreatePricingRule} className="bg-space-950 border border-white/5 p-6 rounded-3xl space-y-4 text-xs">
-                    <h3 className="text-xs font-sans font-bold tracking-widest text-muted text-gray-400 uppercase">2. Establish Pricing Rule Node</h3>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div>
-                        <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Trigger Event</label>
-                        <input
-                          type="text"
-                          required
-                          value={newRuleTrigger}
-                          onChange={(e) => setNewRuleTrigger(e.target.value)}
-                          placeholder="e.g. Stock drops < 10"
-                          className="input"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Condition Scope</label>
-                        <input
-                          type="text"
-                          required
-                          value={newRuleCond}
-                          onChange={(e) => setNewRuleCond(e.target.value)}
-                          placeholder="e.g. Weekend Flash hours"
-                          className="input"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Adjustment Action</label>
-                        <input
-                          type="text"
-                          required
-                          value={newRuleAct}
-                          onChange={(e) => setNewRuleAct(e.target.value)}
-                          placeholder="e.g. Increase price by 5%"
-                          className="input"
-                        />
-                      </div>
-                    </div>
-
-                    <button
-                      type="submit"
-                      className="bg-alien-green text-space-950 font-bold h-11 rounded-xl w-full text-xs uppercase"
-                    >
-                      Save Pricing Rule
-                    </button>
-                  </form>
-                </div>
-              )}
-
-              {/* 👥 TAB 5: CUSTOMER CRM */}
+              {/* 👥 TAB: CUSTOMER CRM */}
               {activeTab === 'customers' && (
                 <div className="space-y-6 animate-fade-in">
                   <div>
@@ -4160,194 +3928,6 @@ export default function AdminPage() {
                         </tbody>
                       </table>
                     )}
-                  </div>
-                </div>
-              )}
-
-              {/* 📈 TAB 7: CAMPAIGNS & MARKETING */}
-              {activeTab === 'marketing' && (
-                <div className="space-y-6 animate-fade-in">
-                  <div>
-                    <h2 className="font-sans text-2xl font-bold tracking-tight text-white">AI Campaigns & Marketing</h2>
-                    <p className="text-xs text-gray-400">Generate high-converting advertising copies for targeted channels instantly.</p>
-                  </div>
-
-                  <form onSubmit={handleGenerateCampaignAd} className="bg-space-950 border border-white/5 p-6 rounded-3xl space-y-4 text-xs">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Affiliate Referral Code</label>
-                        <input
-                          type="text"
-                          required
-                          value={adPromoCode}
-                          onChange={(e) => setAdPromoCode(e.target.value.toUpperCase())}
-                          placeholder="e.g. MARUTI10"
-                          className="input"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="text-[10px] font-sans text-gray-400 mb-1.5 block">Target Marketing Channel</label>
-                        <select
-                          value={adChannel}
-                          onChange={(e) => setAdChannel(e.target.value)}
-                          className="input focus:outline-none bg-space-900 border-white/5 text-white font-sans"
-                        >
-                          <option value="facebook">Facebook/Meta Ad copy</option>
-                          <option value="instagram">Instagram Reel Caption text</option>
-                          <option value="email">Email recovery sequence</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    <button
-                      type="submit"
-                      disabled={isGeneratingAd}
-                      className="w-full bg-alien-green text-space-950 font-bold h-11 rounded-xl flex items-center justify-center gap-1.5 hover:shadow-glow-green"
-                    >
-                      <Sparkles className="w-4 h-4" />
-                      <span>{isGeneratingAd ? 'Writing copy with AI...' : 'Generate Marketing Copies'}</span>
-                    </button>
-                  </form>
-
-                  {/* Generated marketing copy */}
-                  {adOutput && (
-                    <div className="bg-space-950 border border-white/5 p-5 rounded-2xl text-xs space-y-3 animate-fade-in text-left">
-                      <span className="font-sans text-alien-green uppercase font-bold text-[9px]">AI-Generated Copywriting</span>
-                      <p className="text-gray-300 leading-relaxed font-sans bg-space-900 border border-white/5 p-4 rounded-xl whitespace-pre-wrap">{adOutput}</p>
-                      <button
-                        onClick={() => {
-                          navigator.clipboard.writeText(adOutput)
-                          alert('Copywriting copied to clipboard!')
-                        }}
-                        className="text-[10px] text-white hover:text-alien-green underline block"
-                      >
-                        Copy text to clipboard
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* ⭐ TAB 8: REVIEWS MODERATION */}
-              {activeTab === 'reviews' && (
-                <div className="space-y-6 animate-fade-in">
-                  <div>
-                    <h2 className="font-sans text-2xl font-bold tracking-tight text-white">Reviews Moderation Hub</h2>
-                    <p className="text-xs text-gray-400">Review, authorize, and filter verified customer reviews before publishing.</p>
-                  </div>
-
-                  <div className="space-y-4">
-                    {reviews.map((r) => (
-                      <div key={r.id} className="bg-space-950 border border-white/5 p-5 rounded-2xl text-xs space-y-3">
-                        <div className="flex justify-between items-center border-b border-white/5 pb-2">
-                          <div>
-                            <span className="font-bold text-white">{r.author}</span>
-                            <span className="text-[10px] text-gray-400 ml-2">Product: <strong className="text-white">{r.product}</strong></span>
-                          </div>
-                          <span className={cn(
-                            "px-2 py-0.5 rounded font-sans text-[8px] font-bold",
-                            r.status === 'APPROVED' ? "bg-alien-green/10 text-alien-green" :
-                            r.status === 'SPAM' ? "bg-red-500/10 text-red-500" :
-                            "bg-yellow-500/10 text-yellow-500"
-                          )}>{r.status}</span>
-                        </div>
-
-                        <p className="text-gray-300 italic">"{r.comment}"</p>
-
-                        <div className="flex justify-end gap-2">
-                          {r.status !== 'APPROVED' && (
-                            <button
-                              onClick={() => handleReviewAction(r.id, 'APPROVED')}
-                              className="bg-alien-green text-space-950 font-bold px-3 py-1.5 rounded text-[10px]"
-                            >
-                              Approve Review
-                            </button>
-                          )}
-                          {r.status !== 'SPAM' && (
-                            <button
-                              onClick={() => handleReviewAction(r.id, 'SPAM')}
-                              className="bg-red-500/10 border border-red-500/20 text-red-500 px-3 py-1.5 rounded text-[10px]"
-                            >
-                              Flag as Spam
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* ⚡ TAB 9: Automation Engine Workflow */}
-              {activeTab === 'automations' && (
-                <div className="space-y-6 animate-fade-in">
-                  <div>
-                    <h2 className="font-sans text-2xl font-bold tracking-tight text-white">Automation Engine Workflow</h2>
-                    <p className="text-xs text-gray-400">Trigger custom flows and integrate advanced AI assistant frameworks.</p>
-                  </div>
-
-                  {/* OpenAI API Key Integration card */}
-                  <div className="bg-space-950 border border-white/5 p-6 rounded-3xl space-y-4 text-xs text-left">
-                    <div>
-                      <span className="font-sans text-alien-green uppercase font-bold text-[9px]">OpenAI GPT Integration</span>
-                      <h4 className="text-sm font-bold text-white mt-0.5">Custom Live Chat AI Assistant API Key</h4>
-                      <p className="text-gray-400 text-[10px] mt-1">
-                        Input your custom ChatGPT API Key (`sk-...`) to connect your storefront's AI Live Chat widgets directly to real OpenAI models.
-                        This will unlock fully personalized, dynamic supplement recommendation loops using real GPT completions.
-                      </p>
-                    </div>
-
-                    <form onSubmit={handleSaveApiKey} className="flex flex-col sm:flex-row gap-3">
-                      <input
-                        type="password"
-                        value={openAiApiKey}
-                        onChange={(e) => setOpenAiApiKey(e.target.value)}
-                        placeholder="sk-proj-..."
-                        className="input bg-space-900 border-white/5 flex-grow font-sans text-[11px]"
-                      />
-                      <button
-                        type="submit"
-                        className="bg-alien-green text-space-950 font-bold px-5 h-10 rounded-xl hover:shadow-glow-green text-xs font-sans uppercase whitespace-nowrap"
-                      >
-                        Save API Key
-                      </button>
-                      {openAiApiKey && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            localStorage.removeItem('ufo_openai_api_key')
-                            setOpenAiApiKey('')
-                            alert('OpenAI API Key removed successfully!')
-                          }}
-                          className="bg-red-500/10 border border-red-500/20 text-red-400 hover:text-white hover:bg-red-500 px-4 h-10 rounded-xl text-xs font-sans uppercase"
-                        >
-                          Clear
-                        </button>
-                      )}
-                    </form>
-                  </div>
-
-                  <div className="space-y-3">
-                    <h3 className="font-sans text-gray-400 uppercase font-bold text-[9px] tracking-widest">1. Event Trigger Automations</h3>
-                    {automations.map((a) => (
-                      <div key={a.id} className="bg-space-950 border border-white/5 p-4 rounded-xl flex items-center justify-between gap-4 text-xs">
-                        <div>
-                          <div className="font-bold text-white">{a.trigger}</div>
-                          <div className="text-gray-400 mt-1 font-sans">Action Node: <strong className="text-alien-green">{a.action}</strong></div>
-                        </div>
-
-                        <button
-                          onClick={() => toggleAutomation(a.id)}
-                          className={cn(
-                            "py-1.5 px-4 rounded-xl border font-sans font-bold transition-all text-[10px] uppercase",
-                            a.enabled ? "bg-alien-green text-space-950 border-alien-green" : "border-white/5 text-gray-500"
-                          )}
-                        >
-                          {a.enabled ? 'Enabled' : 'Disabled'}
-                        </button>
-                      </div>
-                    ))}
                   </div>
                 </div>
               )}
