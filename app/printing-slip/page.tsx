@@ -10,9 +10,10 @@ export const metadata: Metadata = {
 export default function PrintingSlipPage({
   searchParams,
 }: {
-  searchParams?: { mode?: 'a4' | 'thermal'; orderId?: string }
+  searchParams?: { mode?: 'a4' | 'thermal'; orderId?: string; view?: 'slip' | 'box_label' }
 }) {
   const mode = searchParams?.mode === 'thermal' ? 'thermal' : 'a4'
+  const initialDocType = searchParams?.view === 'box_label' ? 'box_label' : 'slip'
 
-  return <OrderPrintingSlip orderData={SAMPLE_REAL_ORDER_SLIP} initialMode={mode} />
+  return <OrderPrintingSlip orderData={SAMPLE_REAL_ORDER_SLIP} initialMode={mode} initialDocType={initialDocType} />
 }

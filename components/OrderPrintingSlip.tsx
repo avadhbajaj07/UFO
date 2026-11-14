@@ -3,8 +3,9 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import QRCode from 'qrcode'
-import { Printer, Copy, Check, ArrowLeft, Eye, Sliders, Box, ShieldCheck, Tag, FileText, QrCode as QrIcon } from 'lucide-react'
+import { Printer, Copy, Check, ArrowLeft, Eye, Sliders, Box, ShieldCheck, Tag, FileText, QrCode as QrIcon, Package } from 'lucide-react'
 import { getProductDisplayName } from '@/lib/products'
+import SwissPostBoxLabel, { BoxLabelData } from './SwissPostBoxLabel'
 
 export interface OrderSlipItem {
   name: string
@@ -265,14 +266,53 @@ function Code128BarcodeSvg({ text, height = 48, className = '' }: { text: string
 export default function OrderPrintingSlip({
   orderData = SAMPLE_REAL_ORDER_SLIP,
   initialMode = 'a4',
+  initialDocType = 'slip',
 }: {
   orderData?: OrderSlipData
   initialMode?: 'a4' | 'thermal'
+  initialDocType?: 'slip' | 'box_label'
 }) {
+  const [docType, setDocType] = useState<'slip' | 'box_label'>(initialDocType)
   const [printMode, setPrintMode] = useState<'a4' | 'thermal'>(initialMode)
   const [showPricing, setShowPricing] = useState(true)
   const [copied, setCopied] = useState(false)
   const [qrDataUrl, setQrDataUrl] = useState<string>('')
+
+  // Map to Swiss Post Box Label data (exterior label with zero product information)
+  const boxLabelData: BoxLabelData = useMemo(() => ({
+    orderId: orderData.orderId,
+    orderNumber: orderData.orderNumber,
+    date: orderData.date,
+    time: orderData.time,
+    weightKg: orderData.carrier.weightKg,
+    serviceCode: (orderData.carrier.serviceCode === 'ECO' ? 'ECO' : 'PRI') as 'PRI' | 'ECO',
+    trackingNumber: orderData.carrier.trackingNumber,
+    trackingUrl: orderData.carrier.trackingUrl,
+    frankingLicense: orderData.carrier.frankingLicense,
+    instructions: orderData.carrier.instructions,
+    sender: {
+      name: orderData.company.brandName,
+      legalName: orderData.company.legalName,
+      street: orderData.company.street,
+      zip: orderData.company.zip,
+      city: orderData.company.city,
+      country: 'CH',
+      domicilePostOffice: `${orderData.company.zip} ${orderData.company.city}`,
+      frankingLicense: orderData.carrier.frankingLicense,
+      contactEmail: orderData.company.email,
+      contactPhone: orderData.company.phone,
+    },
+    recipient: {
+      name: orderData.recipient.name,
+      company: orderData.recipient.company,
+      street: orderData.recipient.street,
+      zip: orderData.recipient.zip,
+      city: orderData.recipient.city,
+      country: orderData.recipient.country,
+      phone: orderData.recipient.phone,
+      email: orderData.recipient.email,
+    },
+  }), [orderData])
 
   // Generate real QR code on mount
   useEffect(() => {
@@ -286,6 +326,29 @@ export default function OrderPrintingSlip({
         .catch(() => {})
     }
   }, [orderData.carrier.trackingUrl])
+
+  // If user selected Box Label mode, delegate rendering to SwissPostBoxLabel with switch-back pill
+  if (docType === 'box_label') {
+    return (
+      <div>
+        <div className="print:hidden bg-amber-500/10 border-b border-amber-500/20 px-4 py-2 flex items-center justify-between text-xs text-amber-200">
+          <div className="flex items-center gap-2">
+            <span className="font-bold text-amber-300">📦 Exterior Box Shipping Label Active</span>
+            <span className="text-gray-400">· Shows Post Office QR + Customer Address (Zero products listed)</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setDocType('slip')}
+            className="px-2.5 py-1 bg-white/10 hover:bg-white/20 rounded font-semibold text-white transition-all flex items-center gap-1.5"
+          >
+            <FileText className="w-3.5 h-3.5" />
+            <span>Switch to Inside Packing Slip</span>
+          </button>
+        </div>
+        <SwissPostBoxLabel data={boxLabelData} initialFormat={printMode === 'a4' ? 'a4' : 'thermal'} />
+      </div>
+    )
+  }
 
   const handlePrint = () => {
     window.print()
@@ -341,6 +404,28 @@ QC: ${orderData.qcChecklist.qcInspector}
           </div>
 
           <div className="flex flex-wrap items-center gap-2 text-xs">
+            {/* Document Type Switcher: Box Shipping Label vs Inside Packing Slip */}
+            <div className="inline-flex rounded-lg bg-amber-500/10 p-0.5 border border-amber-500/30">
+              <button
+                type="button"
+                onClick={() => setDocType('box_label')}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-md font-bold text-xs transition-all text-amber-300 hover:text-white"
+                title="Print label for the outside of the box: Post Office QR + Customer Address (No items listed)"
+              >
+                <Tag className="w-3.5 h-3.5" />
+                <span>📦 Box Label (No Items)</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setDocType('slip')}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-md font-bold text-xs transition-all bg-emerald-500 text-slate-950 shadow-sm"
+                title="Print packing slip for inside the box with itemized supplements"
+              >
+                <FileText className="w-3.5 h-3.5" />
+                <span>📄 Inside Slip</span>
+              </button>
+            </div>
+
             {/* Format toggle: A4 Standard vs Thermal 4x6 */}
             <div className="inline-flex rounded-lg bg-slate-800 p-0.5 border border-white/10">
               <button

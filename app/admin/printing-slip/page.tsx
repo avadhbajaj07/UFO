@@ -14,9 +14,10 @@ export const dynamic = 'force-dynamic'
 export default async function AdminPrintingSlipPage({
   searchParams,
 }: {
-  searchParams?: { orderId?: string; mode?: 'a4' | 'thermal' }
+  searchParams?: { orderId?: string; mode?: 'a4' | 'thermal'; view?: 'slip' | 'box_label' }
 }) {
   const mode = searchParams?.mode === 'thermal' ? 'thermal' : 'a4'
+  const initialDocType = searchParams?.view === 'box_label' ? 'box_label' : 'slip'
   const requestedId = searchParams?.orderId
 
   let orderData: OrderSlipData = SAMPLE_REAL_ORDER_SLIP
@@ -95,5 +96,5 @@ export default async function AdminPrintingSlipPage({
     }
   }
 
-  return <OrderPrintingSlip orderData={orderData} initialMode={mode} />
+  return <OrderPrintingSlip orderData={orderData} initialMode={mode} initialDocType={initialDocType} />
 }

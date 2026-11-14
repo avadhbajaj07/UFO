@@ -2701,16 +2701,29 @@ export default function AdminPage() {
                       </select>
                     </div>
 
-                    <a
-                      href="/admin/printing-slip"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-3 py-1.5 rounded-lg border bg-alien-green/10 border-alien-green/30 text-alien-green hover:bg-alien-green/20 font-semibold text-xs flex items-center gap-1.5 transition-all shadow-sm"
-                      title="Open official order packing slip with real products and Swiss Post Priority manifest"
-                    >
-                      <Printer className="w-3.5 h-3.5" />
-                      <span>🖨️ Sample Printing Slip</span>
-                    </a>
+                    <div className="flex items-center gap-2">
+                      <a
+                        href="/admin/shipping-label"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-3 py-1.5 rounded-lg border bg-amber-400 text-slate-950 hover:bg-amber-300 font-bold text-xs flex items-center gap-1.5 transition-all shadow-md"
+                        title="Print Swiss Post shipping box label with post office QR code and customer address (No items listed)"
+                      >
+                        <Tag className="w-3.5 h-3.5" />
+                        <span>📦 Box Shipping Label</span>
+                      </a>
+
+                      <a
+                        href="/admin/printing-slip"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-3 py-1.5 rounded-lg border bg-white/5 border-white/10 text-gray-300 hover:text-white hover:bg-white/10 font-semibold text-xs flex items-center gap-1.5 transition-all shadow-sm"
+                        title="Open internal order packing slip with supplements and QC manifest"
+                      >
+                        <FileText className="w-3.5 h-3.5" />
+                        <span>📄 Inside Slip</span>
+                      </a>
+                    </div>
                   </div>
 
                   {/* Two-Column split */}
@@ -3089,28 +3102,57 @@ export default function AdminPage() {
                                 </select>
                               </div>
 
-                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-                                <a
-                                  href={`/admin/printing-slip?orderId=${encodeURIComponent(order.id)}`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="w-full bg-alien-green/10 border border-alien-green/30 hover:bg-alien-green/20 text-alien-green font-bold h-9 rounded-xl flex items-center justify-center gap-1.5 transition-all text-xs"
-                                  title="Print official Swiss Post A4 packing slip"
-                                >
-                                  <Printer className="w-3.5 h-3.5" />
-                                  <span>Print Slip (A4)</span>
-                                </a>
+                              <div className="space-y-2 pt-2 border-t border-white/5">
+                                {/* 1. Box Shipping Label (External box sticker) */}
+                                <div>
+                                  <div className="text-[10px] text-amber-300 uppercase tracking-wider font-bold mb-1 flex items-center gap-1">
+                                    <Tag className="w-3 h-3" />
+                                    <span>Box Shipping Label (Outside of Box)</span>
+                                  </div>
+                                  <a
+                                    href={`/admin/shipping-label?orderId=${encodeURIComponent(order.id)}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="w-full bg-amber-400 hover:bg-amber-300 text-slate-950 font-black h-9 rounded-xl flex items-center justify-center gap-1.5 transition-all text-xs shadow-md"
+                                    title="Print Swiss Post shipping label for the box exterior (Customer address + Swiss Post QR/barcode, no products listed)"
+                                  >
+                                    <Printer className="w-4 h-4" />
+                                    <span>🏷️ Print Box Shipping Label</span>
+                                  </a>
+                                  <p className="text-[9px] text-gray-500 mt-1 italic">
+                                    Contains Swiss Post QR + Barcode + Customer address (zero items listed for recipient privacy).
+                                  </p>
+                                </div>
 
-                                <a
-                                  href={`/admin/printing-slip?orderId=${encodeURIComponent(order.id)}&mode=thermal`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="w-full bg-white/5 border border-white/10 hover:bg-white/10 text-white font-bold h-9 rounded-xl flex items-center justify-center gap-1.5 transition-all text-xs"
-                                  title="Print 4x6 thermal shipping label & packing slip"
-                                >
-                                  <Tag className="w-3.5 h-3.5" />
-                                  <span>Thermal (4x6&quot;)</span>
-                                </a>
+                                {/* 2. Inside Packing Slip */}
+                                <div className="pt-1">
+                                  <div className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold mb-1 flex items-center gap-1">
+                                    <FileText className="w-3 h-3" />
+                                    <span>Packing Slip (Inside of Box)</span>
+                                  </div>
+                                  <div className="grid grid-cols-2 gap-2">
+                                    <a
+                                      href={`/admin/printing-slip?orderId=${encodeURIComponent(order.id)}`}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="w-full bg-white/5 border border-white/10 hover:bg-white/10 text-white font-bold h-8 rounded-lg flex items-center justify-center gap-1.5 transition-all text-xs"
+                                      title="Print A4 packing slip with itemized supplements for inside the box"
+                                    >
+                                      <FileText className="w-3 h-3" />
+                                      <span>Inside (A4)</span>
+                                    </a>
+                                    <a
+                                      href={`/admin/printing-slip?orderId=${encodeURIComponent(order.id)}&mode=thermal`}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="w-full bg-white/5 border border-white/10 hover:bg-white/10 text-white font-bold h-8 rounded-lg flex items-center justify-center gap-1.5 transition-all text-xs"
+                                      title="Print 4x6 thermal packing slip"
+                                    >
+                                      <Tag className="w-3 h-3" />
+                                      <span>Inside (4x6&quot;)</span>
+                                    </a>
+                                  </div>
+                                </div>
                               </div>
                             </div>
                           </>
