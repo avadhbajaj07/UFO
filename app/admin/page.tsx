@@ -8,7 +8,7 @@ import {
   Trash2, QrCode, MessageCircle, Percent, Settings, RefreshCw, Key,
   Package, Sparkles, Building, Layers, Eye, Plus, Send, Zap,
   FileText, Check, Search, Globe, Truck, CreditCard, Heart, ShoppingBag, Star, Edit,
-  Printer, ExternalLink, Download
+  Printer, ExternalLink, Download, Tag
 } from 'lucide-react'
 import { formatPrice } from '@/lib/utils/pricing'
 import { cn } from '@/lib/utils'
@@ -2700,6 +2700,17 @@ export default function AdminPage() {
                         <option value="Completed">Completed</option>
                       </select>
                     </div>
+
+                    <a
+                      href="/admin/printing-slip"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-3 py-1.5 rounded-lg border bg-alien-green/10 border-alien-green/30 text-alien-green hover:bg-alien-green/20 font-semibold text-xs flex items-center gap-1.5 transition-all shadow-sm"
+                      title="Open official order packing slip with real products and Swiss Post Priority manifest"
+                    >
+                      <Printer className="w-3.5 h-3.5" />
+                      <span>🖨️ Sample Printing Slip</span>
+                    </a>
                   </div>
 
                   {/* Two-Column split */}
@@ -2774,6 +2785,22 @@ export default function AdminPage() {
                                   </td>
                                 </tr>
                               ))}
+                            {ordersList.length === 0 && (
+                              <tr>
+                                <td colSpan={5} className="p-8 text-center text-gray-400">
+                                  <p className="mb-3 text-xs text-gray-400">No customer orders recorded yet.</p>
+                                  <a
+                                    href="/admin/printing-slip"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-alien-green/10 border border-alien-green/30 text-alien-green hover:bg-alien-green/20 text-xs font-bold transition-all shadow-md"
+                                  >
+                                    <Printer className="w-3.5 h-3.5" />
+                                    <span>🖨️ View &amp; Print Sample Order Slip (#UFO-2026-CH-0184)</span>
+                                  </a>
+                                </td>
+                              </tr>
+                            )}
                           </tbody>
                         </table>
                       </div>
@@ -3062,68 +3089,29 @@ export default function AdminPage() {
                                 </select>
                               </div>
 
-                              <button
-                                onClick={() => {
-                                  // Mock Receipt Dispatcher / Print Trigger
-                                  const win = window.open("", "_blank")
-                                  if (win) {
-                                    win.document.write(`
-                                      <html>
-                                        <head>
-                                          <title>Print Invoice \${order.id}</title>
-                                          <style>
-                                            body { font-family: monospace; padding: 20px; color: #000; background: #fff; }
-                                            .invoice-header { text-align: center; border-bottom: 1px dashed #000; padding-bottom: 10px; }
-                                            .line-items { width: 100%; border-bottom: 1px dashed #000; margin: 15px 0; padding-bottom: 10px; }
-                                            .total-sec { text-align: right; font-weight: bold; }
-                                          </style>
-                                        </head>
-                                        <body onload="window.print();">
-                                          <div class="invoice-header">
-                                            <h2>UFO LABZ SWISS</h2>
-                                            <p>Enterprise Order Receipt</p>
-                                            <p>ID: \${order.id} | Date: \${order.date}</p>
-                                          </div>
-                                          <div>
-                                            <p><strong>Customer:</strong> \${order.customerName}</p>
-                                            <p><strong>Email:</strong> \${order.customerEmail}</p>
-                                            <p><strong>Channel:</strong> \${order.channel}</p>
-                                          </div>
-                                          <table class="line-items">
-                                            <thead>
-                                              <tr>
-                                                <th align="left">Item</th>
-                                                <th align="center">Qty</th>
-                                                <th align="right">Price</th>
-                                              </tr>
-                                            </thead>
-                                            <tbody>
-                                              \${order.products.map(p => \`
-                                                <tr>
-                                                  <td>\${p.name}</td>
-                                                  <td align="center">\${p.qty}</td>
-                                                  <td align="right">CHF \${p.price.toFixed(2)}</td>
-                                                </tr>
-                                              \`).join("")}
-                                            </tbody>
-                                          </table>
-                                          <div class="total-sec">
-                                            <p>Subtotal: CHF \${order.subtotal.toFixed(2)}</p>
-                                            <p>Discount: -CHF \${order.discount.toFixed(2)}</p>
-                                            <p>VAT (8.1%): CHF \${order.vat.toFixed(2)}</p>
-                                            <h3>GRAND TOTAL: CHF \${order.total.toFixed(2)}</h3>
-                                          </div>
-                                        </body>
-                                      </html>
-                                    `)
-                                    win.document.close()
-                                  }
-                                }}
-                                className="w-full bg-white/5 border border-white/10 hover:bg-white/10 text-white font-bold h-9 rounded-xl flex items-center justify-center gap-1.5 transition-all"
-                              >
-                                <FileText className="w-4 h-4" />
-                                <span>Print Thermal Invoice</span>
-                              </button>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                                <a
+                                  href={`/admin/printing-slip?orderId=${encodeURIComponent(order.id)}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="w-full bg-alien-green/10 border border-alien-green/30 hover:bg-alien-green/20 text-alien-green font-bold h-9 rounded-xl flex items-center justify-center gap-1.5 transition-all text-xs"
+                                  title="Print official Swiss Post A4 packing slip"
+                                >
+                                  <Printer className="w-3.5 h-3.5" />
+                                  <span>Print Slip (A4)</span>
+                                </a>
+
+                                <a
+                                  href={`/admin/printing-slip?orderId=${encodeURIComponent(order.id)}&mode=thermal`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="w-full bg-white/5 border border-white/10 hover:bg-white/10 text-white font-bold h-9 rounded-xl flex items-center justify-center gap-1.5 transition-all text-xs"
+                                  title="Print 4x6 thermal shipping label & packing slip"
+                                >
+                                  <Tag className="w-3.5 h-3.5" />
+                                  <span>Thermal (4x6&quot;)</span>
+                                </a>
+                              </div>
                             </div>
                           </>
                         )
