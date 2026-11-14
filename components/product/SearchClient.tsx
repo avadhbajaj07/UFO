@@ -1,11 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
 import Image from 'next/image'
 import { Star, ShoppingBag, Search } from 'lucide-react'
-import { useCurrency } from '@/hooks/useCurrency'
-import { formatPrice } from '@/lib/utils/pricing'
+import { useTranslation, Link } from '@/lib/i18n'
 import { getCanonicalUnitPrice, getPreorderLaunchPrice } from '@/lib/config/pricing'
 import { PREORDER_CONFIG } from '@/lib/config/preorder'
 import { getProductFlavors } from '@/lib/config/flavors'
@@ -28,7 +26,7 @@ function SearchProductCard({
   addItem: any
   isLoading: boolean
 }) {
-  const { currency } = useCurrency()
+  const { t, locale, currency, formatPrice } = useTranslation()
   const { flavors } = getProductFlavors(product.slug)
   const [selectedFlavorSlug, setSelectedFlavorSlug] = useState<string>(
     flavors[0]?.slug ?? product.slug
@@ -38,7 +36,7 @@ function SearchProductCard({
     flavors.find((f) => f.slug === selectedFlavorSlug) ?? flavors[0] ?? null
 
   const color = activeFlavor?.color ?? product.product_color ?? '#00FF88'
-  const rawName = getLocalizedField(product.name)
+  const rawName = getLocalizedField(product.name, locale)
   const name = getProductDisplayName(product.slug, stripFlavorSuffix(rawName))
   const tagline = getCleanTagline(product)
   const formatPill = getProductFormat(product)
@@ -67,7 +65,7 @@ function SearchProductCard({
         }}
       />
 
-      {/* Image container without overlay badges */}
+      {/* Image container */}
       <div className="relative">
         <Link
           href={`/products/${targetSlug}`}
@@ -125,11 +123,11 @@ function SearchProductCard({
           {flavors.length > 0 && (
             <div className="my-2.5 space-y-1.5">
               <div className="text-[10px] font-mono text-gray-400 uppercase tracking-wider flex justify-between items-center">
-                <span>{flavors.length > 1 ? 'Flavor:' : (product.slug.includes('magnesium') ? 'Format:' : 'Flavor:')}</span>
+                <span>{flavors.length > 1 ? t('products.flavor_label') : (product.slug.includes('magnesium') ? t('products.format_label') : t('products.flavor_label'))}</span>
                 <span className="font-bold text-white text-[11px]">
                   {product.slug.includes('magnesium')
-                    ? formatPill.toUpperCase()
-                    : activeFlavor?.flavorName?.toUpperCase() || 'NATURAL TASTE'}
+                    ? t('products.caps_format')
+                    : activeFlavor?.flavorName?.toUpperCase() || t('products.natural_taste')}
                 </span>
               </div>
               <div className={cn('grid gap-1.5', flavors.length > 1 ? 'grid-cols-2' : 'grid-cols-1')}>
@@ -176,7 +174,7 @@ function SearchProductCard({
               </span>
             </div>
             <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-alien-green/20 border border-alien-green/40 text-alien-green">
-              25% OFF LAUNCH
+              -25% {t('common.save')}
             </span>
           </div>
 
@@ -189,14 +187,14 @@ function SearchProductCard({
               })
             }
             disabled={isLoading || !variant}
-            className="w-full py-2.5 px-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-1.5 font-mono text-[11px] sm:text-xs font-bold text-space-950 active:scale-95 bg-alien-green hover:bg-alien-green/90 shadow-glow-green"
+            className="w-full py-2.5 px-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-1.5 font-mono text-[11px] sm:text-xs font-bold text-space-950 active:scale-95 bg-alien-green hover:bg-alien-green/90 shadow-glow-green cursor-pointer"
             aria-label={`Pre-order ${name}`}
           >
             <ShoppingBag className="w-3.5 h-3.5 text-space-950" />
-            <span>{PREORDER_CONFIG.actionButtonText}</span>
+            <span>{t('common.preorder_now')}</span>
           </button>
           <p className="text-[9px] text-muted/70 text-center font-mono">
-            {PREORDER_CONFIG.estimatedShipDate}
+            {t('common.batch_ship_notice')}
           </p>
         </div>
       </div>
@@ -206,13 +204,14 @@ function SearchProductCard({
 
 export default function SearchClient({ initialProducts }: Props) {
   const [query, setQuery] = useState('')
+  const { t, locale } = useTranslation()
   const { addItem, isLoading } = useCart()
 
   // Filter products by query
   const filteredProducts = initialProducts.filter((product) => {
-    const name = getLocalizedField(product.name)?.toLowerCase() || ''
-    const tagline = getLocalizedField(product.tagline)?.toLowerCase() || ''
-    const desc = getLocalizedField(product.short_description)?.toLowerCase() || ''
+    const name = getLocalizedField(product.name, locale)?.toLowerCase() || ''
+    const tagline = getLocalizedField(product.tagline, locale)?.toLowerCase() || ''
+    const desc = getLocalizedField(product.short_description, locale)?.toLowerCase() || ''
     const searchQuery = query.toLowerCase()
 
     return (
@@ -227,10 +226,10 @@ export default function SearchClient({ initialProducts }: Props) {
       {/* Header */}
       <div className="mb-8 text-center max-w-xl mx-auto">
         <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl tracking-wider text-white mb-4 uppercase">
-          Orbital Search
+          {t('navbar.search')}
         </h1>
         <p className="text-muted text-sm sm:text-base mb-6">
-          Scan the galaxy for high-performance Swiss formulations and stacks.
+          {t('products.catalog_subtitle')}
         </p>
 
         {/* Search Bar */}
@@ -240,7 +239,7 @@ export default function SearchClient({ initialProducts }: Props) {
           </div>
           <input
             type="text"
-            placeholder="Search products by formula, flavor, or goal..."
+            placeholder={`${t('navbar.search')}...`}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="w-full pl-12 pr-4 py-3.5 bg-space-900 border border-white/10 rounded-xl text-white placeholder-muted focus:outline-none focus:border-alien-green/50 focus:ring-1 focus:ring-alien-green/20 transition-all text-sm font-sans shadow-inner"
@@ -252,8 +251,8 @@ export default function SearchClient({ initialProducts }: Props) {
       {/* Results Count */}
       <div className="mb-6 flex items-center justify-between">
         <p className="text-sm font-mono text-muted">
-          Showing {filteredProducts.length} formulations
-          {query ? ` for "${query}"` : ''}
+          {filteredProducts.length} {t('common.batch_badge')}
+          {query ? ` ("${query}")` : ''}
         </p>
       </div>
 
@@ -271,9 +270,9 @@ export default function SearchClient({ initialProducts }: Props) {
 
       {filteredProducts.length === 0 && (
         <div className="text-center py-20">
-          <p className="text-muted text-lg">No formulations matched your search.</p>
+          <p className="text-muted text-lg">{t('common.error')}</p>
           <p className="text-xs text-muted/60 mt-1 font-mono">
-            Try searching for &quot;Creatine&quot;, &quot;EAA&quot;, &quot;Pre-Workout&quot;, &quot;Collagen&quot; or &quot;Magnesium&quot;.
+            {t('common.try_again')}
           </p>
         </div>
       )}

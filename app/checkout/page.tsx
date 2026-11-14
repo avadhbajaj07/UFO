@@ -478,11 +478,11 @@ export default function CheckoutPage() {
           <div>
             <div className="inline-flex items-center gap-2 mb-1.5">
               <span className="px-2.5 py-0.5 rounded-full bg-alien-green/20 border border-alien-green/50 text-alien-green font-mono text-[10px] font-bold uppercase tracking-wider">
-                PRE-ORDER RESERVATION
+                {t('common.batch_badge')}
               </span>
-              <span className="text-xs text-gray-400 font-mono">Batch 01 Dispatch: {PREORDER_CONFIG.estimatedShipDate}</span>
+              <span className="text-xs text-gray-400 font-mono">{t('common.batch_ship_notice')}</span>
             </div>
-            <h1 className="font-display text-3xl sm:text-4xl text-white">SECURE PRE-ORDER CHECKOUT</h1>
+            <h1 className="font-display text-3xl sm:text-4xl text-white uppercase">{t('checkout.title')}</h1>
           </div>
 
           {/* Currency Toggle */}
@@ -525,10 +525,10 @@ export default function CheckoutPage() {
 
         {items.length === 0 ? (
           <div className="card-glass p-12 text-center max-w-xl mx-auto space-y-4">
-            <h2 className="font-display text-2xl text-white">Your pre-order cart is empty</h2>
-            <p className="text-sm text-gray-400">Add alien-grade supplements to reserve your laboratory batch.</p>
+            <h2 className="font-display text-2xl text-white">{t('cart.empty_title')}</h2>
+            <p className="text-sm text-gray-400">{t('cart.empty_desc')}</p>
             <Link href="/products" className="btn-primary inline-flex text-sm mt-2">
-              Browse Formulas
+              {t('common.continue_shopping')}
             </Link>
           </div>
         ) : (
@@ -540,7 +540,7 @@ export default function CheckoutPage() {
                   {/* Contact info */}
                   <div className="bg-space-900 border border-white/5 rounded-2xl p-6 space-y-4">
                     <h3 className="text-xs font-mono font-bold tracking-widest text-gray-400 uppercase">
-                      01. Athlete Information
+                      {t('checkout.step_contact')}
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
@@ -582,7 +582,7 @@ export default function CheckoutPage() {
                   {/* Delivery destination selector */}
                   <div className="bg-space-900 border border-white/5 rounded-2xl p-6 space-y-4">
                     <h3 className="text-xs font-mono font-bold tracking-widest text-gray-400 uppercase">
-                      02. Select Delivery Mode
+                      {t('checkout.step_delivery')}
                     </h3>
                     <div className="space-y-3">
                       {/* Option A: Switzerland Home Delivery */}
@@ -801,7 +801,7 @@ export default function CheckoutPage() {
                 // ─── STEP 2: PAYMENT METHOD ───
                 <form onSubmit={handlePlaceOrderSubmit} className="space-y-6">
                   <div className="flex items-center justify-between border-b border-white/5 pb-4">
-                    <h2 className="font-display text-2xl text-white">SELECT PAYMENT METHOD</h2>
+                    <h2 className="font-display text-2xl text-white uppercase">{t('checkout.step_payment')}</h2>
                     <button
                       type="button"
                       onClick={() => setCheckoutStep('info')}
@@ -910,9 +910,9 @@ export default function CheckoutPage() {
             <div className="lg:col-span-5 space-y-6 lg:sticky lg:top-24">
               <div className="bg-space-900 border border-white/5 rounded-3xl p-6 space-y-4 shadow-xl">
                 <div className="flex items-center justify-between pb-3 border-b border-white/5">
-                  <h3 className="font-display text-xl text-white uppercase">PRE-ORDER SUMMARY</h3>
+                  <h3 className="font-display text-xl text-white uppercase">{t('checkout.order_summary')}</h3>
                   <span className="text-[10px] font-mono bg-alien-green/20 text-alien-green px-2 py-0.5 rounded font-bold uppercase">
-                    BATCH 01
+                    {t('common.batch_badge')}
                   </span>
                 </div>
 
@@ -991,7 +991,7 @@ export default function CheckoutPage() {
                 {/* Financial Summary */}
                 <div className="pt-3 border-t border-white/5 space-y-2 text-xs">
                   <div className="flex justify-between text-gray-400">
-                    <span>Subtotal</span>
+                    <span>{t('common.subtotal')}</span>
                     <span className="line-through">{formatCurrencyPrice(subtotal, currency)}</span>
                   </div>
 
@@ -1005,13 +1005,13 @@ export default function CheckoutPage() {
                       }] : []),
                       ...(discountResolution.appliedDiscountType === 'stack_tier' && primaryDiscount > 0 ? [{
                         id: 'stack',
-                        label: `Stack Volume Discount (${stackCalc.discountPercent}%)`,
+                        label: `${t('common.stack_discount')} (${stackCalc.discountPercent}%)`,
                         amount: primaryDiscount,
                         order: 2,
                       }] : []),
                       ...(subtotal > 0 && preorderDiscount > 0 ? [{
                         id: 'preorder',
-                        label: 'Pre-Order Launch Offer (25%)',
+                        label: `${t('common.launch_discount')} (25%)`,
                         amount: preorderDiscount,
                         order: 3,
                       }] : []),
@@ -1029,9 +1029,9 @@ export default function CheckoutPage() {
                   })()}
 
                   <div className="flex justify-between text-gray-400">
-                    <span>Shipping</span>
+                    <span>{t('common.shipping')}</span>
                     <span className={shippingCost === 0 ? 'text-alien-green font-bold' : ''}>
-                      {shippingCost === 0 ? 'FREE' : formatCurrencyPrice(shippingCost, currency)}
+                      {shippingCost === 0 ? t('common.free') : formatCurrencyPrice(shippingCost, currency)}
                     </span>
                   </div>
 
@@ -1043,12 +1043,12 @@ export default function CheckoutPage() {
                   )}
 
                   <div className="flex justify-between text-gray-500 text-[10px]">
-                    <span>VAT (incl.)</span>
+                    <span>{t('common.vat_included')}</span>
                     <span>{formatCurrencyPrice(taxAmount, currency)}</span>
                   </div>
 
                   <div className="flex justify-between font-bold text-white text-base pt-3 border-t border-white/5">
-                    <span>Total</span>
+                    <span>{t('common.total')}</span>
                     <span className="text-xl text-alien-green font-mono">{formatCurrencyPrice(finalTotal, currency)}</span>
                   </div>
                 </div>

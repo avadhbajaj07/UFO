@@ -35,6 +35,7 @@ import {
 import { getProductFlavors, FLAVOR_FAMILIES } from '@/lib/config/flavors'
 import { useCart } from '@/hooks/useCart'
 import { cn } from '@/lib/utils'
+import { useTranslation } from '@/lib/i18n'
 
 export interface StackProductCardItem {
   id: string
@@ -105,7 +106,7 @@ export default function BuildYourStackClient({
 }: BuildYourStackClientProps) {
   const router = useRouter()
   const { addItem, openCart } = useCart()
-  const { currency, formatPrice: formatCurrency } = useCurrency()
+  const { t, locale, currency, formatPrice: formatCurrency } = useTranslation()
   const formatPrice = (p: number) => formatCurrency(p)
 
   // ─── Stack Selection State ─────────────────────────────────────────────
@@ -173,6 +174,37 @@ export default function BuildYourStackClient({
   const shippingFee = isFreeShipping ? 0 : standardShippingFee
   const estimatedTotal =
     subtotalAfterDiscounts + (calculation.totalUnits > 0 ? shippingFee : 0)
+
+  // ─── Localized Helpers ──────────────────────────────────────────────────
+  const localizedNudge = useMemo(() => {
+    if (calculation.totalUnits === 0) {
+      return t('stack_builder.step1_desc')
+    }
+    if (calculation.totalUnits === 1) {
+      return t('stack.add_more_nudge', { count: 1, percent: 10 })
+    }
+    if (calculation.totalUnits === 2) {
+      return t('stack.add_more_nudge', { count: 1, percent: 15 })
+    }
+    return t('stack.max_unlocked')
+  }, [calculation.totalUnits, t])
+
+  const localizedFaqItems = useMemo(() => {
+    return [
+      {
+        q: t('stack_builder.faq1_q'),
+        a: t('stack_builder.faq1_a'),
+      },
+      {
+        q: t('stack_builder.faq2_q'),
+        a: t('stack_builder.faq2_a'),
+      },
+      {
+        q: t('stack_builder.faq3_q'),
+        a: t('stack_builder.faq3_a'),
+      },
+    ]
+  }, [t])
 
   // ─── Handlers ──────────────────────────────────────────────────────────
   const showToast = (msg: string) => {
@@ -384,16 +416,15 @@ export default function BuildYourStackClient({
           {/* Top Breadcrumb & Badge */}
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-alien-green/10 border border-alien-green/30 text-alien-green text-xs font-mono font-bold uppercase tracking-wider mb-6">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Batch 01 Protocol · Volume Savings</span>
+            <span>{t('common.batch_badge')} · {t('common.stack_discount')}</span>
           </div>
 
           <h1 className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl tracking-wider text-white uppercase mb-6 leading-none">
-            BUILD YOUR <span className="text-alien-green">STACK</span>
+            {t('stack.title')}
           </h1>
 
           <p className="text-gray-300 text-sm sm:text-base md:text-lg max-w-2xl mx-auto leading-relaxed mb-8">
-            Curate your custom UFO LABZ performance system. Mix and match any Swiss formulations
-            and flavors — bundle 2 to save 10%, or 3+ to unlock an automatic 15% discount.
+            {t('stack.subtitle')}
           </p>
 
           {/* Interactive Tier Badges */}
@@ -401,20 +432,20 @@ export default function BuildYourStackClient({
             <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-space-900 border border-white/10 text-xs font-mono">
               <span className="w-2.5 h-2.5 rounded-full bg-alien-green" />
               <span className="text-gray-400">Step 1:</span>
-              <strong className="text-white">2 Items = 10% OFF</strong>
+              <strong className="text-white">{t('stack.tier1_title')}</strong>
             </div>
 
             <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-space-900 border border-alien-green/40 shadow-glow-green text-xs font-mono">
               <span className="w-2.5 h-2.5 rounded-full bg-alien-green animate-pulse" />
               <span className="text-alien-green font-bold">Step 2:</span>
-              <strong className="text-white">3+ Items = 15% OFF</strong>
+              <strong className="text-white">{t('stack.tier2_title')}</strong>
             </div>
 
             <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-space-900 border border-white/10 text-xs font-mono">
               <Truck className="w-3.5 h-3.5 text-alien-green" />
               <span className="text-gray-400">Bonus:</span>
               <strong className="text-white">
-                {currency === 'EUR' ? 'Free EU Delivery over €75' : 'Free Swiss Delivery over CHF 75'}
+                {currency === 'EUR' ? t('products.free_eu_shipping') : t('products.free_swiss_shipping')}
               </strong>
             </div>
           </div>
@@ -424,7 +455,7 @@ export default function BuildYourStackClient({
             href="#picker-section"
             className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-alien-green text-space-950 font-bold font-mono text-sm hover:shadow-glow-green transition-all transform hover:-translate-y-0.5 active:translate-y-0"
           >
-            <span>Start Building Your Stack</span>
+            <span>{t('stack_builder.add_to_stack')}</span>
             <ArrowRight className="w-4 h-4" />
           </a>
         </div>
@@ -435,17 +466,17 @@ export default function BuildYourStackClient({
         <div className="flex whitespace-nowrap animate-marquee motion-reduce:animate-none">
           {Array.from({ length: 4 }).map((_, i) => (
             <span key={i} className="inline-flex items-center gap-8 mx-4">
-              <span>PICK 2 SAVE 10%</span>
+              <span>{t('stack.tier1_badge')}</span>
               <span>·</span>
-              <span>MIX ANY PRODUCTS &amp; FLAVORS</span>
+              <span>{t('products.select_flavor')}</span>
               <span>·</span>
-              <span>PICK 3+ SAVE 15%</span>
+              <span>{t('stack.tier2_badge')}</span>
               <span>·</span>
-              <span>AUTOMATICALLY APPLIED AT CHECKOUT</span>
+              <span>{t('common.vat_included')}</span>
               <span>·</span>
-              <span>{currency === 'EUR' ? 'FREE EU POSTAGE FROM €75' : 'FREE SWISS POSTAGE FROM CHF 75'}</span>
+              <span>{currency === 'EUR' ? t('products.free_eu_shipping') : t('products.free_swiss_shipping')}</span>
               <span>·</span>
-              <span>100% PRE-ORDER GUARANTEE</span>
+              <span>100% {t('common.batch_badge')}</span>
               <span>·</span>
             </span>
           ))}
@@ -463,11 +494,11 @@ export default function BuildYourStackClient({
                   STEP 01
                 </span>
                 <h2 className="font-display text-3xl sm:text-4xl text-white uppercase tracking-wider">
-                  SELECT YOUR FORMULAS
+                  {t('stack_builder.step1_title')}
                 </h2>
               </div>
               <span className="text-xs font-mono text-gray-400">
-                {stackItems.reduce((acc, i) => acc + i.quantity, 0)} units added
+                {t('stack_builder.selected_count', { count: stackItems.reduce((acc, i) => acc + i.quantity, 0) })}
               </span>
             </div>
 
@@ -484,7 +515,7 @@ export default function BuildYourStackClient({
                       : 'bg-space-900 border border-white/5 text-gray-400 hover:text-white hover:border-white/20'
                   )}
                 >
-                  {cat === 'ALL' ? 'All Formulations' : cat}
+                  {cat === 'ALL' ? t('products.catalog_title') : cat}
                 </button>
               ))}
             </div>
@@ -535,7 +566,7 @@ export default function BuildYourStackClient({
                       {/* Top Badges */}
                       <div className="flex items-center justify-between gap-1 mb-2">
                         <span className="text-[9px] font-mono font-bold px-2 py-0.5 rounded-full bg-alien-green/20 border border-alien-green/40 text-alien-green uppercase">
-                          PRE-ORDER
+                          {t('common.batch_badge')}
                         </span>
                         <span
                           className="text-[9px] font-mono font-bold px-2 py-0.5 rounded-full"
@@ -584,11 +615,11 @@ export default function BuildYourStackClient({
                       {product.flavors && product.flavors.length > 0 && (
                         <div className="mb-4 space-y-1.5">
                           <div className="text-[10px] font-mono text-gray-400 uppercase tracking-wider flex justify-between">
-                            <span>{product.slug.includes('magnesium') ? 'Format:' : 'Flavor:'}</span>
+                            <span>{product.slug.includes('magnesium') ? t('products.format_label') : t('products.flavor_label')}</span>
                             <span className="font-bold text-white">
                               {product.slug.includes('magnesium')
-                                ? '90 CAPS'
-                                : activeFlavor?.flavorName?.toUpperCase() || 'NATURAL TASTE'}
+                                ? t('products.caps_format')
+                                : activeFlavor?.flavorName?.toUpperCase() || t('products.natural_taste')}
                             </span>
                           </div>
                           <div
@@ -636,11 +667,11 @@ export default function BuildYourStackClient({
                             {formatPrice(canonicalPrice)}
                           </span>
                           <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-alien-green/20 text-alien-green border border-alien-green/40">
-                            -25% Launch
+                            -25% {t('common.save')}
                           </span>
                         </div>
                         <span className="text-[10px] font-mono text-alien-green block mt-0.5">
-                          Save up to 15% in stack
+                          {t('navbar.save_stack_badge')}
                         </span>
                       </div>
 
@@ -677,7 +708,7 @@ export default function BuildYourStackClient({
                           className="px-4 py-2 rounded-xl bg-alien-green text-space-950 font-bold font-mono text-xs hover:shadow-glow-green transition-all active:scale-95 flex items-center gap-1.5"
                         >
                           <Plus className="w-3.5 h-3.5" />
-                          <span>Add to Stack</span>
+                          <span>{t('stack_builder.add_to_stack')}</span>
                         </button>
                       )}
                     </div>
@@ -698,22 +729,22 @@ export default function BuildYourStackClient({
                 <div className="flex items-center gap-2">
                   <Layers className="w-5 h-5 text-alien-green" />
                   <h3 className="font-display text-2xl tracking-wider text-white uppercase">
-                    YOUR STACK
+                    {t('stack.summary_title')}
                   </h3>
                 </div>
                 <span className="text-xs font-mono font-bold px-2.5 py-1 rounded-full bg-alien-green/10 border border-alien-green/30 text-alien-green">
-                  {calculation.totalUnits} {calculation.totalUnits === 1 ? 'Unit' : 'Units'}
+                  {calculation.totalUnits} {calculation.totalUnits === 1 ? t('common.quantity') : t('common.quantity') + 's'}
                 </span>
               </div>
 
               {/* Tier Progress Indicator */}
               <div className="space-y-2 p-3.5 rounded-2xl bg-space-950 border border-white/5">
                 <div className="flex justify-between items-center text-xs font-mono">
-                  <span className="text-gray-400">Stack Savings Tier</span>
+                  <span className="text-gray-400">{t('common.stack_discount')}</span>
                   <span className="font-bold text-alien-green">
                     {calculation.discountPercent > 0
-                      ? `${calculation.discountPercent}% Discount Applied`
-                      : 'No Discount Yet'}
+                      ? `${calculation.discountPercent}% ${t('common.off')}`
+                      : t('stack_builder.empty_stack')}
                   </span>
                 </div>
 
@@ -735,19 +766,19 @@ export default function BuildYourStackClient({
                 </div>
 
                 <div className="flex justify-between text-[10px] font-mono text-gray-500 pt-1">
-                  <span>0 Units (0%)</span>
+                  <span>0 (0%)</span>
                   <span className={calculation.totalUnits >= 2 ? 'text-alien-green font-bold' : ''}>
-                    2 Units (10%)
+                    2 ({t('stack.tier1_badge')})
                   </span>
                   <span className={calculation.totalUnits >= 3 ? 'text-alien-green font-bold' : ''}>
-                    3+ Units (15%)
+                    3+ ({t('stack.tier2_badge')})
                   </span>
                 </div>
 
                 {/* Live Nudge */}
                 <div className="text-[11px] text-gray-300 font-mono flex items-center gap-1.5 pt-1">
                   <Sparkles className="w-3.5 h-3.5 text-alien-green shrink-0" />
-                  <span>{calculation.nudgeMessage}</span>
+                  <span>{localizedNudge}</span>
                 </div>
               </div>
 
@@ -858,19 +889,19 @@ export default function BuildYourStackClient({
                 </div>
               ) : (
                 <div className="py-6 text-center text-gray-500 text-xs font-mono border-t border-white/5">
-                  Your stack is empty. Pick formulas from the left or select a curated preset below.
+                  {t('stack_builder.empty_stack')}
                 </div>
               )}
 
               {/* Free Shipping Meter */}
               <div className="p-3.5 rounded-2xl bg-space-950/80 border border-white/5 space-y-1.5">
                 <div className="flex justify-between items-center text-xs font-mono">
-                  <span className="text-gray-400">Swiss Cargo Postage</span>
+                  <span className="text-gray-400">{currency === 'EUR' ? 'Transit Cargo EU' : 'Transit Cargo Suisse'}</span>
                   {isFreeShipping ? (
-                    <span className="text-alien-green font-bold">🚀 FREE SHIPPING EARNED</span>
+                    <span className="text-alien-green font-bold">🚀 {t('cart.free_shipping_reached')}</span>
                   ) : (
                     <span className="text-alien-green">
-                      {formatPrice(amountUntilFreeShipping)} away from Free Shipping
+                      {t('cart.free_shipping_progress', { amount: formatPrice(amountUntilFreeShipping) })}
                     </span>
                   )}
                 </div>
@@ -890,13 +921,13 @@ export default function BuildYourStackClient({
               {/* Financial Totals */}
               <div className="space-y-2 pt-2 border-t border-white/5 text-sm font-mono">
                 <div className="flex justify-between text-gray-400">
-                  <span>Catalog Retail Value</span>
+                  <span>{t('common.subtotal')}</span>
                   <span className="text-white line-through">{formatPrice(calculation.rawSubtotal)}</span>
                 </div>
 
                 {calculation.rawSubtotal > 0 && (
                   <div className="flex justify-between text-alien-green font-bold">
-                    <span>Pre-Order Launch Offer (25%)</span>
+                    <span>{t('common.launch_discount')} (25%)</span>
                     <span>−{formatPrice(preorderLaunchDiscount)}</span>
                   </div>
                 )}
@@ -904,26 +935,26 @@ export default function BuildYourStackClient({
                 {calculation.discountAmount > 0 && (
                   <div className="flex justify-between text-alien-green font-bold">
                     <span>
-                      Stack Volume Discount ({calculation.discountPercent}%)
+                      {t('common.stack_discount')} ({calculation.discountPercent}%)
                     </span>
                     <span>−{formatPrice(calculation.discountAmount)}</span>
                   </div>
                 )}
 
                 <div className="flex justify-between text-gray-400">
-                  <span>Estimated Shipping</span>
+                  <span>{t('common.shipping')}</span>
                   <span className="text-white">
-                    {isFreeShipping ? 'FREE' : formatPrice(shippingFee)}
+                    {isFreeShipping ? t('common.free') : formatPrice(shippingFee)}
                   </span>
                 </div>
 
                 <div className="flex justify-between items-baseline pt-3 border-t border-white/10">
                   <div>
                     <div className="font-display text-xl text-white uppercase">
-                      TOTAL (INCL. VAT)
+                      {t('common.total')}
                     </div>
                     <span className="text-[10px] text-gray-500 font-sans">
-                      Batch 01 Pre-Order Allocation
+                      {t('common.vat_included')}
                     </span>
                   </div>
                   <div className="text-right">
@@ -947,11 +978,11 @@ export default function BuildYourStackClient({
                 )}
               >
                 {isSubmitting ? (
-                  <span>Reserving Protocol...</span>
+                  <span>{t('common.loading')}</span>
                 ) : (
                   <>
                     <ShoppingBag className="w-4 h-4" />
-                    <span>Pre-order My Stack</span>
+                    <span>{t('common.preorder_now')}</span>
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}
@@ -1017,7 +1048,7 @@ export default function BuildYourStackClient({
             {/* Live Nudge */}
             <div className="p-3 rounded-2xl bg-space-950 border border-white/5 text-xs font-mono text-gray-300 flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-alien-green shrink-0" />
-              <span>{calculation.nudgeMessage}</span>
+              <span>{localizedNudge}</span>
             </div>
 
             {/* Line items in Drawer */}
@@ -1068,29 +1099,29 @@ export default function BuildYourStackClient({
             {/* Drawer Financials */}
             <div className="space-y-2 pt-2 border-t border-white/5 text-xs font-mono">
               <div className="flex justify-between text-gray-400">
-                <span>Subtotal</span>
+                <span>{t('common.subtotal')}</span>
                 <span className="text-white line-through">{formatPrice(calculation.rawSubtotal)}</span>
               </div>
               {calculation.rawSubtotal > 0 && (
                 <div className="flex justify-between text-alien-green font-bold">
-                  <span>Pre-Order Launch Offer (25%)</span>
+                  <span>{t('common.launch_discount')} (25%)</span>
                   <span>−{formatPrice(preorderLaunchDiscount)}</span>
                 </div>
               )}
               {calculation.discountAmount > 0 && (
                 <div className="flex justify-between text-alien-green font-bold">
-                  <span>Stack Volume Discount ({calculation.discountPercent}%)</span>
+                  <span>{t('common.stack_discount')} ({calculation.discountPercent}%)</span>
                   <span>−{formatPrice(calculation.discountAmount)}</span>
                 </div>
               )}
               <div className="flex justify-between text-gray-400">
-                <span>Estimated Shipping</span>
+                <span>{t('common.shipping')}</span>
                 <span className="text-white">
-                  {isFreeShipping ? 'FREE' : formatPrice(shippingFee)}
+                  {isFreeShipping ? t('common.free') : formatPrice(shippingFee)}
                 </span>
               </div>
               <div className="flex justify-between text-sm font-bold text-white pt-2 border-t border-white/10">
-                <span>TOTAL DUE</span>
+                <span>{t('common.total')}</span>
                 <span className="text-alien-green font-mono">{formatPrice(estimatedTotal)}</span>
               </div>
             </div>
@@ -1101,7 +1132,7 @@ export default function BuildYourStackClient({
               disabled={stackItems.length === 0 || isSubmitting}
               className="w-full py-3.5 rounded-2xl bg-alien-green text-space-950 font-bold font-mono text-sm uppercase shadow-glow-green flex items-center justify-center gap-2"
             >
-              <span>Pre-order My Stack</span>
+              <span>{t('common.preorder_now')}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>
@@ -1113,14 +1144,13 @@ export default function BuildYourStackClient({
         <div className="max-w-7xl mx-auto container-px">
           <div className="text-center max-w-2xl mx-auto mb-12">
             <span className="text-xs font-mono font-bold uppercase tracking-widest text-alien-green">
-              CURATED PROTOCOLS
+              {t('common.brand_name')}
             </span>
             <h2 className="font-display text-4xl sm:text-5xl text-white uppercase tracking-wider mt-2 mb-4">
-              PRESET STACKS
+              {t('stack.presets_title')}
             </h2>
             <p className="text-gray-400 text-sm leading-relaxed">
-              Engineered by our Swiss laboratory for targeted goals. Load any preset into your
-              stack with a single click, then customize flavors as desired.
+              {t('stack.subtitle')}
             </p>
           </div>
 
@@ -1213,7 +1243,7 @@ export default function BuildYourStackClient({
                       className="w-full py-3 rounded-xl bg-space-950 hover:bg-white/10 text-white border border-white/15 hover:border-alien-green/50 font-mono text-xs font-bold uppercase transition-all duration-200 active:scale-98 flex items-center justify-center gap-1.5"
                     >
                       <Plus className="w-3.5 h-3.5 text-alien-green" />
-                      <span>Load This Stack</span>
+                      <span>{t('stack.build_btn')}</span>
                     </button>
                   </div>
                 </div>
@@ -1227,18 +1257,18 @@ export default function BuildYourStackClient({
       <section className="py-20 max-w-4xl mx-auto container-px">
         <div className="text-center mb-12">
           <span className="text-xs font-mono font-bold uppercase tracking-widest text-alien-green">
-            PROTOCOL INTEL
+            {t('navbar.faq')}
           </span>
           <h2 className="font-display text-4xl sm:text-5xl text-white uppercase tracking-wider mt-2 mb-3">
-            HOW IT WORKS
+            {t('stack_builder.faq_title')}
           </h2>
           <p className="text-gray-400 text-sm">
-            Everything you need to know about stacking, volume discounts, and pre-order shipping.
+            {t('stack_builder.step1_desc')}
           </p>
         </div>
 
         <div className="space-y-3">
-          {FAQ_ITEMS.map((faq, idx) => {
+          {localizedFaqItems.map((faq, idx) => {
             const isOpen = openFaqIndex === idx
             return (
               <div

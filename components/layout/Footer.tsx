@@ -16,12 +16,21 @@ export default function Footer() {
     { href: '/products/category/marine-collagen', label: 'Marine Collagen' },
   ]
 
+  const ambassadorLabels: Record<string, string> = {
+    fr: 'Équipe Ambassadeurs',
+    en: 'Ambassador Team',
+    de: 'Botschafter-Team',
+    it: 'Team Ambassador',
+    es: 'Equipo de Embajadores',
+    pt: 'Equipa de Embaixadores',
+  }
+
   const companyLinks = [
     { href: '/pages/about', label: t('footer.about_link') },
     { href: '/pages/shipping', label: t('footer.shipping_link') },
     { href: '/pages/faq', label: t('footer.faq_link') },
     { href: '/pages/contact', label: t('footer.contact_link') },
-    { href: '/affiliate', label: 'Ambassador Team' },
+    { href: '/pages/affiliate', label: ambassadorLabels[locale] || 'Ambassador Team' },
   ]
 
   // Complete list of ALL 10 science-backed calculators using canonical locale slugs

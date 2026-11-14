@@ -918,7 +918,12 @@ export const EMAIL_DICTIONARY: Record<Locale, Record<EmailTemplateKey, TemplateC
       ctaUrlKey: 'admin_coupon_url',
     },
   },
+  es: {} as any,
+  pt: {} as any,
 }
+// Fill es and pt with English base fallback
+EMAIL_DICTIONARY.es = EMAIL_DICTIONARY.en
+EMAIL_DICTIONARY.pt = EMAIL_DICTIONARY.en
 
 export const EMAIL_COMMON_LABELS: Record<Locale, Record<string, string>> = {
   fr: {
@@ -997,6 +1002,44 @@ export const EMAIL_COMMON_LABELS: Record<Locale, Record<string, string>> = {
     batch_notice: 'Preordine Lotto 01 · Spedizione 2a settimana di dicembre 2026',
     tracking: 'Numero di tracciamento',
   },
+  es: {
+    order_number: 'Número de pedido',
+    order_date: 'Fecha',
+    payment_method: 'Método de pago',
+    delivery_address: 'Dirección de entrega',
+    delivery_method: 'Método de envío',
+    carrier_swiss_post: 'Swiss Post (PostPac Priority)',
+    subtotal: 'Subtotal',
+    launch_discount: 'Descuento de lanzamiento Lote 01',
+    stack_discount: 'Descuento por volumen Stack',
+    shipping: 'Envío',
+    free: 'GRATUITO',
+    total: 'Total',
+    tagline: 'Tecnología de Rendimiento Alien. Suplementos de élite formulados en laboratorios suizos.',
+    questions: '¿Preguntas?',
+    unsubscribe: 'Darse de baja',
+    batch_notice: 'Reserva Lote 01 · Envío 2ª semana de diciembre de 2026',
+    tracking: 'Número de seguimiento',
+  },
+  pt: {
+    order_number: 'Número de encomenda',
+    order_date: 'Data',
+    payment_method: 'Método de pagamento',
+    delivery_address: 'Morada de entrega',
+    delivery_method: 'Método de envio',
+    carrier_swiss_post: 'Swiss Post (PostPac Priority)',
+    subtotal: 'Subtotal',
+    launch_discount: 'Desconto de lançamento Lote 01',
+    stack_discount: 'Desconto por volume Stack',
+    shipping: 'Envio',
+    free: 'GRÁTIS',
+    total: 'Total',
+    tagline: 'Tecnologia de Desempenho Alien. Suplementos de elite formulados em laboratórios suíços.',
+    questions: 'Dúvidas?',
+    unsubscribe: 'Cancelar subscrição',
+    batch_notice: 'Reserva Lote 01 · Envio 2ª semana de dezembro de 2026',
+    tracking: 'Número de rastreio',
+  },
 }
 
 /**
@@ -1015,7 +1058,7 @@ export function buildLocalizedEmailHtml({
   variables?: Record<string, any>
   appUrl?: string
 }): { subject: string; html: string } {
-  const safeLocale: Locale = (['fr', 'en', 'de', 'it'].includes(locale) ? locale : DEFAULT_LOCALE) as Locale
+  const safeLocale: Locale = (['fr', 'en', 'de', 'it', 'es', 'pt'].includes(locale) ? locale : DEFAULT_LOCALE) as Locale
   const dict = EMAIL_DICTIONARY[safeLocale]?.[templateKey] || EMAIL_DICTIONARY[DEFAULT_LOCALE][templateKey]
   const labels = EMAIL_COMMON_LABELS[safeLocale] || EMAIL_COMMON_LABELS[DEFAULT_LOCALE]
 

@@ -3,6 +3,8 @@ import { fr } from "./fr";
 import { en } from "./en";
 import { de } from "./de";
 import { it } from "./it";
+import { es } from "./es";
+import { pt } from "./pt";
 
 export type ToolContent = {
   cardTitle: string;
@@ -25,4 +27,4 @@ export type LocaleContent = {
   tools: Record<ToolId, ToolContent>;
 };
 
-export const CONTENT: Record<Locale, LocaleContent> = { fr, en, de, it };
+export const CONTENT: Record<Locale, LocaleContent> = { fr, en, de, it, es, pt };

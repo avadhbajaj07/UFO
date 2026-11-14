@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
 import {
   Package,
   FlaskConical,
@@ -11,103 +10,93 @@ import {
   ChevronDown,
   HelpCircle,
 } from 'lucide-react'
-
-const faqData = [
-  {
-    category: 'Orders & Shipping',
-    icon: Package,
-    items: [
-      {
-        q: 'How long does shipping take?',
-        a: 'Standard shipping within Switzerland takes 2-3 business days. Express delivery is available for next-day delivery. International orders to EU countries typically arrive within 5-7 business days.',
-      },
-      {
-        q: 'Do you ship internationally?',
-        a: 'Yes! We ship to all EU countries and select international destinations. Free shipping on Swiss orders over CHF 75.',
-      },
-      {
-        q: 'How can I track my order?',
-        a: 'Once your order ships, you will receive a tracking number via email. Track your package on our website or directly through Swiss Post/DHL.',
-      },
-    ],
-  },
-  {
-    category: 'Products & Ingredients',
-    icon: FlaskConical,
-    items: [
-      {
-        q: 'Are your products third-party tested?',
-        a: 'All UFO LABZ supplements are third-party tested for purity and potency in Swiss GMP-certified facilities.',
-      },
-      {
-        q: 'Are your supplements vegan-friendly?',
-        a: 'Most of our products are vegan-friendly. Check each product page for specific dietary information.',
-      },
-      {
-        q: 'What makes UFO LABZ different?',
-        a: 'We combine Swiss precision with cutting-edge sports science. Every formula uses only premium-grade, transparently-dosed ingredients.',
-      },
-    ],
-  },
-  {
-    category: 'Payments & Billing',
-    icon: CreditCard,
-    items: [
-      {
-        q: 'What payment methods do you accept?',
-        a: 'Visa, Mastercard, TWINT, SEPA bank transfers, and PayPal. All secured with 256-bit SSL encryption.',
-      },
-      {
-        q: 'Can I pay with TWINT?',
-        a: 'Absolutely! TWINT is our most popular payment method. Select TWINT at checkout and confirm in your TWINT app.',
-      },
-    ],
-  },
-  {
-    category: 'Returns & Refunds',
-    icon: RotateCcw,
-    items: [
-      {
-        q: 'What is your return policy?',
-        a: 'All sales are final. We do not accept returns or issue refunds except in the case of products that arrive damaged, defective, or incorrect. If this applies to your order, contact support@ufolabz.com within 7 days of delivery with your order number and a clear photo of the issue.',
-      },
-      {
-        q: 'How long do refunds take?',
-        a: 'If your claim for a damaged or incorrect item is approved, refunds are processed back to your original payment method within 5–7 business days.',
-      },
-    ],
-  },
-  {
-    category: 'Affiliate Program',
-    icon: Users,
-    items: [
-      {
-        q: 'How do I become an affiliate?',
-        a: 'Visit our Affiliate Program page to apply. Once approved, you get a unique referral link, dashboard access, and marketing materials.',
-      },
-      {
-        q: 'What commission rates do you offer?',
-        a: 'Standard commission is 15-25% per sale depending on product category. Top performers unlock higher tiers.',
-      },
-    ],
-  },
-]
+import { useTranslation, Link } from '@/lib/i18n'
 
 export default function FAQPageClient() {
-  const [openItems, setOpenItems] = useState<Record<string, boolean>>({})
+  const { t } = useTranslation()
+  const [openItems, setOpenItems] = useState<Record<string, boolean>>({
+    'orders-0': true,
+    'preorders-0': true,
+  })
 
   const toggle = (key: string) => {
     setOpenItems((prev) => ({
       ...prev,
-      [key]: !prev[key]
+      [key]: !prev[key],
     }))
   }
+
+  const faqData = [
+    {
+      id: 'preorders',
+      category: t('faq_page.cat_preorders'),
+      icon: Package,
+      items: [
+        {
+          q: t('faq_page.q_preorder_cancel'),
+          a: t('faq_page.a_preorder_cancel'),
+        },
+        {
+          q: t('faq_page.q_preorder_dispatch'),
+          a: t('faq_page.a_preorder_dispatch'),
+        },
+      ],
+    },
+    {
+      id: 'orders',
+      category: t('faq_page.cat_orders'),
+      icon: Package,
+      items: [
+        {
+          q: t('faq_page.q_shipping_time'),
+          a: t('faq_page.a_shipping_time'),
+        },
+        {
+          q: t('faq_page.q_intl_shipping'),
+          a: t('faq_page.a_intl_shipping'),
+        },
+        {
+          q: t('faq_page.q_track_order'),
+          a: t('faq_page.a_track_order'),
+        },
+      ],
+    },
+    {
+      id: 'products',
+      category: t('faq_page.cat_products'),
+      icon: FlaskConical,
+      items: [
+        {
+          q: t('faq_page.q_lab_testing'),
+          a: t('faq_page.a_lab_testing'),
+        },
+        {
+          q: t('faq_page.q_vegan'),
+          a: t('faq_page.a_vegan'),
+        },
+        {
+          q: t('faq_page.q_what_makes_diff'),
+          a: t('faq_page.a_what_makes_diff'),
+        },
+      ],
+    },
+    {
+      id: 'payments',
+      category: t('faq_page.cat_payments'),
+      icon: CreditCard,
+      items: [
+        {
+          q: t('faq_page.q_payment_methods'),
+          a: t('faq_page.a_payment_methods'),
+        },
+      ],
+    },
+  ]
 
   return (
     <div className="pt-24">
       {/* ── Hero ── */}
       <section className="pt-28 pb-12 text-center relative overflow-hidden">
-        {/* Ambient nebula glows */}
         <div
           className="absolute top-0 left-1/4 w-[600px] h-[600px] rounded-full opacity-[0.06] pointer-events-none"
           style={{
@@ -125,59 +114,58 @@ export default function FAQPageClient() {
 
         <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <p className="text-xs font-mono font-bold uppercase tracking-[0.3em] text-alien-green mb-4">
-            SUPPORT CENTER
+            SUPPORT & FAQ
           </p>
-          <h1 className="font-display text-5xl md:text-7xl tracking-wider mb-6">
-            FREQUENTLY ASKED QUESTIONS
+          <h1 className="font-display text-4xl sm:text-6xl md:text-7xl tracking-wider mb-6 text-white uppercase">
+            {t('faq_page.title')}
           </h1>
-          <p className="text-lg text-muted max-w-2xl mx-auto">
-            Everything you need to know about UFO LABZ products, orders, and
-            more. Can&apos;t find what you&apos;re looking for? Reach out to our
-            support team.
+          <p className="text-base sm:text-lg text-muted max-w-2xl mx-auto leading-relaxed">
+            {t('faq_page.subtitle')}
           </p>
         </div>
       </section>
 
       {/* ── FAQ Accordion ── */}
-      <section className="py-16 md:py-24">
+      <section className="py-12 md:py-20">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           {faqData.map((category) => (
-            <div key={category.category} className="mb-10">
+            <div key={category.id} className="mb-10">
               {/* Category header */}
               <div className="flex items-center gap-3 mb-5">
-                <category.icon className="w-5 h-5 text-nebula-400" />
-                <h2 className="font-display text-2xl tracking-wider">
+                <category.icon className="w-5 h-5 text-alien-green" />
+                <h2 className="font-display text-xl sm:text-2xl tracking-wider text-white">
                   {category.category}
                 </h2>
               </div>
 
               {/* Items */}
               {category.items.map((item, idx) => {
-                const key = `${category.category}-${idx}`
+                const key = `${category.id}-${idx}`
                 const isOpen = !!openItems[key]
 
                 return (
                   <div
                     key={key}
-                    className="card-glass rounded-xl mb-3 overflow-hidden"
+                    className="card-glass rounded-xl mb-3 overflow-hidden border border-white/5 hover:border-alien-green/30 transition-all"
                   >
                     <button
+                      type="button"
                       onClick={() => toggle(key)}
                       className="w-full flex justify-between items-center p-5 text-left hover:bg-white/[0.02] transition-colors"
                     >
-                      <span className="text-sm font-medium text-white">
+                      <span className="text-sm font-medium text-white pr-4">
                         {item.q}
                       </span>
                       <ChevronDown
-                        className={`w-4 h-4 text-muted transition-transform duration-300 flex-shrink-0 ml-4 ${
-                          isOpen ? 'rotate-180' : ''
+                        className={`w-4 h-4 text-muted transition-transform duration-300 flex-shrink-0 ${
+                          isOpen ? 'rotate-180 text-alien-green' : ''
                         }`}
                       />
                     </button>
 
                     {isOpen && (
-                      <div className="px-5 pb-5">
-                        <div className="border-t border-white/[0.04] pt-4 text-sm text-muted leading-relaxed">
+                      <div className="px-5 pb-5 animate-fade-in">
+                        <div className="border-t border-white/[0.04] pt-4 text-sm text-gray-300 leading-relaxed">
                           {item.a}
                         </div>
                       </div>
@@ -191,20 +179,20 @@ export default function FAQPageClient() {
       </section>
 
       {/* ── Bottom CTA ── */}
-      <section className="max-w-3xl mx-auto mt-12 mb-16 px-4 sm:px-6 lg:px-8">
-        <div className="card-glass p-8 text-center">
-          <HelpCircle className="w-10 h-10 text-nebula-400 mx-auto mb-4" />
-          <h2 className="font-display text-2xl tracking-wider mb-2">
-            Still have questions?
+      <section className="max-w-3xl mx-auto mb-20 px-4 sm:px-6 lg:px-8">
+        <div className="card-glass p-8 sm:p-10 text-center">
+          <HelpCircle className="w-10 h-10 text-alien-green mx-auto mb-4" />
+          <h2 className="font-display text-2xl tracking-wider mb-2 text-white">
+            {t('contact_page.title')}
           </h2>
-          <p className="text-sm text-muted mb-6">
-            Our support team is here to help you with anything you need.
+          <p className="text-sm text-muted mb-6 max-w-md mx-auto">
+            {t('contact_page.subtitle')}
           </p>
           <Link
             href="/pages/contact"
-            className="btn-primary inline-flex items-center gap-2"
+            className="py-3 px-6 rounded-xl font-mono text-xs sm:text-sm font-bold bg-alien-green text-space-950 hover:bg-alien-green/90 shadow-glow-green transition-all inline-flex items-center gap-2"
           >
-            CONTACT US
+            <span>{t('navbar.contact')}</span>
           </Link>
         </div>
       </section>

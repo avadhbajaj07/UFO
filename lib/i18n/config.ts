@@ -3,7 +3,7 @@
  * Supported locales: fr (Default, no URL prefix), en, de, it.
  */
 
-export const LOCALES = ['fr', 'en', 'de', 'it'] as const
+export const LOCALES = ['fr', 'en', 'de', 'it', 'es', 'pt'] as const
 export type Locale = (typeof LOCALES)[number]
 
 export const DEFAULT_LOCALE: Locale = 'fr'
@@ -55,6 +55,24 @@ export const LOCALE_METAS: Record<Locale, LocaleMeta> = {
     htmlLang: 'it-CH',
     currencyFallback: 'CHF',
   },
+  es: {
+    code: 'es',
+    name: 'Spanish',
+    nativeName: 'Español',
+    flag: '🇪🇸',
+    ogLocale: 'es_ES',
+    htmlLang: 'es-ES',
+    currencyFallback: 'EUR',
+  },
+  pt: {
+    code: 'pt',
+    name: 'Portuguese',
+    nativeName: 'Português',
+    flag: '🇵🇹',
+    ogLocale: 'pt_PT',
+    htmlLang: 'pt-PT',
+    currencyFallback: 'EUR',
+  },
 }
 
 export function isValidLocale(val: unknown): val is Locale {
@@ -83,7 +101,7 @@ export function getLocalePath(path: string, locale: Locale): string {
 export function stripLocalePrefix(pathname: string): string {
   if (!pathname) return '/'
   const normalized = pathname.startsWith('/') ? pathname : `/${pathname}`
-  const regex = /^\/(en|de|it|fr)(\/|$)/
+  const regex = /^\/(en|de|it|es|pt|fr)(\/|$)/
   const replaced = normalized.replace(regex, '/')
   return replaced.length > 1 && replaced.endsWith('/') ? replaced.slice(0, -1) : replaced || '/'
 }
@@ -113,6 +131,8 @@ export function detectLocaleFromAcceptLanguage(header: string | null | undefined
     if (lang.startsWith('fr')) return 'fr'
     if (lang.startsWith('de')) return 'de'
     if (lang.startsWith('it')) return 'it'
+    if (lang.startsWith('es')) return 'es'
+    if (lang.startsWith('pt')) return 'pt'
     if (lang.startsWith('en')) return 'en'
   }
   return DEFAULT_LOCALE

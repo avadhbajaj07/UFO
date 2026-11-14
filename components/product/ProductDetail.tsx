@@ -20,6 +20,7 @@ import { getLocalizedField } from '@/types'
 import { useCart } from '@/hooks/useCart'
 import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
+import { useTranslation } from '@/lib/i18n'
 
 interface Props {
   product: any
@@ -44,6 +45,7 @@ const TRUST_BADGES = [
 export default function ProductDetail({ product: serverProduct, slug }: { product: any; slug?: string }) {
   const router = useRouter()
   const { addItem, isLoading } = useCart()
+  const { t, locale, currency, formatPrice: formatCurrency } = useTranslation()
 
   // States
   const [product, setProduct] = useState<any>(serverProduct)
@@ -263,14 +265,14 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
     if (!field) return ''
     if (typeof field === 'string') return field
     if (typeof field === 'object') {
-      return field.en || field.de || Object.values(field)[0] || ''
+      return field[locale] || field.fr || field.en || Object.values(field)[0] || ''
     }
     return String(field)
   }
 
   const rawName = safeText(product.name)
   const name = getProductDisplayName(product.slug, stripFlavorSuffix(rawName))
-  const tagline = getCleanTagline(product)
+  const tagline = getCleanTagline(product, locale)
   const formatPill = getProductFormat(product)
   const desc = safeText(product.description)
   const shortDesc = safeText(product.short_description)
@@ -283,7 +285,6 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
         'Vegan, GMP, HACCP, and gluten-free positioning where shown on pack.'
       ]
 
-  const { currency, formatPrice: formatCurrency } = useCurrency()
   const selectedVariant = product.variants?.find((v: any) => v.id === selectedVariantId) ?? product.variants?.[0]
   const canonicalPrice = getCanonicalUnitPrice(product.slug, currency, selectedVariant?.price ?? product.base_price)
 
@@ -390,7 +391,7 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
 
         {showSupport && (
           <div className="absolute bottom-16 right-0 w-64 bg-space-900 border border-white/10 rounded-2xl p-4 shadow-2xl space-y-2 backdrop-blur-xl">
-            <h4 className="text-xs font-mono font-bold tracking-widest text-muted text-gray-400 mb-2 uppercase">MISSION SUPPORT</h4>
+            <h4 className="text-xs font-mono font-bold tracking-widest text-muted text-gray-400 mb-2 uppercase">{t('product_detail.mission_support')}</h4>
 
             <a
               href="https://wa.me/41790000000"
@@ -402,8 +403,8 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
                 <Phone className="w-4 h-4 text-green-500" />
               </div>
               <div className="text-left">
-                <div className="font-bold text-xs">WhatsApp Dispatch</div>
-                <div className="text-[10px] text-gray-400">Response time: ~5 mins</div>
+                <div className="font-bold text-xs">{t('product_detail.whatsapp_dispatch')}</div>
+                <div className="text-[10px] text-gray-400">{t('product_detail.response_time_5m')}</div>
               </div>
             </a>
 
@@ -412,8 +413,8 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
                 <MessageCircle className="w-4 h-4 text-blue-500" />
               </div>
               <div className="text-left">
-                <div className="font-bold text-xs">Live Chat Desk</div>
-                <div className="text-[10px] text-gray-400">Online now</div>
+                <div className="font-bold text-xs">{t('product_detail.live_chat')}</div>
+                <div className="text-[10px] text-gray-400">{t('product_detail.online_now')}</div>
               </div>
             </div>
 
@@ -425,8 +426,8 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
                 <FlaskConical className="w-4 h-4 text-alien-green" />
               </div>
               <div className="text-left">
-                <div className="font-bold text-xs">AI Lab Assistant</div>
-                <div className="text-[10px] text-gray-400">Instant AI response</div>
+                <div className="font-bold text-xs">{t('product_detail.ai_assistant')}</div>
+                <div className="text-[10px] text-gray-400">{t('product_detail.instant_ai')}</div>
               </div>
             </div>
           </div>
@@ -451,7 +452,7 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
 
               {/* Slider tabs */}
               <div className="flex items-center gap-2 bg-space-900 border border-white/5 p-1 rounded-xl w-fit">
-                {['01. Formula Info', '02. Ingredient Stats', '03. Flavor Fusion'].map((tabLabel, idx) => (
+                {[t('product_detail.tab_formula'), t('product_detail.tab_ingredients'), t('product_detail.tab_flavor')].map((tabLabel, idx) => (
                   <button
                     key={tabLabel}
                     onClick={() => setActiveSlide(idx)}
@@ -479,9 +480,13 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
                           <span className="text-white/20">|</span>
                         </>
                       ) : null}
-                      <span className="text-xs text-alien-green bg-alien-green/10 border border-alien-green/20 px-2 py-0.5 rounded-full uppercase tracking-wider font-mono">Swiss engineered</span>
+                      <span className="text-xs text-alien-green bg-alien-green/10 border border-alien-green/20 px-2 py-0.5 rounded-full uppercase tracking-wider font-mono">
+                        {t('product_detail.swiss_engineered')}
+                      </span>
                       <span className="text-white/20">|</span>
-                      <span className="text-xs text-alien-green/80 font-mono uppercase tracking-wider">Batch 01 Pre-order</span>
+                      <span className="text-xs text-alien-green/80 font-mono uppercase tracking-wider">
+                        {t('product_detail.batch_preorder')}
+                      </span>
                     </div>
 
                     <h1 className="font-display text-5xl md:text-7xl tracking-wider text-white uppercase leading-none">
@@ -493,11 +498,11 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
                     <div className="flex flex-wrap gap-6 pt-4 text-sm text-gray-400">
                       <div className="flex items-center gap-2">
                         <CheckCircle2 className="w-4 h-4 text-alien-green" />
-                        <span>Maximum bio-availability</span>
+                        <span>{t('product_detail.max_bioavailability')}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <CheckCircle2 className="w-4 h-4 text-alien-green" />
-                        <span>Zero artificial fillers</span>
+                        <span>{t('product_detail.zero_fillers')}</span>
                       </div>
                     </div>
                   </div>
@@ -702,7 +707,7 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
 
             {/* Batch 01 Allocation & Delivery Guarantees */}
             <div className="space-y-6">
-              <h3 className="font-display text-3xl tracking-wide uppercase text-white">BATCH 01 ALLOCATION</h3>
+              <h3 className="font-display text-3xl tracking-wide uppercase text-white">{t('common.batch_badge')}</h3>
 
               <div className="bg-space-950 border border-white/5 rounded-2xl p-5 space-y-4">
                 <div className="flex items-start gap-3.5">
@@ -710,9 +715,9 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
                     <Sparkles className="w-4 h-4 text-alien-green" />
                   </div>
                   <div>
-                    <div className="font-bold text-sm text-white">Guaranteed Batch 01 Reservation</div>
+                    <div className="font-bold text-sm text-white">{t('product_detail.batch_dispatch_notice')}</div>
                     <div className="text-xs text-gray-400 mt-0.5">
-                      Your order locks in fresh clinical allocation directly from our first Swiss production run.
+                      {t('preorder_page.sec1_desc')}
                     </div>
                   </div>
                 </div>
@@ -722,9 +727,9 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
                     <Shield className="w-4 h-4 text-cyan-400" />
                   </div>
                   <div>
-                    <div className="font-bold text-sm text-white">100% Refundable Anytime</div>
+                    <div className="font-bold text-sm text-white">{t('product_detail.risk_free_title')}</div>
                     <div className="text-xs text-gray-400 mt-0.5">
-                      Change your mind anytime before shipment for an immediate 100% full refund with zero penalty.
+                      {t('product_detail.risk_free_desc')}
                     </div>
                   </div>
                 </div>
@@ -735,12 +740,10 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
                   </div>
                   <div>
                     <div className="font-bold text-sm text-white">
-                      {currency === 'EUR' ? 'Tracked European Delivery' : 'Tracked Swiss Delivery'}
+                      {t('product_detail.fast_shipping')}
                     </div>
                     <div className="text-xs text-gray-400 mt-0.5">
-                      {currency === 'EUR'
-                        ? 'Direct tracked dispatch across Europe. Free EU delivery on orders from €75.'
-                        : 'Direct tracked dispatch throughout Switzerland. Free Swiss delivery on orders from CHF 75.'}
+                      {currency === 'EUR' ? t('products.free_eu_shipping') : t('products.free_swiss_shipping')}
                     </div>
                   </div>
                 </div>
@@ -752,9 +755,9 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
                   <Truck className="w-5 h-5 text-alien-green" />
                 </div>
                 <div className="text-left text-xs">
-                  <div className="font-bold text-white">Batch 01 Dispatch Schedule</div>
+                  <div className="font-bold text-white">{t('products.batch_details')}</div>
                   <div className="text-gray-400">
-                    Expected shipment: <strong className="text-white font-mono">{PREORDER_CONFIG.estimatedShipDate}</strong>.
+                    {t('common.batch_ship_notice')}
                   </div>
                 </div>
               </div>
@@ -783,7 +786,7 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
               <div className="space-y-2 pb-4 border-b border-white/5">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-mono uppercase tracking-wider text-gray-400 font-semibold">
-                    Format
+                    {t('products.format_label')}
                   </span>
                   <span className="text-xs font-bold text-white font-mono">
                     {formatPill}
@@ -800,7 +803,7 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
                 <div className="space-y-3 pb-5 border-b border-white/5">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-mono uppercase tracking-wider text-gray-400 font-semibold flex items-center gap-1.5">
-                      <span>Select Flavor</span>
+                      <span>{t('products.select_flavor')}</span>
                       <span className="text-[10px] text-gray-500 font-sans font-normal">
                         ({flavors.length} options)
                       </span>
@@ -894,7 +897,7 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
                 <div className="space-y-2 pb-5 border-b border-white/5">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-mono uppercase tracking-wider text-gray-400 font-semibold">
-                      Flavor
+                      {t('products.flavor_label')}
                     </span>
                     <span className="text-xs font-bold text-white flex items-center gap-1.5 font-mono">
                       <span
@@ -915,31 +918,29 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
               <div className="bg-space-900 border border-alien-green/20 p-3.5 rounded-2xl space-y-1.5">
                 <div className="flex items-center gap-2 text-xs font-semibold text-alien-green">
                   <Truck className="w-4 h-4 text-alien-green shrink-0" />
-                  <span>{PREORDER_CONFIG.estimatedShipNotice}</span>
+                  <span>{t('common.batch_ship_notice')}</span>
                 </div>
                 <p className="text-[11px] text-gray-400 leading-relaxed">
-                  {currency === 'EUR'
-                    ? 'Tracked European Priority Dispatch · Free shipping on orders from €75.'
-                    : 'Tracked Swiss Priority Dispatch · Free shipping in Switzerland on orders from CHF 75.'}
+                  {currency === 'EUR' ? t('products.free_eu_shipping') : t('products.free_swiss_shipping')}
                 </p>
               </div>
 
               {/* Price Breakdown */}
               <div className="space-y-2.5 text-sm">
                 <div className="flex justify-between text-gray-400">
-                  <span>Retail Price</span>
+                  <span>{t('common.subtotal')}</span>
                   <span className="line-through">{formatCurrency(canonicalPrice)}</span>
                 </div>
                 <div className="flex justify-between text-alien-green font-bold">
-                  <span>Pre-Order Launch Offer (25% Off)</span>
+                  <span>{t('common.launch_discount')}</span>
                   <span>{formatCurrency(finalPricePerUnit)}</span>
                 </div>
                 <div className="flex justify-between text-gray-400">
-                  <span>Quantity</span>
+                  <span>{t('common.quantity')}</span>
                   <span>{quantity}x</span>
                 </div>
                 <div className="flex justify-between font-bold text-white text-lg pt-3 border-t border-white/5">
-                  <span>Total (incl. VAT)</span>
+                  <span>{t('common.total')}</span>
                   <div className="text-right">
                     <span className="text-xl text-alien-green font-bold font-mono">{formatCurrency(totalFinalPrice)}</span>
                     {totalOriginalPrice > totalFinalPrice && (
@@ -990,7 +991,7 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
                     style={{ backgroundColor: color }}
                   >
                     <ShoppingBag className="w-5 h-5" />
-                    {isLoading ? 'Reserving...' : PREORDER_CONFIG.actionButtonText}
+                    {isLoading ? t('common.loading') : t('common.add_to_cart')}
                   </button>
                 </div>
 
@@ -999,7 +1000,7 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
                   onClick={handleBuyNow}
                   className="w-full h-14 bg-white hover:bg-gray-100 text-space-950 font-bold rounded-xl transition-all active:scale-98 flex items-center justify-center gap-2 text-base shadow-lg"
                 >
-                  <span>Pre-order Checkout</span>
+                  <span>{t('common.checkout')}</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
 
@@ -1007,13 +1008,13 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
                 <div className="pt-3 border-t border-white/5 space-y-1.5">
                   <div className="flex items-center gap-2 text-xs font-bold text-white uppercase tracking-wider">
                     <Shield className="w-4 h-4 text-alien-green" />
-                    <span>100% Risk-Free Pre-Order Guarantee</span>
+                    <span>{t('product_detail.risk_free_title')}</span>
                   </div>
                   <p className="text-[11px] text-gray-400 leading-relaxed">
-                    Cancel anytime before shipment for a 100% full refund with zero penalty. Batch allocation reserved immediately upon order placement.
+                    {t('product_detail.risk_free_desc')}
                   </p>
                   <Link href="/pages/pre-order" className="text-[11px] text-alien-green hover:underline inline-flex items-center gap-1 font-mono">
-                    View Pre-Order Policy &rarr;
+                    {t('footer.preorder_policy')} &rarr;
                   </Link>
                 </div>
 
@@ -1048,12 +1049,12 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
         {/* Tabs switcher headers */}
         <div className="flex flex-wrap border-b border-white/5 gap-4 md:gap-8 mb-8">
           {[
-            { id: 'benefits', label: 'Key Benefits' },
-            { id: 'ingredients', label: 'Ingredients matrix' },
-            { id: 'nutrition', label: 'Nutrition Facts' },
-            { id: 'usage', label: 'Usage & Warnings' },
-            { id: 'faqs', label: 'FAQs' },
-            { id: 'shipping', label: 'Shipping & Returns' }
+            { id: 'benefits', label: t('products.key_benefits') },
+            { id: 'ingredients', label: t('products.ingredients') },
+            { id: 'nutrition', label: t('products.ingredients') },
+            { id: 'usage', label: t('products.usage') },
+            { id: 'faqs', label: 'FAQ' },
+            { id: 'shipping', label: t('shipping_page.title') }
           ].map((tab) => (
             <button
               key={tab.id}

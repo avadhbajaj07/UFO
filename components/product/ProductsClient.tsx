@@ -2,11 +2,9 @@
 // components/product/ProductsClient.tsx
 import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
 import Image from 'next/image'
 import { Star, ShoppingBag, SlidersHorizontal, Layers, Calculator } from 'lucide-react'
-import { useCurrency } from '@/hooks/useCurrency'
-import { formatPrice } from '@/lib/utils/pricing'
+import { useTranslation, Link } from '@/lib/i18n'
 import { getCanonicalUnitPrice, getPreorderLaunchPrice } from '@/lib/config/pricing'
 import { PREORDER_CONFIG } from '@/lib/config/preorder'
 import { getProductFlavors } from '@/lib/config/flavors'
@@ -15,14 +13,6 @@ import { getLocalizedField } from '@/types'
 import { stripFlavorSuffix, getProductFormat, getCleanTagline } from '@/lib/products/format'
 import { useCart } from '@/hooks/useCart'
 import { cn } from '@/lib/utils'
-
-const SORT_OPTIONS = [
-  { value: 'sort_order', label: 'Featured' },
-  { value: 'price_asc', label: 'Price: Low to High' },
-  { value: 'price_desc', label: 'Price: High to Low' },
-  { value: 'rating', label: 'Top Rated' },
-  { value: 'newest', label: 'Newest' },
-]
 
 interface Props {
   products: any[]
@@ -42,7 +32,7 @@ function ProductLoopCard({
   addItem: any
   isLoading: boolean
 }) {
-  const { currency } = useCurrency()
+  const { t, locale, currency, formatPrice } = useTranslation()
   const { flavors } = getProductFlavors(product.slug)
   const [selectedFlavorSlug, setSelectedFlavorSlug] = useState<string>(
     flavors[0]?.slug ?? product.slug
@@ -52,7 +42,7 @@ function ProductLoopCard({
     flavors.find((f) => f.slug === selectedFlavorSlug) ?? flavors[0] ?? null
 
   const color = activeFlavor?.color ?? product.product_color ?? '#00FF88'
-  const rawName = getLocalizedField(product.name)
+  const rawName = getLocalizedField(product.name, locale)
   const name = getProductDisplayName(product.slug, stripFlavorSuffix(rawName))
   const tagline = getCleanTagline(product)
   const formatPill = getProductFormat(product)
@@ -82,7 +72,7 @@ function ProductLoopCard({
         }}
       />
 
-      {/* Image container (badges overlay removed cleanly as requested) */}
+      {/* Image container */}
       <div className="relative">
         <Link
           href={`/products/${targetSlug}`}
@@ -140,11 +130,11 @@ function ProductLoopCard({
           {flavors.length > 0 && (
             <div className="my-2.5 space-y-1.5">
               <div className="text-[10px] font-mono text-gray-400 uppercase tracking-wider flex justify-between items-center">
-                <span>{flavors.length > 1 ? 'Flavor:' : (product.slug.includes('magnesium') ? 'Format:' : 'Flavor:')}</span>
+                <span>{flavors.length > 1 ? t('products.flavor_label') : (product.slug.includes('magnesium') ? t('products.format_label') : t('products.flavor_label'))}</span>
                 <span className="font-bold text-white text-[11px]">
                   {product.slug.includes('magnesium')
-                    ? formatPill.toUpperCase()
-                    : activeFlavor?.flavorName?.toUpperCase() || 'NATURAL TASTE'}
+                    ? t('products.caps_format')
+                    : activeFlavor?.flavorName?.toUpperCase() || t('products.natural_taste')}
                 </span>
               </div>
               <div className={cn('grid gap-1.5', flavors.length > 1 ? 'grid-cols-2' : 'grid-cols-1')}>
@@ -192,7 +182,7 @@ function ProductLoopCard({
               </span>
             </div>
             <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-alien-green/20 border border-alien-green/40 text-alien-green">
-              25% OFF LAUNCH
+              -25% {t('common.save')}
             </span>
           </div>
 
@@ -205,21 +195,21 @@ function ProductLoopCard({
               })
             }
             disabled={isLoading || !variant}
-            className="w-full py-2.5 px-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-1.5 font-mono text-[11px] sm:text-xs font-bold text-space-950 active:scale-95 bg-alien-green hover:bg-alien-green/90 shadow-glow-green"
+            className="w-full py-2.5 px-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-1.5 font-mono text-[11px] sm:text-xs font-bold text-space-950 active:scale-95 bg-alien-green hover:bg-alien-green/90 shadow-glow-green cursor-pointer"
             aria-label={`Pre-order ${name}`}
           >
             <ShoppingBag className="w-3.5 h-3.5 text-space-950" />
-            <span>{PREORDER_CONFIG.actionButtonText}</span>
+            <span>{t('common.preorder_now')}</span>
           </button>
 
           <Link
             href="/build-your-stack"
             className="w-full py-1.5 px-2.5 rounded-xl border border-alien-green/30 hover:border-alien-green/60 text-alien-green hover:bg-alien-green/10 text-center font-mono text-[10px] sm:text-[11px] font-semibold transition-all flex items-center justify-center gap-1"
           >
-            <span>⚡ Add to Custom Stack (Save up to 15%)</span>
+            <span>⚡ {t('navbar.build_stack')} ({t('navbar.save_stack_badge')})</span>
           </Link>
           <p className="text-[9px] text-muted/70 text-center font-mono">
-            {PREORDER_CONFIG.estimatedShipDate}
+            {t('common.batch_ship_notice')}
           </p>
         </div>
       </div>
@@ -232,11 +222,22 @@ export default function ProductsClient({
   categories,
   activeCategory,
   activeSort = 'sort_order',
-  heading = 'THE COLLECTION',
+  heading,
   intro,
 }: Props) {
   const router = useRouter()
+  const { t, locale } = useTranslation()
   const [displayProducts, setDisplayProducts] = useState(products)
+
+  const resolvedHeading = heading && heading !== 'THE COLLECTION' ? heading : t('products.catalog_title')
+
+  const sortOptions = [
+    { value: 'sort_order', label: t('common.brand_name') },
+    { value: 'price_asc', label: `${t('common.subtotal')} ↑` },
+    { value: 'price_desc', label: `${t('common.subtotal')} ↓` },
+    { value: 'rating', label: 'Top Rated' },
+    { value: 'newest', label: 'Newest' },
+  ]
 
   useEffect(() => {
     setDisplayProducts(products)
@@ -280,15 +281,19 @@ export default function ProductsClient({
       {/* Header */}
       <div className="mb-6">
         <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl tracking-wider text-white mb-2 uppercase">
-          {heading}
+          {resolvedHeading}
         </h1>
-        {intro && (
+        {intro ? (
           <p className="text-muted text-sm sm:text-base max-w-3xl leading-relaxed mb-2">
             {intro}
           </p>
+        ) : (
+          <p className="text-muted text-sm sm:text-base max-w-3xl leading-relaxed mb-2">
+            {t('products.catalog_subtitle')}
+          </p>
         )}
         <p className="text-muted text-xs sm:text-sm font-mono">
-          {groupedProducts.length} formulations available for Pre-order
+          {groupedProducts.length} {t('common.batch_badge')}
         </p>
       </div>
 
@@ -301,14 +306,14 @@ export default function ProductsClient({
           <div>
             <div className="flex items-center gap-2">
               <span className="font-mono text-xs uppercase tracking-wider text-alien-green font-bold">
-                Bundle Engine
+                {t('navbar.build_stack')}
               </span>
               <span className="text-[10px] bg-alien-green text-space-950 font-bold px-2 py-0.5 rounded-full font-mono">
-                Save up to 15%
+                {t('navbar.save_stack_badge')}
               </span>
             </div>
             <p className="text-white text-xs sm:text-sm font-semibold mt-0.5">
-              Build your custom stack — pick any 2 products for 10% off, 3+ for 15% off.
+              {t('stack.subtitle')}
             </p>
           </div>
         </div>
@@ -316,7 +321,7 @@ export default function ProductsClient({
           href="/build-your-stack"
           className="whitespace-nowrap px-4 py-2 rounded-xl bg-alien-green text-space-950 font-mono text-xs font-bold hover:bg-alien-green/90 transition-transform active:scale-95 shadow-[0_0_20px_rgba(0,255,136,0.25)]"
         >
-          Build Your Stack →
+          {t('navbar.build_stack')} →
         </Link>
       </div>
 
@@ -333,7 +338,7 @@ export default function ProductsClient({
                 : 'bg-space-900 text-muted border-white/5 hover:border-alien-green/40 hover:text-white'
             )}
           >
-            All Formulations
+            {t('products.catalog_title')}
           </Link>
           {categories.map((cat: any) => (
             <Link
@@ -346,7 +351,7 @@ export default function ProductsClient({
                   : 'bg-space-900 text-muted border-white/5 hover:border-alien-green/40 hover:text-white'
               )}
             >
-              {getLocalizedField(cat.name)}
+              {getLocalizedField(cat.name, locale)}
             </Link>
           ))}
         </div>
@@ -359,7 +364,7 @@ export default function ProductsClient({
             onChange={(e) => setFilter('sort', e.target.value)}
             className="bg-space-800 border border-muted/20 text-xs sm:text-sm text-white rounded-xl px-3 py-2 focus:outline-none focus:border-alien-green/50 font-mono"
           >
-            {SORT_OPTIONS.map((o) => (
+            {sortOptions.map((o) => (
               <option key={o.value} value={o.value}>
                 {o.label}
               </option>
@@ -390,17 +395,17 @@ export default function ProductsClient({
           <div>
             <div className="flex items-center gap-2 mb-1">
               <span className="font-mono text-xs uppercase tracking-wider text-alien-green font-bold">
-                Science-Backed Nutrition Tools
+                {t('navbar.tools')}
               </span>
               <span className="text-[10px] bg-alien-green/20 text-alien-green border border-alien-green/30 px-2 py-0.5 rounded-full font-mono font-bold">
-                100% Free
+                100% {t('common.free')}
               </span>
             </div>
             <h3 className="text-white text-base sm:text-lg font-bold">
-              Know Exactly What Your Body Needs
+              {t('footer.all_calculators')}
             </h3>
             <p className="text-muted text-xs sm:text-sm mt-0.5 max-w-xl">
-              Calculate your daily protein requirements, maintenance calories (TDEE), and optimal macronutrient split tailored to your exact weight and goals.
+              {t('hero.subtitle')}
             </p>
           </div>
         </div>
@@ -408,15 +413,15 @@ export default function ProductsClient({
           href="/tools"
           className="whitespace-nowrap px-5 py-3 rounded-xl bg-alien-green text-space-950 font-mono text-xs sm:text-sm font-bold hover:bg-alien-green/90 transition-all active:scale-95 shadow-[0_0_20px_rgba(0,255,136,0.25)] shrink-0"
         >
-          Explore Free Calculators →
+          {t('navbar.tools')} →
         </Link>
       </div>
 
       {groupedProducts.length === 0 && (
         <div className="text-center py-20">
-          <p className="text-muted text-lg">No formulations found.</p>
+          <p className="text-muted text-lg">{t('common.error')}</p>
           <Link href="/products" className="btn-outline mt-4">
-            Clear filters
+            {t('common.try_again')}
           </Link>
         </div>
       )}

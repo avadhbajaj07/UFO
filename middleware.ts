@@ -72,7 +72,7 @@ export async function middleware(request: NextRequest) {
   let rewriteUrl: URL | null = null
 
   if (!isStaticOrSystem) {
-    const localePrefixMatch = pathname.match(/^\/(en|de|it)(\/|$)/)
+    const localePrefixMatch = pathname.match(/^\/(en|de|it|es|pt)(\/|$)/)
     if (localePrefixMatch) {
       activeLocale = localePrefixMatch[1] as Locale
 

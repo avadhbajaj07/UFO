@@ -15,7 +15,7 @@ function getKeys(obj: any, prefix = ''): string[] {
 }
 
 const messagesDir = path.join(process.cwd(), 'messages')
-const locales = ['fr', 'en', 'de', 'it']
+const locales = ['fr', 'en', 'de', 'it', 'es', 'pt']
 
 console.log('--- Verifying i18n Translation Parity ---')
 

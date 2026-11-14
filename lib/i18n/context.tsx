@@ -16,6 +16,8 @@ import frDict from '@/messages/fr.json'
 import enDict from '@/messages/en.json'
 import deDict from '@/messages/de.json'
 import itDict from '@/messages/it.json'
+import esDict from '@/messages/es.json'
+import ptDict from '@/messages/pt.json'
 import { formatCurrencyPrice, SupportedCurrency } from '@/lib/config/pricing'
 import { createClient } from '@/lib/supabase/client'
 import { useCurrencyStore } from '@/store/currency'
@@ -25,6 +27,8 @@ const DICTIONARIES: Record<Locale, any> = {
   en: enDict,
   de: deDict,
   it: itDict,
+  es: esDict,
+  pt: ptDict,
 }
 
 export interface I18nContextValue {

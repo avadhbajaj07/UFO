@@ -16,6 +16,8 @@ const COPY: Record<Locale, { subject: (t: string) => string; hi: string; foot: s
   en: { subject: (t) => `Your result: ${t}`, hi: "Here is your result:", foot: "You received this because you requested it on our website.", disc: "General information only, not medical advice." },
   de: { subject: (t) => `Dein Ergebnis: ${t}`, hi: "Hier ist dein Ergebnis:", foot: "Du erhältst diese E-Mail, weil du sie auf unserer Website angefordert hast.", disc: "Allgemeine Informationen, kein Ersatz für medizinischen Rat." },
   it: { subject: (t) => `Il tuo risultato: ${t}`, hi: "Ecco il tuo risultato:", foot: "Hai ricevuto questa email perché l'hai richiesta sul nostro sito web.", disc: "Informazioni generali, non costituiscono parere medico." },
+  es: { subject: (t) => `Tu resultado: ${t}`, hi: "Aquí tienes tu resultado:", foot: "Has recibido este email porque lo solicitaste en nuestra web.", disc: "Información general, no sustituye el consejo médico." },
+  pt: { subject: (t) => `O seu resultado: ${t}`, hi: "Aqui está o seu resultado:", foot: "Recebeu este email porque o solicitou no nosso website.", disc: "Informação geral, não substitui aconselhamento médico." },
 };
 
 // Best-effort, in-memory rate limit (per server instance). Use Upstash/Vercel KV if you need a hard limit.

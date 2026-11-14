@@ -14,7 +14,7 @@ type Preset = {
   products: Record<Goal, Product>;
 };
 
-const all = (s: string): Record<Locale, string> => ({ fr: s, en: s, de: s, it: s });
+const all = (s: string): Record<Locale, string> => ({ fr: s, en: s, de: s, it: s, es: s, pt: s });
 
 const PRESETS: Record<"ufolabz" | "nutrifitness", Preset> = {
   ufolabz: {
