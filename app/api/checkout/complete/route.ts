@@ -297,7 +297,7 @@ export async function POST(req: NextRequest) {
       loyalty_points_earned: Math.round(serverTotals.total * 5),
       internal_note: internalNote,
       currency: serverTotals.currency,
-      locale: 'en',
+      locale: ['fr', 'en', 'de', 'it'].includes(body.locale) ? body.locale : 'fr',
     }
 
     // Insert order record with graceful enum fallback

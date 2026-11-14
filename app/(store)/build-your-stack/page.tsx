@@ -50,7 +50,7 @@ const DEFAULT_STACK_PRODUCTS: StackProductCardItem[] = [
   {
     id: 'prod-creatine',
     slug: 'astro-creatine',
-    name: 'Astro Creatine Pure 300g',
+    name: 'ASTRO CREATINE PURE',
     tagline: '100% Pure Micronized Creatine Monohydrate for ATP Saturation',
     category: 'Creatine',
     basePrice: 29.90,
@@ -73,7 +73,7 @@ const DEFAULT_STACK_PRODUCTS: StackProductCardItem[] = [
   {
     id: 'prod-eaa',
     slug: 'amino-fuel-mango',
-    name: 'Amino Fuel EAA 300g',
+    name: 'AMINO FUEL EAA',
     tagline: 'Fermented Full-Spectrum EAAs & Cellular Electrolytes',
     category: 'Amino Acids',
     basePrice: 39.90,
@@ -103,7 +103,7 @@ const DEFAULT_STACK_PRODUCTS: StackProductCardItem[] = [
   {
     id: 'prod-blast',
     slug: 'blast-pre-workout-energy',
-    name: 'Blast Pre-Workout 300g',
+    name: 'BLAST PRE-WORKOUT',
     tagline: 'High-Impact Neuro-Drive, Nitric Oxide Pumps & Zero Crash',
     category: 'Pre-Workout',
     basePrice: 39.90,
@@ -133,7 +133,7 @@ const DEFAULT_STACK_PRODUCTS: StackProductCardItem[] = [
   {
     id: 'prod-collagen',
     slug: 'astro-collagen-peptide',
-    name: 'Nova Marine Collagen 300g',
+    name: 'NOVA MARINE PEPTIDES COLLAGEN',
     tagline: 'Hydrolyzed Bioactive Marine Collagen Peptides for Joints & Skin',
     category: 'Marine Collagen',
     basePrice: 39.90,
@@ -156,7 +156,7 @@ const DEFAULT_STACK_PRODUCTS: StackProductCardItem[] = [
   {
     id: 'prod-magnesium',
     slug: 'magnesium',
-    name: 'Magnesium 90 Capsules',
+    name: 'COSMIC MAGNESIUM GLYCINATE',
     tagline: 'Chelated Bisglycinate for Neuromuscular Rest & Deep Sleep',
     category: 'Magnesium',
     basePrice: 34.90,

@@ -1,7 +1,8 @@
 import type { Locale, ToolId } from "../config";
-import { en } from "./en";
 import { fr } from "./fr";
+import { en } from "./en";
 import { de } from "./de";
+import { it } from "./it";
 
 export type ToolContent = {
   cardTitle: string;
@@ -24,4 +25,4 @@ export type LocaleContent = {
   tools: Record<ToolId, ToolContent>;
 };
 
-export const CONTENT: Record<Locale, LocaleContent> = { en, fr, de };
+export const CONTENT: Record<Locale, LocaleContent> = { fr, en, de, it };

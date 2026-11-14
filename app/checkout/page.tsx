@@ -19,6 +19,7 @@ import {
 } from 'lucide-react'
 import { useCart } from '@/hooks/useCart'
 import { useCurrency } from '@/hooks/useCurrency'
+import { useTranslation } from '@/lib/i18n'
 import {
   SupportedCurrency,
   formatCurrencyPrice,
@@ -28,6 +29,7 @@ import {
 } from '@/lib/config/pricing'
 import { calculateStackDiscount, resolveBestDiscount } from '@/lib/config/stack'
 import { PREORDER_CONFIG } from '@/lib/config/preorder'
+import { getProductDisplayName } from '@/lib/products'
 import { getLocalizedField } from '@/types'
 import { stripFlavorSuffix } from '@/lib/products/format'
 import { cn } from '@/lib/utils'
@@ -66,6 +68,7 @@ export default function CheckoutPage() {
   }
 
   const { currency: geoCurrency, country: geoCountry, setCurrency: setGlobalCurrency } = useCurrency()
+  const { t, locale } = useTranslation()
 
   // Delivery method and currency
   const [deliveryMethod, setDeliveryMethod] = useState<'shipping_ch' | 'shipping_eu'>('shipping_ch')
@@ -160,8 +163,8 @@ export default function CheckoutPage() {
       return {
         ...item,
         slug,
-        name: getLocalizedField(product?.name) || 'UFO Supplement',
-        variantName: item.variant?.name || '300g',
+        name: getProductDisplayName(slug, getLocalizedField(product?.name)),
+        variantName: item.variant?.name || '',
         sku: item.variant?.sku || 'N/A',
         canonicalPrice,
         lineTotal: Math.round(canonicalPrice * item.quantity * 100) / 100,
@@ -279,6 +282,7 @@ export default function CheckoutPage() {
       fullName,
       phone,
       currency,
+      locale,
       deliveryMethod: 'shipping',
       country: isEu ? euCountry : 'CH',
       shippingAddress: {

@@ -57,8 +57,8 @@ export default function PreOrderPolicyPage() {
               <h3 className="font-bold text-lg text-white">How UFO LABZ Pre-Orders Work</h3>
             </div>
             <p className="text-sm text-gray-400 leading-relaxed pl-10">
-              Every formula in the UFO LABZ collection (Creatine 300g, EAA 300g, BLAST Pre-workout 300g,
-              Marine Collagen 300g, and Magnesium 90 capsules) is strictly allocated per production batch.
+              Every formula in the UFO LABZ collection (ASTRO CREATINE PURE, AMINO FUEL EAA, BLAST PRE-WORKOUT,
+              NOVA MARINE PEPTIDES COLLAGEN, and COSMIC MAGNESIUM GLYCINATE) is strictly allocated per production batch.
               Payment is charged at the moment of checkout to lock in your unit reservation from Swiss Batch 01.
             </p>
           </div>

@@ -1,60 +1,72 @@
-// components/layout/Footer.tsx
-import Link from 'next/link'
+'use client'
 
-const shopLinks = [
-  { href: '/products', label: 'All Products' },
-  { href: '/build-your-stack', label: 'Build Your Stack (Save 15%)' },
-  { href: '/products/category/creatine', label: 'Creatine' },
-  { href: '/products/category/pre-workout', label: 'Pre Workout' },
-  { href: '/products/category/amino-acids', label: 'Amino Acids' },
-  { href: '/products/category/magnesium', label: 'Magnesium' },
-  { href: '/products/category/marine-collagen', label: 'Marine Collagen' },
-]
-
-const companyLinks = [
-  { href: '/pages/about', label: 'About UFO LABZ' },
-  { href: '/pages/shipping', label: 'Shipping & Returns' },
-  { href: '/pages/faq', label: 'FAQ' },
-  { href: '/pages/contact', label: 'Contact' },
-]
-
-const toolsLinks = [
-  { href: '/tools', label: 'All 10 Calculators' },
-  { href: '/tools/protein-calculator', label: 'Protein Calculator' },
-  { href: '/tools/tdee-calculator', label: 'TDEE & Calories' },
-  { href: '/tools/macro-calculator', label: 'Macronutrient Split' },
-  { href: '/tools/bmi-calculator', label: 'BMI Calculator' },
-  { href: '/tools/body-fat-calculator', label: 'Body Fat %' },
-  { href: '/tools/one-rep-max-calculator', label: '1RM Calculator' },
-  { href: '/tools/creatine-calculator', label: 'Creatine Dosage' },
-]
-
-const contactInfo = [
-  { label: 'support@ufolabz.com', href: 'mailto:support@ufolabz.com' },
-]
-
-const socials = [
-  { label: 'Instagram', icon: 'IG', href: 'https://www.instagram.com/ufolabz_official?igsi=NGR1YWNzcDBhdGx3' },
-  { label: 'Facebook', icon: 'FB', href: 'https://facebook.com/ufolabz' },
-  { label: 'YouTube', icon: 'YT', href: 'https://youtube.com/@ufolabz' },
-]
-
-const legalLinks = [
-  { href: '/pages/pre-order', label: 'Pre-Order Policy' },
-  { href: '/pages/privacy', label: 'Privacy Policy' },
-  { href: '/pages/terms', label: 'Terms of Service' },
-  { href: '/pages/refund', label: 'Refund Policy' },
-  { href: '/pages/shipping', label: 'Shipping Info' },
-]
+import { useTranslation, Link } from '@/lib/i18n'
 
 export default function Footer() {
+  const { t, locale } = useTranslation()
+
+  const shopLinks = [
+    { href: '/products', label: t('navbar.shop') },
+    { href: '/build-your-stack', label: `${t('navbar.build_stack')} (${t('navbar.save_stack_badge')})` },
+    { href: '/products/category/creatine', label: 'Creatine' },
+    { href: '/products/category/pre-workout', label: 'Pre-Workout' },
+    { href: '/products/category/amino-acids', label: 'Amino Acids' },
+    { href: '/products/category/magnesium', label: 'Magnesium' },
+    { href: '/products/category/marine-collagen', label: 'Marine Collagen' },
+  ]
+
+  const companyLinks = [
+    { href: '/pages/about', label: t('footer.about_link') },
+    { href: '/pages/shipping', label: t('footer.shipping_link') },
+    { href: '/pages/faq', label: t('footer.faq_link') },
+    { href: '/pages/contact', label: t('footer.contact_link') },
+    { href: '/affiliate', label: 'Ambassador Team' },
+  ]
+
+  // Complete list of ALL 10 science-backed calculators
+  const toolsLinks = [
+    { href: '/tools', label: t('footer.all_calculators') },
+    { href: '/tools/protein-calculator', label: t('footer.protein_calc') },
+    { href: '/tools/tdee-calculator', label: t('footer.tdee_calc') },
+    { href: '/tools/macro-calculator', label: t('footer.macro_calc') },
+    { href: '/tools/bmi-calculator', label: t('footer.bmi_calc') },
+    { href: '/tools/body-fat-calculator', label: t('footer.bodyfat_calc') },
+    { href: '/tools/lean-body-mass-calculator', label: t('footer.lbm_calc') },
+    { href: '/tools/one-rep-max-calculator', label: t('footer.orm_calc') },
+    { href: '/tools/water-intake-calculator', label: t('footer.water_calc') },
+    { href: '/tools/calorie-deficit-calculator', label: t('footer.deficit_calc') },
+    { href: '/tools/creatine-calculator', label: t('footer.creatine_calc') },
+  ]
+
+  const contactInfo = [
+    { label: 'support@ufolabz.com', href: 'mailto:support@ufolabz.com' },
+  ]
+
+  const socials = [
+    { label: 'Instagram', icon: 'IG', href: 'https://www.instagram.com/ufolabz_official?igsi=NGR1YWNzcDBhdGx3' },
+    { label: 'Facebook', icon: 'FB', href: 'https://facebook.com/ufolabz' },
+    { label: 'YouTube', icon: 'YT', href: 'https://youtube.com/@ufolabz' },
+  ]
+
+  const legalLinks = [
+    { href: '/pages/pre-order', label: t('footer.preorder_policy') },
+    { href: '/pages/privacy', label: t('footer.privacy_policy') },
+    { href: '/pages/terms', label: t('footer.terms_policy') },
+    { href: '/pages/refund', label: t('footer.refund_policy') },
+    { href: '/pages/shipping', label: t('footer.shipping_link') },
+  ]
+
   return (
     <footer className="border-t border-white/[0.06] bg-space-900 mt-24 relative overflow-hidden pb-16 md:pb-0">
-      {/* Ambient purple glow */}
-      <div className="absolute bottom-0 left-1/4 w-[500px] h-[300px] rounded-full opacity-[0.04] pointer-events-none"
-           style={{ background: 'radial-gradient(circle, #7B2FBE, transparent 70%)' }} />
-      <div className="absolute top-0 right-1/4 w-[400px] h-[250px] rounded-full opacity-[0.03] pointer-events-none"
-           style={{ background: 'radial-gradient(circle, #00FF88, transparent 70%)' }} />
+      {/* Ambient glow */}
+      <div
+        className="absolute bottom-0 left-1/4 w-[500px] h-[300px] rounded-full opacity-[0.04] pointer-events-none"
+        style={{ background: 'radial-gradient(circle, #7B2FBE, transparent 70%)' }}
+      />
+      <div
+        className="absolute top-0 right-1/4 w-[400px] h-[250px] rounded-full opacity-[0.03] pointer-events-none"
+        style={{ background: 'radial-gradient(circle, #00FF88, transparent 70%)' }}
+      />
 
       {/* Main footer */}
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
@@ -69,7 +81,7 @@ export default function Footer() {
               />
             </Link>
             <p className="text-sm text-muted leading-relaxed mb-5">
-              Alien Performance Technology. Premium supplements engineered in Swiss laboratories for peak human performance.
+              {t('footer.tagline')}
             </p>
             {/* Social Icons */}
             <div className="flex items-center gap-3">
@@ -92,7 +104,7 @@ export default function Footer() {
           <div>
             <h4 className="text-xs font-bold uppercase tracking-widest text-white mb-5 flex items-center gap-2">
               <span className="w-5 h-px bg-gradient-to-r from-nebula-600 to-transparent" />
-              Shop
+              {t('footer.shop_heading')}
             </h4>
             <ul className="space-y-2.5">
               {shopLinks.map((item) => (
@@ -108,18 +120,18 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Calculators & Tools Links */}
+          {/* All 10 Calculators Links */}
           <div>
             <h4 className="text-xs font-bold uppercase tracking-widest text-alien-green mb-5 flex items-center gap-2">
               <span className="w-5 h-px bg-gradient-to-r from-alien-green to-transparent" />
-              Calculators
+              {t('footer.tools_heading')}
             </h4>
-            <ul className="space-y-2.5">
+            <ul className="space-y-2">
               {toolsLinks.map((item) => (
                 <li key={item.href}>
                   <Link
                     href={item.href}
-                    className="text-sm text-muted hover:text-white hover:pl-1 transition-all duration-200"
+                    className="text-xs text-muted hover:text-white hover:pl-1 transition-all duration-200"
                   >
                     {item.label}
                   </Link>
@@ -132,7 +144,7 @@ export default function Footer() {
           <div>
             <h4 className="text-xs font-bold uppercase tracking-widest text-white mb-5 flex items-center gap-2">
               <span className="w-5 h-px bg-gradient-to-r from-nebula-600 to-transparent" />
-              Company
+              {t('footer.company_heading')}
             </h4>
             <ul className="space-y-2.5">
               {companyLinks.map((item) => (
@@ -152,7 +164,7 @@ export default function Footer() {
           <div>
             <h4 className="text-xs font-bold uppercase tracking-widest text-white mb-5 flex items-center gap-2">
               <span className="w-5 h-px bg-gradient-to-r from-nebula-600 to-transparent" />
-              Contact
+              {t('navbar.contact')}
             </h4>
             <ul className="space-y-2.5 mb-6">
               {contactInfo.map((item) => (
@@ -168,7 +180,10 @@ export default function Footer() {
             </ul>
             <div className="flex items-center gap-2 flex-wrap">
               {['Visa', 'MC', 'TWINT', 'SEPA'].map((m) => (
-                <span key={m} className="px-2.5 py-1 bg-white/[0.04] border border-white/[0.06] rounded-lg text-[10px] font-mono text-muted">
+                <span
+                  key={m}
+                  className="px-2.5 py-1 bg-white/[0.04] border border-white/[0.06] rounded-lg text-[10px] font-mono text-muted"
+                >
                   {m}
                 </span>
               ))}
@@ -181,7 +196,7 @@ export default function Footer() {
       <div className="relative border-t border-white/[0.06]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
           <p className="text-xs text-muted/60 order-1 md:order-none">
-            © {new Date().getFullYear()} UFO LABZ GmbH. All rights reserved.
+            {t('footer.copyright', { year: new Date().getFullYear() })}
           </p>
 
           <p className="text-xs text-muted/70 flex items-center justify-center gap-1.5 font-mono order-2 md:order-none">

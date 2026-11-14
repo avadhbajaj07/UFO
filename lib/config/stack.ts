@@ -54,7 +54,7 @@ export const DEFAULT_PRESET_STACKS: PresetStackDef[] = [
         slug: 'astro-creatine',
         sku: 'ASTRO-300G',
         quantity: 1,
-        name: 'Astro Creatine Pure',
+        name: 'ASTRO CREATINE PURE',
         flavorName: 'Natural Taste',
         color: '#00FF88',
         imageUrl:
@@ -64,7 +64,7 @@ export const DEFAULT_PRESET_STACKS: PresetStackDef[] = [
         slug: 'amino-fuel-mango',
         sku: 'AMNO-MANGO-300G',
         quantity: 1,
-        name: 'Amino Fuel EAA',
+        name: 'AMINO FUEL EAA',
         flavorName: 'Mango',
         color: '#FF8C00',
         imageUrl:
@@ -86,7 +86,7 @@ export const DEFAULT_PRESET_STACKS: PresetStackDef[] = [
         slug: 'magnesium',
         sku: 'SKU-MAGNESIUM-960',
         quantity: 1,
-        name: 'Magnesium',
+        name: 'COSMIC MAGNESIUM GLYCINATE',
         flavorName: '90 Vegan Caps',
         color: '#00FF88',
         imageUrl:
@@ -96,7 +96,7 @@ export const DEFAULT_PRESET_STACKS: PresetStackDef[] = [
         slug: 'astro-collagen-peptide',
         sku: 'COL-300G',
         quantity: 1,
-        name: 'Nova Marine Collagen',
+        name: 'NOVA MARINE PEPTIDES COLLAGEN',
         flavorName: 'Tropical Fruits',
         color: '#FF2244',
         imageUrl:
@@ -118,7 +118,7 @@ export const DEFAULT_PRESET_STACKS: PresetStackDef[] = [
         slug: 'blast-pre-workout-energy',
         sku: 'BLAST-ENERGY-300G',
         quantity: 1,
-        name: 'Blast Pre-Workout',
+        name: 'BLAST PRE-WORKOUT',
         flavorName: 'Energy Drink',
         color: '#FF2244',
         imageUrl:
@@ -128,7 +128,7 @@ export const DEFAULT_PRESET_STACKS: PresetStackDef[] = [
         slug: 'astro-creatine',
         sku: 'ASTRO-300G',
         quantity: 1,
-        name: 'Astro Creatine Pure',
+        name: 'ASTRO CREATINE PURE',
         flavorName: 'Natural Taste',
         color: '#00FF88',
         imageUrl:
@@ -138,7 +138,7 @@ export const DEFAULT_PRESET_STACKS: PresetStackDef[] = [
         slug: 'amino-fuel-mango',
         sku: 'AMNO-MANGO-300G',
         quantity: 1,
-        name: 'Amino Fuel EAA',
+        name: 'AMINO FUEL EAA',
         flavorName: 'Mango',
         color: '#FF8C00',
         imageUrl:
@@ -256,8 +256,8 @@ export function calculateStackDiscount(
     nudgeMessage = '🔥 Maximum 15% stack discount unlocked!'
   }
 
-  // Free shipping rules evaluated AFTER stack discount: Free from 75 CHF / 75 EUR
-  const freeShippingThreshold = 75.0
+  // Free shipping rules evaluated AFTER stack discount: Free from 75 CHF / 50 EUR
+  const freeShippingThreshold = currency === 'EUR' ? 50.0 : 75.0
   const discountedSubtotal = discountedCents / 100
   const isFreeShipping = discountedSubtotal >= freeShippingThreshold || totalUnits === 0
   const amountUntilFreeShipping = Math.max(

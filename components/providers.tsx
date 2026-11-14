@@ -2,6 +2,7 @@
 import React, { useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useAuthStore } from '@/store/auth'
+import { I18nProvider } from '@/lib/i18n'
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const { setUser, setProfile, setIsLoading } = useAuthStore()
@@ -61,5 +62,5 @@ export function Providers({ children }: { children: React.ReactNode }) {
     }
   }, [setUser, setProfile, setIsLoading])
 
-  return <>{children}</>
+  return <I18nProvider>{children}</I18nProvider>
 }

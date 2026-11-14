@@ -1,17 +1,14 @@
-const DEFAULT_LOCALE = process.env.NEXT_PUBLIC_DEFAULT_LOCALE || 'en'
-const LOCALES = ['en', 'fr', 'de']
-const SEGMENT = { en: 'tools', fr: 'outils', de: 'tools' }
+const DEFAULT_LOCALE = 'fr'
+const LOCALES = ['fr', 'en', 'de', 'it']
+const SEGMENT = { fr: 'tools', en: 'tools', de: 'tools', it: 'tools' }
 
-const toolsRewrites = LOCALES.flatMap((l) => {
-  const prefix = l === DEFAULT_LOCALE ? '' : `/${l}`
-  const hubSrc = `${prefix}/${SEGMENT[l]}`
-  const hubDst = `/${l}/tools`
-  if (hubSrc === hubDst) return []
-  return [
-    { source: hubSrc, destination: hubDst },
-    { source: `${hubSrc}/:slug`, destination: `${hubDst}/:slug` },
-  ]
-})
+const toolsRewrites = [
+  // French default (no prefix in URL) -> routes to [locale]=fr internal pages
+  { source: '/tools', destination: '/fr/tools' },
+  { source: '/tools/:slug', destination: '/fr/tools/:slug' },
+  { source: '/outils', destination: '/fr/tools' },
+  { source: '/outils/:slug', destination: '/fr/tools/:slug' },
+]
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {

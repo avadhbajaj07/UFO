@@ -157,14 +157,15 @@ export interface PosTransactionPayload {
 }
 
 // ─── Localization ─────────────────────────────────────────────
-export type Locale = 'en' | 'hi' | 'de' | 'fr' | 'es'
+export type Locale = 'fr' | 'en' | 'de' | 'it'
 
 export function getLocalizedField(
-  field: Record<string, string> | null | undefined,
-  locale = 'en',
-  fallback = 'en'
+  field: Record<string, string> | null | undefined | string,
+  locale = 'fr',
+  fallback = 'fr'
 ): string {
   if (!field) return ''
-  return field[locale] ?? field[fallback] ?? Object.values(field)[0] ?? ''
+  if (typeof field === 'string') return field
+  return field[locale] ?? field[fallback] ?? field.en ?? Object.values(field)[0] ?? ''
 }
 

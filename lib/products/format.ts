@@ -42,21 +42,24 @@ export function getProductFormat(product: { slug?: string; format?: string | nul
 /**
  * Returns the localized tagline for a product, ensuring Magnesium always has its slogan.
  */
-export function getCleanTagline(product: { slug?: string; tagline?: any } | null | undefined, locale: string = 'en'): string {
+export function getCleanTagline(product: { slug?: string; tagline?: any } | null | undefined, locale: string = 'fr'): string {
   if (!product) return ''
   const slug = (product.slug || '').toLowerCase()
   if (slug.includes('magnesium')) {
     if (typeof product.tagline === 'object' && product.tagline) {
-      const val = product.tagline[locale] || product.tagline.en || product.tagline.de
+      const val = product.tagline[locale] || product.tagline.fr || product.tagline.en || product.tagline.de || product.tagline.it
       if (val) return val
     } else if (typeof product.tagline === 'string' && product.tagline.trim()) {
       return product.tagline.trim()
     }
-    return 'Stellar sleep. Deep recovery.'
+    return locale === 'fr' ? 'Sommeil stellaire. Récupération profonde.' :
+           locale === 'de' ? 'Stellarer Schlaf. Tiefe Erholung.' :
+           locale === 'it' ? 'Sonno stellare. Recupero profondo.' :
+           'Stellar sleep. Deep recovery.'
   }
 
   if (typeof product.tagline === 'object' && product.tagline) {
-    return product.tagline[locale] || product.tagline.en || product.tagline.de || ''
+    return product.tagline[locale] || product.tagline.fr || product.tagline.en || product.tagline.de || product.tagline.it || ''
   }
   if (typeof product.tagline === 'string') {
     return product.tagline

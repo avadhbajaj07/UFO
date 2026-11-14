@@ -1,8 +1,7 @@
-export const LOCALES = ["en", "fr", "de"] as const;
+export const LOCALES = ["fr", "en", "de", "it"] as const;
 export type Locale = (typeof LOCALES)[number];
 
-const envDefault = process.env.NEXT_PUBLIC_DEFAULT_LOCALE as Locale | undefined;
-export const DEFAULT_LOCALE: Locale = envDefault && LOCALES.includes(envDefault) ? envDefault : "en";
+export const DEFAULT_LOCALE: Locale = "fr";
 
 export const TOOL_IDS = [
   "protein", "tdee", "macro",
@@ -12,50 +11,50 @@ export type ToolId = (typeof TOOL_IDS)[number];
 
 export const TOOLS: Record<ToolId, { slugs: Record<Locale, string>; related: ToolId[] }> = {
   protein: {
-    slugs: { en: "protein-calculator", fr: "calculateur-proteines", de: "protein-rechner" },
+    slugs: { fr: "calculateur-proteines", en: "protein-calculator", de: "protein-rechner", it: "calcolatore-proteine" },
     related: ["tdee", "macro"],
   },
   tdee: {
-    slugs: { en: "tdee-calculator", fr: "calculateur-tdee", de: "tdee-rechner" },
+    slugs: { fr: "calculateur-tdee", en: "tdee-calculator", de: "tdee-rechner", it: "calcolatore-tdee" },
     related: ["macro", "protein"],
   },
   macro: {
-    slugs: { en: "macro-calculator", fr: "calculateur-macros", de: "makro-rechner" },
+    slugs: { fr: "calculateur-macros", en: "macro-calculator", de: "makro-rechner", it: "calcolatore-macro" },
     related: ["tdee", "protein"],
   },
   bmi: {
-    slugs: { en: "bmi-calculator", fr: "calculateur-imc", de: "bmi-rechner" },
+    slugs: { fr: "calculateur-imc", en: "bmi-calculator", de: "bmi-rechner", it: "calcolatore-imc" },
     related: ["bodyfat", "lbm"],
   },
   bodyfat: {
-    slugs: { en: "body-fat-calculator", fr: "calculateur-masse-graisseuse", de: "koerperfett-rechner" },
+    slugs: { fr: "calculateur-masse-graisseuse", en: "body-fat-calculator", de: "koerperfett-rechner", it: "calcolatore-grasso-corporeo" },
     related: ["lbm", "bmi"],
   },
   lbm: {
-    slugs: { en: "lean-body-mass-calculator", fr: "calculateur-masse-maigre", de: "magermasse-rechner" },
+    slugs: { fr: "calculateur-masse-maigre", en: "lean-body-mass-calculator", de: "magermasse-rechner", it: "calcolatore-massa-magra" },
     related: ["bodyfat", "protein"],
   },
   orm: {
-    slugs: { en: "one-rep-max-calculator", fr: "calculateur-1rm", de: "einwiederholungsmaximum-rechner" },
+    slugs: { fr: "calculateur-1rm", en: "one-rep-max-calculator", de: "einwiederholungsmaximum-rechner", it: "calcolatore-1rm" },
     related: ["protein", "water"],
   },
   water: {
-    slugs: { en: "water-intake-calculator", fr: "calculateur-hydratation", de: "wasserhaushalt-rechner" },
+    slugs: { fr: "calculateur-hydratation", en: "water-intake-calculator", de: "wasserhaushalt-rechner", it: "calcolatore-idratazione" },
     related: ["tdee", "orm"],
   },
   deficit: {
-    slugs: { en: "calorie-deficit-calculator", fr: "calculateur-deficit-calorique", de: "kaloriendefizit-rechner" },
+    slugs: { fr: "calculateur-deficit-calorique", en: "calorie-deficit-calculator", de: "kaloriendefizit-rechner", it: "calcolatore-deficit-calorico" },
     related: ["tdee", "macro"],
   },
   creatine: {
-    slugs: { en: "creatine-calculator", fr: "calculateur-creatine", de: "kreatin-rechner" },
+    slugs: { fr: "calculateur-creatine", en: "creatine-calculator", de: "kreatin-rechner", it: "calcolatore-creatina" },
     related: ["protein", "water"],
   },
 };
 
-export const SEGMENT: Record<Locale, string> = { en: "tools", fr: "outils", de: "tools" };
+export const SEGMENT: Record<Locale, string> = { fr: "tools", en: "tools", de: "tools", it: "tools" };
 
-export const isLocale = (x: string): x is Locale => (LOCALES as readonly string[]).includes(x);
+export const isLocale = (x: string): x is Locale => (LOCALES as readonly string[]).includes(x as any);
 
 export const prefix = (l: Locale) => (l === DEFAULT_LOCALE ? "" : `/${l}`);
 export const homePath = (l: Locale) => prefix(l) || "/";

@@ -40,6 +40,7 @@ export async function POST(req: NextRequest) {
       fullName,
       paymentMethod,
       currency = 'CHF',
+      locale = 'fr',
       deliveryMethod = 'shipping',
       country,
       items,
@@ -107,8 +108,12 @@ export async function POST(req: NextRequest) {
     }
 
     const baseUrl = getBaseUrl(req)
+    const validStripeLocales = ['fr', 'en', 'de', 'it', 'auto'] as const
+    const stripeLocale = validStripeLocales.includes(locale as any) ? (locale as Stripe.Checkout.SessionCreateParams.Locale) : 'fr'
+
     const sessionParams: Stripe.Checkout.SessionCreateParams = {
       mode: 'payment',
+      locale: stripeLocale,
       payment_method_types:
         paymentMethod === 'twint' && stripeCurrency === 'chf' ? ['twint'] : ['card'],
       customer_email: email,
@@ -121,6 +126,7 @@ export async function POST(req: NextRequest) {
         order_number: orderNumber,
         requested_payment_method: paymentMethod,
         currency: totals.currency,
+        locale: stripeLocale,
         delivery_method: totals.deliveryMethod,
         preorder: 'true',
         preorder_mode: String(PREORDER_CONFIG.isPreorderMode),
@@ -136,6 +142,8 @@ export async function POST(req: NextRequest) {
           order_number: orderNumber,
           customer_name: fullName || '',
           requested_payment_method: paymentMethod,
+          locale: stripeLocale,
+          currency: totals.currency,
           preorder: 'true',
           estimated_ship_date: PREORDER_CONFIG.estimatedShipDate,
           delivery_method: totals.deliveryMethod,

@@ -22,6 +22,8 @@ export interface ProductPricingDefinition {
   }
 }
 
+import { getProductDisplayName } from '../products'
+
 export const PREORDER_LAUNCH_DISCOUNT_PERCENT = 25
 
 /**
@@ -36,7 +38,7 @@ export const PREORDER_LAUNCH_DISCOUNT_PERCENT = 25
 export const CORE_PRODUCTS_PRICING: Record<string, ProductPricingDefinition> = {
   creatine: {
     productKey: 'creatine',
-    name: 'Creatine 300g',
+    name: 'ASTRO CREATINE PURE',
     slugs: ['astro-creatine'],
     skus: ['ASTRO-300G'],
     retailPrice: { CHF: 29.90, EUR: 32.49 },
@@ -49,7 +51,7 @@ export const CORE_PRODUCTS_PRICING: Record<string, ProductPricingDefinition> = {
   },
   eaa: {
     productKey: 'eaa',
-    name: 'EAA 300g',
+    name: 'AMINO FUEL EAA',
     slugs: ['amino-fuel-mango', 'amino-fuel-blue-raspberry', 'amino-fuel-blue'],
     skus: ['AMNO-MANGO-300G', 'AMNO-BLUE-300G', 'AMINO-MANGO', 'var-ab1'],
     retailPrice: { CHF: 39.90, EUR: 43.35 },
@@ -62,7 +64,7 @@ export const CORE_PRODUCTS_PRICING: Record<string, ProductPricingDefinition> = {
   },
   blast: {
     productKey: 'blast',
-    name: 'BLAST Pre-workout 300g',
+    name: 'BLAST PRE-WORKOUT',
     slugs: ['blast-pre-workout-energy', 'blast-pre-workout-blue'],
     skus: ['BLAST-ENERGY-300G', 'BLAST-BLUE-300G'],
     retailPrice: { CHF: 39.90, EUR: 43.35 },
@@ -75,7 +77,7 @@ export const CORE_PRODUCTS_PRICING: Record<string, ProductPricingDefinition> = {
   },
   collagen: {
     productKey: 'collagen',
-    name: 'Marine Collagen 300g',
+    name: 'NOVA MARINE PEPTIDES COLLAGEN',
     slugs: ['astro-collagen-peptide', 'astro-collagen'],
     skus: ['COL-300G'],
     retailPrice: { CHF: 39.90, EUR: 43.35 },
@@ -88,7 +90,7 @@ export const CORE_PRODUCTS_PRICING: Record<string, ProductPricingDefinition> = {
   },
   magnesium: {
     productKey: 'magnesium',
-    name: 'Magnesium 90 capsules',
+    name: 'COSMIC MAGNESIUM GLYCINATE',
     slugs: ['magnesium'],
     skus: ['SKU-MAGNESIUM-960'],
     retailPrice: { CHF: 34.90, EUR: 37.92 },
@@ -168,8 +170,8 @@ export const SHIPPING_CONFIG = {
   },
   eu: {
     currency: 'EUR' as SupportedCurrency,
-    freeThreshold: 75.0, // Free delivery from EUR 75
-    defaultStandardFee: 9.99, // Standard EU delivery fee under EUR 75
+    freeThreshold: 50.0, // Free delivery in Europe from €50
+    defaultStandardFee: 9.99, // Standard EU delivery fee under €50
     countryRates: {
       FR: 9.99,
       DE: 9.99,

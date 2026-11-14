@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Rocket } from 'lucide-react'
+import { useTranslation } from '@/lib/i18n'
 
 interface TimeLeft {
   days: number
@@ -23,6 +24,7 @@ function getTimeLeft(target: Date): TimeLeft {
 }
 
 export default function MarqueeBanner() {
+  const { t } = useTranslation()
   const [targetDate] = useState(() => {
     const d = new Date()
     d.setDate(d.getDate() + 7)
@@ -42,10 +44,10 @@ export default function MarqueeBanner() {
   }, [targetDate])
 
   const timerBlocks: { value: number; label: string }[] = [
-    { value: mounted && timeLeft ? timeLeft.days : 0, label: 'Days' },
-    { value: mounted && timeLeft ? timeLeft.hours : 0, label: 'Hrs' },
-    { value: mounted && timeLeft ? timeLeft.minutes : 0, label: 'Mins' },
-    { value: mounted && timeLeft ? timeLeft.seconds : 0, label: 'Secs' },
+    { value: mounted && timeLeft ? timeLeft.days : 0, label: t('countdown.days') },
+    { value: mounted && timeLeft ? timeLeft.hours : 0, label: t('countdown.hours') },
+    { value: mounted && timeLeft ? timeLeft.minutes : 0, label: t('countdown.minutes') },
+    { value: mounted && timeLeft ? timeLeft.seconds : 0, label: t('countdown.seconds') },
   ]
 
   return (
@@ -65,8 +67,10 @@ export default function MarqueeBanner() {
         <div className="flex items-center gap-3">
           <Rocket className="h-6 w-6 shrink-0 text-nebula-400" />
           <p className="font-display text-lg tracking-wider text-white sm:text-xl">
-            PRE-ORDER BATCH 01 · BUNDLE &amp; SAVE:{' '}
-            <span className="text-alien-green text-glow-green">UP TO 15% OFF WITH CUSTOM STACKS</span>
+            {t('common.batch_badge')} · {t('common.launch_discount')}:{' '}
+            <span className="text-alien-green text-glow-green">
+              {t('stack.tier2_badge')}
+            </span>
           </p>
         </div>
 

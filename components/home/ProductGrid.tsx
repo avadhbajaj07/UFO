@@ -1,15 +1,13 @@
 'use client'
 
 import React, { useState, useMemo } from 'react'
-import Link from 'next/link'
 import Image from 'next/image'
 import { Star, ShoppingBag, Zap } from 'lucide-react'
 import { Product } from '@/types'
-import { useCurrency } from '@/hooks/useCurrency'
-import { formatPrice } from '@/lib/utils/pricing'
+import { useTranslation, Link } from '@/lib/i18n'
 import { getCanonicalUnitPrice, getPreorderLaunchPrice } from '@/lib/config/pricing'
-import { PREORDER_CONFIG } from '@/lib/config/preorder'
 import { getProductFlavors } from '@/lib/config/flavors'
+import { getProductDisplayName } from '@/lib/products'
 import { getLocalizedField } from '@/types'
 import { stripFlavorSuffix, getProductFormat, getCleanTagline } from '@/lib/products/format'
 import { useCart } from '@/hooks/useCart'
@@ -21,7 +19,7 @@ interface ProductGridProps {
 
 function ProductCard({ product }: { product: any }) {
   const { addItem, isLoading } = useCart()
-  const { currency } = useCurrency()
+  const { t, locale, currency, formatPrice } = useTranslation()
   const { flavors } = getProductFlavors(product.slug)
   const [selectedFlavorSlug, setSelectedFlavorSlug] = useState<string>(
     flavors[0]?.slug ?? product.slug
@@ -31,9 +29,9 @@ function ProductCard({ product }: { product: any }) {
     flavors.find((f) => f.slug === selectedFlavorSlug) ?? flavors[0] ?? null
 
   const color = activeFlavor?.color ?? product.product_color ?? '#00FF88'
-  const rawName = getLocalizedField(product.name)
-  const name = stripFlavorSuffix(rawName)
-  const tagline = getCleanTagline(product)
+  const rawName = getLocalizedField(product.name, locale)
+  const name = getProductDisplayName(product.slug, stripFlavorSuffix(rawName))
+  const tagline = getCleanTagline(product, locale)
   const formatPill = getProductFormat(product)
 
   // Resolve active canister image from selected flavor or primary image
@@ -64,7 +62,7 @@ function ProductCard({ product }: { product: any }) {
         }}
       />
 
-      {/* Image Container (overlay badges removed cleanly as requested) */}
+      {/* Image Container */}
       <Link
         href={`/products/${targetSlug}`}
         className="block relative aspect-square bg-space-900/50 overflow-hidden shrink-0"
@@ -136,11 +134,17 @@ function ProductCard({ product }: { product: any }) {
           {flavors.length > 0 && (
             <div className="my-2.5 space-y-1.5">
               <div className="text-[10px] font-mono text-gray-400 uppercase tracking-wider flex justify-between items-center">
-                <span>{flavors.length > 1 ? 'Flavor:' : (product.slug.includes('magnesium') ? 'Format:' : 'Flavor:')}</span>
+                <span>
+                  {flavors.length > 1
+                    ? t('products.flavor_label')
+                    : product.slug.includes('magnesium')
+                    ? t('products.format_label')
+                    : t('products.flavor_label')}
+                </span>
                 <span className="font-bold text-white text-[11px]">
                   {product.slug.includes('magnesium')
                     ? formatPill.toUpperCase()
-                    : activeFlavor?.flavorName?.toUpperCase() || 'NATURAL TASTE'}
+                    : activeFlavor?.flavorName?.toUpperCase() || t('products.natural_taste').toUpperCase()}
                 </span>
               </div>
               <div className={cn('grid gap-1.5', flavors.length > 1 ? 'grid-cols-2' : 'grid-cols-1')}>
@@ -158,13 +162,12 @@ function ProductCard({ product }: { product: any }) {
                       className={cn(
                         'flex items-center gap-1.5 py-1.5 px-2 rounded-xl border text-[10px] sm:text-[11px] font-mono transition-all text-left',
                         isSelected
-                          ? 'bg-white/10 text-white font-bold border-alien-green shadow-sm'
-                          : 'bg-space-950/60 border-white/10 text-gray-400 hover:text-white hover:border-white/20'
+                          ? 'border-alien-green bg-alien-green/10 text-white font-bold shadow-[0_0_12px_rgba(31,255,107,0.2)]'
+                          : 'border-white/10 bg-white/[0.02] text-gray-400 hover:text-white hover:border-white/20'
                       )}
-                      style={isSelected ? { borderColor: flv.color } : {}}
                     >
                       <span
-                        className="w-2.5 h-2.5 rounded-full shrink-0 border border-white/20"
+                        className="w-2 h-2 rounded-full shrink-0"
                         style={{ backgroundColor: flv.color }}
                       />
                       <span className="truncate">{flv.flavorName}</span>
@@ -181,14 +184,14 @@ function ProductCard({ product }: { product: any }) {
           <div className="flex items-baseline justify-between gap-1.5 flex-wrap min-h-[24px]">
             <div className="flex items-baseline gap-2">
               <span className="text-base sm:text-lg font-bold font-mono text-white">
-                {formatPrice(launchPrice, currency)}
+                {formatPrice(launchPrice)}
               </span>
               <span className="text-xs font-mono text-gray-500 line-through">
-                {formatPrice(canonicalPrice, currency)}
+                {formatPrice(canonicalPrice)}
               </span>
             </div>
             <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-alien-green/20 border border-alien-green/40 text-alien-green">
-              25% OFF LAUNCH
+              {t('products.preorder_offer_badge')}
             </span>
           </div>
 
@@ -202,20 +205,20 @@ function ProductCard({ product }: { product: any }) {
             }
             disabled={isLoading || !variant}
             className="w-full py-2.5 px-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-1.5 font-mono text-[11px] sm:text-xs font-bold text-space-950 active:scale-95 bg-alien-green hover:bg-alien-green/90 shadow-glow-green"
-            aria-label={`Pre-order ${name}`}
+            aria-label={`${t('common.preorder_now')} ${name}`}
           >
             <ShoppingBag className="w-3.5 h-3.5 text-space-950" />
-            <span>{PREORDER_CONFIG.actionButtonText}</span>
+            <span>{t('common.preorder_now')}</span>
           </button>
 
           <Link
             href="/build-your-stack"
             className="w-full py-1.5 px-2.5 rounded-xl border border-alien-green/30 hover:border-alien-green/60 text-alien-green hover:bg-alien-green/10 text-center font-mono text-[10px] sm:text-[11px] font-semibold transition-all flex items-center justify-center gap-1"
           >
-            <span>⚡ Add to Custom Stack (Save up to 15%)</span>
+            <span>⚡ {t('hero.cta_stack')}</span>
           </Link>
           <p className="text-[9px] text-muted/70 text-center font-mono">
-            {PREORDER_CONFIG.estimatedShipDate}
+            {t('common.batch_ship_notice')}
           </p>
         </div>
       </div>
@@ -224,6 +227,8 @@ function ProductCard({ product }: { product: any }) {
 }
 
 export default function ProductGrid({ products }: ProductGridProps) {
+  const { t } = useTranslation()
+
   // Deduplicate products by flavor family so customer sees 1 card per formulation with flavor selector
   const groupedProducts = useMemo(() => {
     const seenFamilies = new Set<string>()
@@ -250,17 +255,16 @@ export default function ProductGrid({ products }: ProductGridProps) {
         <div className="inline-flex items-center gap-2 mb-4">
           <Zap className="w-4 h-4 text-nebula-400" />
           <span className="text-nebula-400 font-mono tracking-widest uppercase text-xs">
-            The Collection
+            {t('common.brand_name')}
           </span>
         </div>
         <h2 className="font-display text-4xl sm:text-5xl lg:text-6xl tracking-wider text-white mb-4 uppercase">
-          <span className="text-gradient-cosmic">STELLAR</span>
+          <span className="text-gradient-cosmic">{t('hero.title_part1')}</span>
           <br />
-          FORMULATIONS
+          {t('hero.title_part2')}
         </h2>
         <p className="text-muted text-sm sm:text-base max-w-xl mx-auto">
-          Precision-engineered Swiss supplements. Each formula built for cellular impact
-          and maximum physiological results.
+          {t('products.catalog_subtitle')}
         </p>
       </div>
 
@@ -273,14 +277,14 @@ export default function ProductGrid({ products }: ProductGridProps) {
           <div>
             <div className="flex items-center gap-2">
               <span className="font-mono text-xs uppercase tracking-wider text-alien-green font-bold">
-                Bundle Engine
+                {t('stack.title')}
               </span>
               <span className="text-[10px] bg-alien-green text-space-950 font-bold px-2 py-0.5 rounded-full font-mono">
-                Save 10% – 15%
+                {t('stack.tier1_badge')} – {t('stack.tier2_badge')}
               </span>
             </div>
             <p className="text-white text-xs sm:text-sm font-semibold mt-0.5">
-              Build your custom stack — pick any 2 products for 10% off, 3+ for 15% off.
+              {t('stack.subtitle')}
             </p>
           </div>
         </div>
@@ -288,7 +292,7 @@ export default function ProductGrid({ products }: ProductGridProps) {
           href="/build-your-stack"
           className="whitespace-nowrap px-4 py-2 rounded-xl bg-alien-green text-space-950 font-mono text-xs font-bold hover:bg-alien-green/90 transition-transform active:scale-95 shadow-[0_0_20px_rgba(0,255,136,0.2)]"
         >
-          Build Your Stack →
+          {t('navbar.build_stack')} →
         </Link>
       </div>
 
@@ -305,7 +309,7 @@ export default function ProductGrid({ products }: ProductGridProps) {
           href="/products"
           className="btn-outline border-nebula-600/30 hover:border-nebula-400/50 text-xs sm:text-sm font-mono uppercase tracking-wider px-6 py-3"
         >
-          View All Formulations
+          {t('common.view_product')}
         </Link>
       </div>
     </section>

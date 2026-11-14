@@ -10,6 +10,7 @@ import { formatPrice } from '@/lib/utils/pricing'
 import { getCanonicalUnitPrice, getPreorderLaunchPrice } from '@/lib/config/pricing'
 import { PREORDER_CONFIG } from '@/lib/config/preorder'
 import { getProductFlavors } from '@/lib/config/flavors'
+import { getProductDisplayName } from '@/lib/products'
 import { getLocalizedField } from '@/types'
 import { stripFlavorSuffix, getProductFormat, getCleanTagline } from '@/lib/products/format'
 import { useCart } from '@/hooks/useCart'
@@ -52,7 +53,7 @@ function ProductLoopCard({
 
   const color = activeFlavor?.color ?? product.product_color ?? '#00FF88'
   const rawName = getLocalizedField(product.name)
-  const name = stripFlavorSuffix(rawName)
+  const name = getProductDisplayName(product.slug, stripFlavorSuffix(rawName))
   const tagline = getCleanTagline(product)
   const formatPill = getProductFormat(product)
 

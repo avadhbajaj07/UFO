@@ -1,50 +1,50 @@
 'use client'
 
 import { FlaskConical, Zap, Truck, Users, Shield, Clock, Heart } from 'lucide-react'
-
-const features = [
-  {
-    icon: FlaskConical,
-    title: 'Extraterrestrial Purity',
-    description:
-      'Our supplements undergo rigorous third-party testing, ensuring every batch meets the highest standards of purity and potency in the galaxy.',
-    color: '#00FF88',
-  },
-  {
-    icon: Zap,
-    title: 'Maximum Power',
-    description:
-      'Scientifically engineered formulas designed to push your limits and unlock performance levels that defy conventional training.',
-    color: '#C850FF',
-  },
-  {
-    icon: Truck,
-    title: 'Lightning Fast',
-    description:
-      'Express delivery across Switzerland. Your cosmic supplements arrive at your doorstep faster than the speed of light.',
-    color: '#00CFFF',
-  },
-]
-
-const stats = [
-  { value: '100%', label: 'Swiss Formulated', icon: Users, color: '#00FF88' },
-  { value: '99%', label: 'Purity Tested', icon: Shield, color: '#C850FF' },
-  { value: '24H', label: 'Fast Delivery', icon: Clock, color: '#00CFFF' },
-  { value: '100%', label: 'Satisfaction', icon: Heart, color: '#FF8C00' },
-]
+import { useTranslation } from '@/lib/i18n'
 
 export default function FeaturesSection() {
+  const { t } = useTranslation()
+
+  const features = [
+    {
+      icon: FlaskConical,
+      title: t('features.feat1_title'),
+      description: t('features.feat1_desc'),
+      color: '#00FF88',
+    },
+    {
+      icon: Zap,
+      title: t('features.feat2_title'),
+      description: t('features.feat2_desc'),
+      color: '#C850FF',
+    },
+    {
+      icon: Truck,
+      title: t('features.feat3_title'),
+      description: t('features.feat3_desc'),
+      color: '#00CFFF',
+    },
+  ]
+
+  const stats = [
+    { value: '100%', label: t('features.stat_swiss'), icon: Users, color: '#00FF88' },
+    { value: '100%', label: t('features.stat_purity'), icon: Shield, color: '#C850FF' },
+    { value: '24H', label: t('features.stat_delivery'), icon: Clock, color: '#00CFFF' },
+    { value: '100%', label: t('features.stat_satisfaction'), icon: Heart, color: '#FF8C00' },
+  ]
+
   return (
     <section className="bg-nebula-glow border-y border-white/5 py-24 px-4">
       <div className="max-w-6xl mx-auto">
         {/* Section Header */}
         <div className="text-center mb-14">
           <h2 className="font-display text-5xl md:text-6xl tracking-wider mb-4">
-            <span className="text-white">WHY </span>
-            <span className="text-gradient-cosmic">UFOLABZ?</span>
+            <span className="text-white">{t('features.section_title_prefix')}</span>
+            <span className="text-gradient-cosmic">{t('features.section_title_brand')}</span>
           </h2>
           <p className="text-muted text-lg max-w-2xl mx-auto">
-            Discover what makes our supplements superior to everything else on the market.
+            {t('features.section_subtitle')}
           </p>
         </div>
 

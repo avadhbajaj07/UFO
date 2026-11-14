@@ -21,11 +21,11 @@ export interface ProductFlavorOption extends ProductFlavor {
 export const FLAVOR_FAMILIES: Record<string, { familyKey: string; title: string; flavors: ProductFlavor[] }> = {
   eaa: {
     familyKey: 'eaa',
-    title: 'Amino Fuel EAA',
+    title: 'AMINO FUEL EAA',
     flavors: [
       {
         slug: 'amino-fuel-mango',
-        name: 'Amino Fuel EAA',
+        name: 'AMINO FUEL EAA',
         flavorName: 'Mango',
         description: 'Tropical Alphonso mango with a crisp, refreshing citrus finish.',
         color: '#FF8C00',
@@ -35,7 +35,7 @@ export const FLAVOR_FAMILIES: Record<string, { familyKey: string; title: string;
       },
       {
         slug: 'amino-fuel-blue-raspberry',
-        name: 'Amino Fuel EAA',
+        name: 'AMINO FUEL EAA',
         flavorName: 'Blue Raspberry',
         description: 'Electrifying cosmic blue raspberry with a balanced, thirst-quenching tang.',
         color: '#00CFFF',
@@ -47,11 +47,11 @@ export const FLAVOR_FAMILIES: Record<string, { familyKey: string; title: string;
   },
   blast: {
     familyKey: 'blast',
-    title: 'Blast Pre-Workout',
+    title: 'BLAST PRE-WORKOUT',
     flavors: [
       {
         slug: 'blast-pre-workout-energy',
-        name: 'Blast Pre-Workout',
+        name: 'BLAST PRE-WORKOUT',
         flavorName: 'Energy Drink',
         description: 'Classic crisp energy kick with subtle citrus zest for maximum training drive.',
         color: '#FF2244',
@@ -61,7 +61,7 @@ export const FLAVOR_FAMILIES: Record<string, { familyKey: string; title: string;
       },
       {
         slug: 'blast-pre-workout-blue',
-        name: 'Blast Pre-Workout',
+        name: 'BLAST PRE-WORKOUT',
         flavorName: 'Blue Raspberry',
         description: 'Hyper-drive blue raspberry infusion engineered for extreme focus and vascular pumps.',
         color: '#00CFFF',
@@ -73,11 +73,11 @@ export const FLAVOR_FAMILIES: Record<string, { familyKey: string; title: string;
   },
   creatine: {
     familyKey: 'creatine',
-    title: 'Astro Creatine Pure',
+    title: 'ASTRO CREATINE PURE',
     flavors: [
       {
         slug: 'astro-creatine',
-        name: 'Astro Creatine Pure',
+        name: 'ASTRO CREATINE PURE',
         flavorName: 'Natural Taste',
         description: '100% pure micronized creatine monohydrate in natural unflavored taste for rapid ATP energy.',
         color: '#00FF88',
@@ -88,11 +88,11 @@ export const FLAVOR_FAMILIES: Record<string, { familyKey: string; title: string;
   },
   collagen: {
     familyKey: 'collagen',
-    title: 'Nova Marine Collagen',
+    title: 'NOVA MARINE PEPTIDES COLLAGEN',
     flavors: [
       {
         slug: 'astro-collagen-peptide',
-        name: 'Nova Marine Collagen',
+        name: 'NOVA MARINE PEPTIDES COLLAGEN',
         flavorName: 'Tropical Fruits',
         description: 'Bioactive hydrolysed marine collagen peptides infused with tropical fruits for joints & skin elasticity.',
         color: '#FF2244',
@@ -103,11 +103,11 @@ export const FLAVOR_FAMILIES: Record<string, { familyKey: string; title: string;
   },
   magnesium: {
     familyKey: 'magnesium',
-    title: 'Cosmic Magnesium',
+    title: 'COSMIC MAGNESIUM GLYCINATE',
     flavors: [
       {
         slug: 'magnesium',
-        name: 'Cosmic Magnesium',
+        name: 'COSMIC MAGNESIUM GLYCINATE',
         flavorName: '90 Vegan Caps',
         description: 'High-absorption chelated magnesium bisglycinate delivered in 90 vegan capsules.',
         color: '#00FF88',

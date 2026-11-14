@@ -36,14 +36,16 @@ async function sendTemplateEmail(
   to: string,
   templateKey: EmailTemplateKey,
   variables: Record<string, any> = {},
-  replyTo: string = 'hello@ufolabz.com'
+  replyTo: string = 'hello@ufolabz.com',
+  locale: any = 'fr',
+  currency: any = 'CHF'
 ): Promise<EmailSendResult> {
   try {
-    const { subject, html } = renderEmail(templateKey, variables)
+    const { subject, html } = renderEmail(templateKey, variables, locale, currency)
     const resend = getResendClient()
 
     if (!resend) {
-      console.log(`[MOCK EMAIL] [${templateKey}] to ${to} | Subject: "${subject}"`)
+      console.log(`[MOCK EMAIL] [${templateKey}] [${locale}] [${currency}] to ${to} | Subject: "${subject}"`)
       return { success: true, id: `mock-${templateKey}-${Date.now()}` }
     }
 
@@ -81,6 +83,7 @@ export const emailService = {
     const address = orderData.shipping_address || {}
     const firstName = address.fullName?.split(' ')[0] || orderData.customerName?.split(' ')[0] || 'Valued Athlete'
     const currency = orderData.currency || 'CHF'
+    const locale = orderData.locale || 'fr'
 
     const vars = {
       first_name: firstName,
@@ -96,7 +99,7 @@ export const emailService = {
       order_url: `${APP_URL}/account`,
     }
 
-    return sendTemplateEmail(to, 'order_confirmation', vars)
+    return sendTemplateEmail(to, 'order_confirmation', vars, 'hello@ufolabz.com', locale, currency)
   },
 
   /**
@@ -107,7 +110,9 @@ export const emailService = {
     customerName: string,
     cartItems: any[],
     checkoutUrl: string,
-    discountCode?: string
+    discountCode?: string,
+    locale: any = 'fr',
+    currency: any = 'CHF'
   ): Promise<EmailSendResult> {
     const firstName = customerName?.split(' ')[0] || 'Athlete'
     const subtotal = cartItems.reduce((acc, i) => acc + (Number(i.price || 0) * (i.quantity || 1)), 0)
@@ -116,13 +121,13 @@ export const emailService = {
       first_name: firstName,
       cart_url: checkoutUrl || `${APP_URL}/checkout`,
       discount_code: discountCode || 'ORBITAL10',
-      subtotal: `CHF ${subtotal.toFixed(2)}`,
-      discount: `CHF ${(subtotal * 0.25).toFixed(2)}`,
-      shipping: subtotal >= 75 ? 'FREE' : 'CHF 9.99',
-      total: `CHF ${(subtotal * 0.75).toFixed(2)}`,
+      subtotal: `${currency} ${subtotal.toFixed(2)}`,
+      discount: `${currency} ${(subtotal * 0.25).toFixed(2)}`,
+      shipping: subtotal >= (currency === 'EUR' ? 50 : 75) ? 'FREE' : `${currency} 9.99`,
+      total: `${currency} ${(subtotal * 0.75).toFixed(2)}`,
     }
 
-    return sendTemplateEmail(email, 'abandoned_cart', vars)
+    return sendTemplateEmail(email, 'abandoned_cart', vars, 'hello@ufolabz.com', locale, currency)
   },
 
   /**
@@ -159,6 +164,8 @@ export const emailService = {
     const firstName = address.fullName?.split(' ')[0] || orderData.customerName?.split(' ')[0] || 'Valued Athlete'
     const trackingNumber = orderData.tracking_number || orderData.trackingNumber || 'Pending'
     const trackingUrl = orderData.tracking_url || orderData.trackingUrl || `https://service.post.ch/tracking?formattedParcelCodes=${trackingNumber}`
+    const locale = orderData.locale || 'fr'
+    const currency = orderData.currency || 'CHF'
 
     const vars = {
       first_name: firstName,
@@ -168,7 +175,7 @@ export const emailService = {
       estimated_delivery: 'Next working day (Swiss Post Priority)',
     }
 
-    return sendTemplateEmail(to, 'order_shipped', vars)
+    return sendTemplateEmail(to, 'order_shipped', vars, 'hello@ufolabz.com', locale, currency)
   },
 
   /**
@@ -183,6 +190,8 @@ export const emailService = {
     if (!to) return { success: false, error: 'Recipient email missing' }
 
     const firstName = orderData.customerName?.split(' ')[0] || 'Valued Athlete'
+    const locale = orderData.locale || 'fr'
+    const currency = orderData.currency || 'CHF'
 
     const vars = {
       first_name: firstName,
@@ -192,7 +201,7 @@ export const emailService = {
       order_url: `${APP_URL}/account`,
     }
 
-    return sendTemplateEmail(to, 'order_delayed', vars)
+    return sendTemplateEmail(to, 'order_delayed', vars, 'hello@ufolabz.com', locale, currency)
   },
 
   /**
@@ -208,6 +217,7 @@ export const emailService = {
 
     const firstName = orderData.customerName?.split(' ')[0] || 'Valued Athlete'
     const currency = orderData.currency || 'CHF'
+    const locale = orderData.locale || 'fr'
 
     const vars = {
       first_name: firstName,
@@ -218,7 +228,7 @@ export const emailService = {
       refund_days: '2-4 business days',
     }
 
-    return sendTemplateEmail(to, 'order_cancelled', vars)
+    return sendTemplateEmail(to, 'order_cancelled', vars, 'hello@ufolabz.com', locale, currency)
   },
 
   /**
@@ -229,6 +239,8 @@ export const emailService = {
     if (!to) return { success: false, error: 'Recipient email missing' }
 
     const firstName = orderData.customerName?.split(' ')[0] || 'Valued Athlete'
+    const locale = orderData.locale || 'fr'
+    const currency = orderData.currency || 'CHF'
 
     const vars = {
       first_name: firstName,
@@ -236,7 +248,7 @@ export const emailService = {
       review_url: `${APP_URL}/account`,
     }
 
-    return sendTemplateEmail(to, 'order_delivered', vars)
+    return sendTemplateEmail(to, 'order_delivered', vars, 'hello@ufolabz.com', locale, currency)
   },
 
   // ── 2. Athlete & Affiliate Emails ───────────────────────────────────

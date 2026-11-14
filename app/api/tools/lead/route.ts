@@ -12,9 +12,10 @@ const esc = (s: string) =>
   s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c] as string);
 
 const COPY: Record<Locale, { subject: (t: string) => string; hi: string; foot: string; disc: string }> = {
-  en: { subject: (t) => `Your result: ${t}`, hi: "Here is your result:", foot: "You received this because you requested it on our website.", disc: "General information only, not medical advice." },
   fr: { subject: (t) => `Votre résultat : ${t}`, hi: "Voici votre résultat :", foot: "Vous recevez cet e-mail car vous l’avez demandé sur notre site.", disc: "Informations générales, elles ne remplacent pas un avis médical." },
+  en: { subject: (t) => `Your result: ${t}`, hi: "Here is your result:", foot: "You received this because you requested it on our website.", disc: "General information only, not medical advice." },
   de: { subject: (t) => `Dein Ergebnis: ${t}`, hi: "Hier ist dein Ergebnis:", foot: "Du erhältst diese E-Mail, weil du sie auf unserer Website angefordert hast.", disc: "Allgemeine Informationen, kein Ersatz für medizinischen Rat." },
+  it: { subject: (t) => `Il tuo risultato: ${t}`, hi: "Ecco il tuo risultato:", foot: "Hai ricevuto questa email perché l'hai richiesta sul nostro sito web.", disc: "Informazioni generali, non costituiscono parere medico." },
 };
 
 // Best-effort, in-memory rate limit (per server instance). Use Upstash/Vercel KV if you need a hard limit.

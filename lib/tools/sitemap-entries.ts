@@ -4,7 +4,7 @@ import { LOCALES, TOOL_IDS, hubPath, toolPath, type Locale, type ToolId } from "
 import { CONTENT } from "./content";
 
 const alt = (fn: (l: Locale) => string) => ({
-  languages: { ...Object.fromEntries(LOCALES.map((l) => [l, absUrl(fn(l))])), "x-default": absUrl(fn("en")) },
+  languages: { ...Object.fromEntries(LOCALES.map((l) => [l, absUrl(fn(l))])), "x-default": absUrl(fn("fr")) },
 });
 
 /** Tool pages + hub for every language. Merge the result into your existing sitemap. */

@@ -10,6 +10,7 @@ import {
   calculateStackDiscount,
   StackDiscountResult,
 } from '@/lib/config/stack'
+import { getProductDisplayName } from '@/lib/products'
 
 export type CheckoutShippingMethod = 'standard' | 'priority'
 export type CheckoutDeliveryMethod = 'shipping' | 'pickup_nutrifit'
@@ -129,7 +130,7 @@ export async function buildValidatedCheckoutTotals(
 
     const slug = item.slug || (item.variant as any)?.product?.slug || dbProduct?.slug || ''
     const sku = item.variant?.sku || dbVariant?.sku || ''
-    const productName = item.name || dbProduct?.name?.en || 'UFO Supplement'
+    const productName = getProductDisplayName(slug, item.name || dbProduct?.name?.en || 'UFO Supplement')
     const variantName = item.variantName || dbVariant?.name || 'Standard size'
 
     // Canonical unit price strictly driven by central single source of truth
@@ -302,7 +303,7 @@ export function buildStripeLineItems(
       price_data: {
         currency: stripeCurrency,
         product_data: {
-          name: `[PRE-ORDER] ${item.product_name.en} - ${item.variant_name}`,
+          name: `[PRE-ORDER] ${getProductDisplayName(item.product_name.en)}`,
           description: `Laboratory formulation reserved. ${PREORDER_CONFIG.estimatedShipNotice}`,
         },
         unit_amount: toStripeAmount(item.unit_price),

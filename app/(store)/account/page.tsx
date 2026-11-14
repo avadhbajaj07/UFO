@@ -41,20 +41,20 @@ const INITIAL_ADDRESSES = [
 // Default recommendation products by goal
 const GOAL_PRODUCTS: Record<string, Array<{ name: string; desc: string; slug: string; price: number }>> = {
   'Muscle Gain': [
-    { name: 'Astro Creatine', desc: 'Pure micronized monohydrate for maximum muscle gains.', slug: 'astro-creatine', price: 19.00 },
-    { name: 'Amino Fuel Mango', desc: 'Complete BCAA recovery formula with electrolytes.', slug: 'amino-fuel-mango', price: 17.90 }
+    { name: 'ASTRO CREATINE PURE', desc: 'Pure micronized monohydrate for maximum muscle gains.', slug: 'astro-creatine', price: 19.00 },
+    { name: 'AMINO FUEL EAA', desc: 'Complete BCAA recovery formula with electrolytes.', slug: 'amino-fuel-mango', price: 17.90 }
   ],
   'Weight Loss': [
-    { name: 'Blast Pre-Workout Energy', desc: 'Thermogenic energy driver with natural focus enhancers.', slug: 'blast-pre-workout-energy', price: 24.00 },
-    { name: 'Amino Fuel Blue', desc: 'Intra-workout hydration to support muscle preservation.', slug: 'amino-fuel-blue-raspberry', price: 17.90 }
+    { name: 'BLAST PRE-WORKOUT', desc: 'Thermogenic energy driver with natural focus enhancers.', slug: 'blast-pre-workout-energy', price: 24.00 },
+    { name: 'AMINO FUEL EAA', desc: 'Intra-workout hydration to support muscle preservation.', slug: 'amino-fuel-blue-raspberry', price: 17.90 }
   ],
   'Endurance': [
-    { name: 'Amino Fuel Mango', desc: 'Complete BCAA recovery matrix with fast-hydration complex.', slug: 'amino-fuel-mango', price: 17.90 },
-    { name: 'Blast Pre-Workout Blue', desc: 'Cognitive and physical performance booster for focused training.', slug: 'blast-pre-workout-blue', price: 24.00 }
+    { name: 'AMINO FUEL EAA', desc: 'Complete BCAA recovery matrix with fast-hydration complex.', slug: 'amino-fuel-mango', price: 17.90 },
+    { name: 'BLAST PRE-WORKOUT', desc: 'Cognitive and physical performance booster for focused training.', slug: 'blast-pre-workout-blue', price: 24.00 }
   ],
   'Strength': [
-    { name: 'Astro Creatine', desc: 'Micronized monohydrate for raw strength and power.', slug: 'astro-creatine', price: 19.00 },
-    { name: 'Astro Collagen', desc: 'Premium recovery support for connective tissue and training resilience.', slug: 'astro-collagen', price: 34.00 }
+    { name: 'ASTRO CREATINE PURE', desc: 'Micronized monohydrate for raw strength and power.', slug: 'astro-creatine', price: 19.00 },
+    { name: 'NOVA MARINE PEPTIDES COLLAGEN', desc: 'Premium recovery support for connective tissue and training resilience.', slug: 'astro-collagen-peptide', price: 34.00 }
   ]
 }
 
@@ -607,7 +607,7 @@ export default function AccountPage() {
                               <Image src="/Product2.jpeg" alt="Blast Pre-Workout" fill className="object-contain p-1.5" />
                             </div>
                             <div>
-                              <div className="font-bold text-white">Blast Pre-Workout (300g)</div>
+                              <div className="font-bold text-white">BLAST PRE-WORKOUT</div>
                               <div className="text-gray-400">Qty: 1 · Price: CHF 49.00</div>
                             </div>
                           </div>

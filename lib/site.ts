@@ -14,7 +14,7 @@ type Preset = {
   products: Record<Goal, Product>;
 };
 
-const all = (s: string): Record<Locale, string> => ({ en: s, fr: s, de: s });
+const all = (s: string): Record<Locale, string> => ({ fr: s, en: s, de: s, it: s });
 
 const PRESETS: Record<"ufolabz" | "nutrifitness", Preset> = {
   ufolabz: {
@@ -30,15 +30,15 @@ const PRESETS: Record<"ufolabz" | "nutrifitness", Preset> = {
     scoopG: 25,
     products: {
       maintain: {
-        name: { en: "Astro Creatine Pure 300g", fr: "Astro Créatine Pure 300g", de: "Astro Kreatin Pur 300g" },
+        name: all("ASTRO CREATINE PURE"),
         href: all("/products/astro-creatine"),
       },
       gain: {
-        name: { en: "Blast Pre-Workout Energy 300g", fr: "Blast Pré-Workout Énergie 300g", de: "Blast Pre-Workout Energie 300g" },
+        name: all("BLAST PRE-WORKOUT"),
         href: all("/products/blast-pre-workout-energy"),
       },
       loss: {
-        name: { en: "Amino Fuel EAA Mango 300g", fr: "Amino Fuel EAA Mangue 300g", de: "Amino Fuel EAA Mango 300g" },
+        name: all("AMINO FUEL EAA"),
         href: all("/products/amino-fuel-mango"),
       },
     },

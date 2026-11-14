@@ -14,6 +14,7 @@ import { useCurrency } from '@/hooks/useCurrency'
 import { getCanonicalUnitPrice } from '@/lib/config/pricing'
 import { PREORDER_CONFIG } from '@/lib/config/preorder'
 import { getProductFlavors } from '@/lib/config/flavors'
+import { getProductDisplayName } from '@/lib/products'
 import { stripFlavorSuffix, getProductFormat, getCleanTagline } from '@/lib/products/format'
 import { getLocalizedField } from '@/types'
 import { useCart } from '@/hooks/useCart'
@@ -268,7 +269,7 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
   }
 
   const rawName = safeText(product.name)
-  const name = stripFlavorSuffix(rawName)
+  const name = getProductDisplayName(product.slug, stripFlavorSuffix(rawName))
   const tagline = getCleanTagline(product)
   const formatPill = getProductFormat(product)
   const desc = safeText(product.description)

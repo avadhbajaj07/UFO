@@ -741,10 +741,11 @@ export default function AffiliatePage() {
                               ))
                             ) : (
                               <>
-                                <option value="astro-creatine">Astro Creatine (500g)</option>
-                                <option value="blast-pre-workout-energy">Blast Pre-Workout Energy</option>
-                                <option value="amino-fuel-mango">Amino Fuel Mango (300g)</option>
-                                <option value="astro-collagen">Astro Collagen Peptide</option>
+                                <option value="astro-creatine">ASTRO CREATINE PURE</option>
+                                <option value="blast-pre-workout-energy">BLAST PRE-WORKOUT</option>
+                                <option value="amino-fuel-mango">AMINO FUEL EAA</option>
+                                <option value="astro-collagen-peptide">NOVA MARINE PEPTIDES COLLAGEN</option>
+                                <option value="magnesium">COSMIC MAGNESIUM GLYCINATE</option>
                               </>
                             )}
                           </select>

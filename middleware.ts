@@ -2,9 +2,16 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { getCurrencyForCountry } from '@/lib/config/pricing'
+import {
+  DEFAULT_LOCALE,
+  LOCALES,
+  stripLocalePrefix,
+  detectLocaleFromAcceptLanguage,
+  isValidLocale,
+  Locale,
+} from '@/lib/i18n/config'
 
 // ── Pre-launch Coming Soon Flag ──────────────────────────────────────────
-// Set to `false` for LIVE PRE-ORDER store.
 const COMING_SOON = false
 
 export async function middleware(request: NextRequest) {
@@ -21,18 +28,96 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // 2. Always allow mail dashboard and mail API routes regardless of maintenance mode
+  // 2. Always allow mail dashboard and mail API routes
   if (pathname.startsWith('/mail') || pathname.startsWith('/api/mail')) {
     return NextResponse.next()
   }
 
-  let response = NextResponse.next({
-    request: {
-      headers: request.headers,
-    },
-  })
+  // 3. Skip i18n rewrites for static assets, system routes & APIs
+  const isStaticOrSystem =
+    pathname.startsWith('/_next') ||
+    pathname.startsWith('/api') ||
+    pathname.startsWith('/admin') ||
+    pathname.startsWith('/admin-icon') ||
+    pathname.startsWith('/pos') ||
+    pathname === '/robots.txt' ||
+    pathname === '/sitemap.xml' ||
+    pathname.includes('.')
 
-  // 3. Refresh Supabase auth session token only when auth cookies exist or on protected paths
+  // 4. Handle default locale prefix cleanup: /fr/* -> /* (308 Permanent Redirect)
+  if (!isStaticOrSystem && (pathname === '/fr' || pathname.startsWith('/fr/'))) {
+    const cleanPath = stripLocalePrefix(pathname)
+    const url = request.nextUrl.clone()
+    url.pathname = cleanPath
+    const redirectRes = NextResponse.redirect(url, 308)
+    redirectRes.cookies.set('NEXT_LOCALE', 'fr', { path: '/', maxAge: 60 * 60 * 24 * 365, sameSite: 'lax' })
+    return redirectRes
+  }
+
+  // 5. First-time visit to root '/': check Accept-Language if no NEXT_LOCALE cookie exists
+  const existingLocaleCookie = request.cookies.get('NEXT_LOCALE')?.value as Locale | undefined
+  if (!isStaticOrSystem && pathname === '/' && !existingLocaleCookie) {
+    const detected = detectLocaleFromAcceptLanguage(request.headers.get('accept-language'))
+    if (detected !== DEFAULT_LOCALE && detected !== 'fr') {
+      const url = request.nextUrl.clone()
+      url.pathname = `/${detected}`
+      const redirectRes = NextResponse.redirect(url, 307)
+      redirectRes.cookies.set('NEXT_LOCALE', detected, { path: '/', maxAge: 60 * 60 * 24 * 365, sameSite: 'lax' })
+      return redirectRes
+    }
+  }
+
+  // 6. Determine active locale and target internal rewrite path
+  let activeLocale: Locale = DEFAULT_LOCALE
+  let rewriteUrl: URL | null = null
+
+  if (!isStaticOrSystem) {
+    const localePrefixMatch = pathname.match(/^\/(en|de|it)(\/|$)/)
+    if (localePrefixMatch) {
+      activeLocale = localePrefixMatch[1] as Locale
+
+      // Tools already use app/(store)/[locale]/tools, so leave path intact
+      const isToolsRoute = pathname === `/${activeLocale}/tools` || pathname.startsWith(`/${activeLocale}/tools/`)
+      if (!isToolsRoute) {
+        // Strip prefix internally for app router (e.g. /en/products -> /products)
+        const stripped = stripLocalePrefix(pathname)
+        rewriteUrl = request.nextUrl.clone()
+        rewriteUrl.pathname = stripped
+      }
+    } else {
+      activeLocale = 'fr'
+    }
+  }
+
+  // Prepare base response (rewrite or next)
+  const requestHeaders = new Headers(request.headers)
+  requestHeaders.set('x-locale', activeLocale)
+
+  let response: NextResponse
+  if (rewriteUrl) {
+    response = NextResponse.rewrite(rewriteUrl, {
+      request: {
+        headers: requestHeaders,
+      },
+    })
+  } else {
+    response = NextResponse.next({
+      request: {
+        headers: requestHeaders,
+      },
+    })
+  }
+
+  // Set NEXT_LOCALE cookie if missing or changed
+  if (!isStaticOrSystem && existingLocaleCookie !== activeLocale) {
+    response.cookies.set('NEXT_LOCALE', activeLocale, {
+      path: '/',
+      maxAge: 60 * 60 * 24 * 365,
+      sameSite: 'lax',
+    })
+  }
+
+  // 7. Refresh Supabase auth session token only when auth cookies exist or on protected paths
   const hasAuthCookie = request.cookies.getAll().some(c => c.name.includes('-auth-token') || c.name.startsWith('sb-'))
   const isProtectedPath = pathname.startsWith('/admin') || pathname.startsWith('/account') || pathname.startsWith('/affiliate')
 
@@ -48,9 +133,6 @@ export async function middleware(request: NextRequest) {
           },
           setAll(cookiesToSet: Array<{ name: string; value: string; options?: any }>) {
             cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
-            response = NextResponse.next({
-              request,
-            })
             cookiesToSet.forEach(({ name, value, options }) =>
               response.cookies.set(name, value, options)
             )
@@ -64,29 +146,7 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  if (COMING_SOON) {
-    // Allow admin portal, api endpoints, and static files
-    if (
-      pathname.startsWith('/admin') ||
-      pathname.startsWith('/api') ||
-      pathname.startsWith('/_next') ||
-      pathname.startsWith('/images') ||
-      pathname.includes('.')
-    ) {
-      return response
-    }
-
-    // Redirect any deep links or direct page visits to root
-    if (pathname !== '/') {
-      const url = request.nextUrl.clone()
-      url.pathname = '/'
-      return NextResponse.redirect(url)
-    }
-    return response
-  }
-
-  // 4. Geo-IP Currency Detection
-  // Extract country from Vercel edge geo, CF-IPCountry header, or x-vercel-ip-country
+  // 8. Geo-IP Currency Detection
   const geoCountry = (
     (request as any).geo?.country ||
     request.headers.get('x-vercel-ip-country') ||
@@ -97,7 +157,6 @@ export async function middleware(request: NextRequest) {
 
   const detectedCurrency = getCurrencyForCountry(geoCountry)
 
-  // Check manual override cookie
   const manualCookie = request.cookies.get('ufo_currency_manual')?.value
   const existingCurrencyCookie = request.cookies.get('ufo_currency')?.value
 
@@ -109,6 +168,7 @@ export async function middleware(request: NextRequest) {
   // Set response headers for server components & APIs
   response.headers.set('x-user-country', geoCountry || 'CH')
   response.headers.set('x-user-currency', effectiveCurrency)
+  response.headers.set('x-locale', activeLocale)
 
   // Set cookies for client hydration if missing or out of sync (unless manual override)
   if (!existingCurrencyCookie || (!manualCookie && existingCurrencyCookie !== effectiveCurrency)) {
