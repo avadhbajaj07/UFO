@@ -933,14 +933,15 @@ QC: ${orderData.qcChecklist.qcInspector}
       {/* Embedded print styles for precise page margins and thermal formatting */}
       <style jsx global>{`
         @media print {
-          body {
+          html, body {
             background: #ffffff !important;
             color: #000000 !important;
             padding: 0 !important;
             margin: 0 !important;
+            height: auto !important;
           }
           @page {
-            margin: ${printMode === 'thermal' ? '3mm' : '8mm'};
+            margin: ${printMode === 'thermal' ? '0mm' : '8mm'};
             size: ${printMode === 'thermal' ? '100mm 150mm' : 'A4 portrait'};
           }
         }
