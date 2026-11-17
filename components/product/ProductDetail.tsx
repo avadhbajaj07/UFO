@@ -1311,105 +1311,56 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
             </div>
           )}
 
-          {/* Nutrition Facts Label */}
+          {/* Nutrition Facts Label - Official Poster Only */}
           {activeTab === 'nutrition' && (() => {
-            const nutritionRaw = selectedVariant?.nutrition
-            const nutrition = Array.isArray(nutritionRaw) ? nutritionRaw[0] : (nutritionRaw || {})
             const factsPoster = posters.find(p => p.index === 2)
+            if (!factsPoster) return null
             return (
-              <div className="animate-fade-in space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-                  {/* Digital Nutrition Facts Card */}
-                  <div className="bg-white text-space-950 p-6 rounded-2xl border-4 border-space-950 shadow-2xl font-mono text-xs w-full">
-                    <div className="text-center pb-2 border-b-8 border-space-950">
-                      <h3 className="font-black text-2xl font-sans tracking-tight">Nutrition Facts</h3>
-                      <div className="flex justify-between text-[10px] mt-1">
-                        <span>Serving Size: {selectedVariant?.serving_size || nutrition.serving_size || '5g'}</span>
-                        <span>Servings Per Container: {selectedVariant?.servings || nutrition.servings_per_container || '30'}</span>
-                      </div>
-                    </div>
-
-                    <div className="flex justify-between py-1 border-b border-space-950 font-bold">
-                      <span>Amount Per Serving</span>
-                    </div>
-
-                    <div className="flex justify-between py-1.5 border-b-4 border-space-950 font-bold text-sm">
-                      <span>Calories</span>
-                      <span>{nutrition.calories || '0'}</span>
-                    </div>
-
-                    <div className="flex justify-between py-1 border-b border-gray-300">
-                      <span>Total Fat {nutrition.total_fat ?? 0}g</span>
-                      <span className="font-bold">0%</span>
-                    </div>
-
-                    <div className="flex justify-between py-1 border-b border-gray-300">
-                      <span>Sodium {nutrition.sodium ?? 0}mg</span>
-                      <span className="font-bold">0%</span>
-                    </div>
-
-                    <div className="flex justify-between py-1 border-b border-gray-300">
-                      <span>Total Carbohydrate {nutrition.total_carbohydrate ?? 0}g</span>
-                      <span className="font-bold">0%</span>
-                    </div>
-
-                    <div className="flex justify-between py-1 border-b-4 border-space-950">
-                      <span>Protein {nutrition.protein || '0'}g</span>
-                      <span className="font-bold">0%</span>
-                    </div>
-
-                    <div className="py-2 border-b border-space-950 font-bold text-[10px]">
-                      Active Supplement Compounds
-                    </div>
-
-                    {product.ingredients && product.ingredients.length > 0 ? (
-                      product.ingredients.map((ing: any) => (
-                        <div key={ing.id} className="flex justify-between py-1 border-b border-gray-200">
-                          <span>{safeText(ing.ingredient?.name)}</span>
-                          <span className="font-bold">{ing.amount}</span>
-                        </div>
-                      ))
-                    ) : product.schema_markup?.ingredients ? (
-                      <div className="py-2 text-[10px] text-gray-600 leading-normal">
-                        {product.schema_markup.ingredients}
-                      </div>
-                    ) : (
-                      <div className="py-2 text-center text-gray-400 italic text-[10px]">
-                        No compounds list loaded.
-                      </div>
-                    )}
+              <div className="animate-fade-in max-w-xl mx-auto">
+                <div
+                  onClick={() => setLightboxImage({
+                    url: factsPoster.localPath,
+                    title: factsPoster.title,
+                    subtitle: factsPoster.subtitle,
+                    tag: factsPoster.tag
+                  })}
+                  className="group bg-space-900 border border-white/10 hover:border-alien-green/50 rounded-3xl p-5 sm:p-6 cursor-pointer transition-all duration-300 hover:shadow-2xl hover:shadow-alien-green/10 flex flex-col justify-between"
+                >
+                  <div className="flex items-center justify-between pb-4 border-b border-white/5">
+                    <span className="text-[10px] font-mono font-bold tracking-widest text-alien-green bg-alien-green/10 border border-alien-green/20 px-3 py-1 rounded-full uppercase">
+                      OFFICIAL CERTIFIED PANEL
+                    </span>
+                    <span className="text-xs font-mono text-gray-400 flex items-center gap-1.5 group-hover:text-alien-green transition-colors">
+                      <Maximize2 className="w-3.5 h-3.5" />
+                      <span>Click to Expand</span>
+                    </span>
                   </div>
 
-                  {/* High-Resolution Official Supplement Facts Poster */}
-                  {factsPoster && (
-                    <div
-                      onClick={() => setLightboxImage({ url: factsPoster.localPath, title: factsPoster.title, subtitle: factsPoster.subtitle, tag: factsPoster.tag })}
-                      className="group bg-space-900 border border-white/10 hover:border-alien-green/50 rounded-2xl p-4 cursor-pointer transition-all hover:shadow-2xl flex flex-col justify-between"
-                    >
-                      <div className="flex items-center justify-between pb-3 border-b border-white/5">
-                        <span className="text-[10px] font-mono font-bold tracking-widest text-alien-green bg-alien-green/10 border border-alien-green/20 px-2 py-0.5 rounded-full uppercase">
-                          OFFICIAL CERTIFIED PANEL
-                        </span>
-                        <span className="text-xs font-mono text-gray-400 flex items-center gap-1 group-hover:text-alien-green">
-                          <Maximize2 className="w-3.5 h-3.5" />
-                          <span>Expand</span>
-                        </span>
-                      </div>
-                      <div className="relative aspect-square w-full my-3 rounded-xl overflow-hidden bg-space-950 flex items-center justify-center">
-                        <Image
-                          src={factsPoster.localPath}
-                          alt={factsPoster.title}
-                          fill
-                          className="object-contain p-2 group-hover:scale-105 transition-transform"
-                          sizes="(max-width: 768px) 100vw, 400px"
-                        />
-                      </div>
-                      <div className="pt-2">
-                        <div className="text-xs font-bold text-white uppercase">{factsPoster.title}</div>
-                        <div className="text-[11px] text-gray-400 mt-0.5">{factsPoster.subtitle}</div>
+                  <div className="relative aspect-square w-full my-4 rounded-2xl overflow-hidden bg-space-950 flex items-center justify-center">
+                    <Image
+                      src={factsPoster.localPath}
+                      alt={factsPoster.title}
+                      fill
+                      className="object-contain p-2 sm:p-4 group-hover:scale-105 transition-transform duration-500"
+                      sizes="(max-width: 768px) 100vw, 600px"
+                      priority
+                    />
+                    <div className="absolute inset-0 bg-space-950/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <div className="px-4 py-2 rounded-xl bg-space-900/95 border border-alien-green/40 text-alien-green font-mono text-xs font-bold flex items-center gap-2 shadow-2xl">
+                        <Maximize2 className="w-4 h-4" />
+                        <span>Inspect High-Resolution Infographic</span>
                       </div>
                     </div>
-                  )}
+                  </div>
+
+                  <div className="pt-3 border-t border-white/5 space-y-1 text-center sm:text-left">
+                    <div className="text-sm font-bold text-white uppercase font-display tracking-wide group-hover:text-alien-green transition-colors">
+                      {factsPoster.title}
+                    </div>
+                    <div className="text-xs text-gray-400 leading-relaxed font-sans">
+                      {factsPoster.subtitle}
+                    </div>
+                  </div>
                 </div>
               </div>
             )
