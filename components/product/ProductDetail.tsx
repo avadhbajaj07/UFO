@@ -7,8 +7,10 @@ import { useRouter } from 'next/navigation'
 import {
   Star, ShoppingBag, Plus, Minus, ChevronDown, ChevronUp,
   Shield, FlaskConical, CheckCircle2, Heart, RefreshCw, Sparkles,
-  Truck, ArrowRight, Award, Flame, Info, Check, MessageCircle, HelpCircle, Phone, Send
+  Truck, ArrowRight, Award, Flame, Info, Check, MessageCircle, HelpCircle, Phone, Send,
+  X, Maximize2, ZoomIn
 } from 'lucide-react'
+import { getProductPosters, ensureProductImages, type ProductPosterMeta } from '@/lib/products/posters'
 import { formatPrice, getPricedForQuantity } from '@/lib/utils/pricing'
 import { useCurrency } from '@/hooks/useCurrency'
 import { getCanonicalUnitPrice } from '@/lib/config/pricing'
@@ -361,8 +363,19 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
     }
   }
 
-  // Get active selected image url
-  const mainImageUrl = product.images?.[selectedImageIndex]?.url ?? product.images?.[0]?.url
+  // Product Posters & Gallery images (7 total: 3D render + 6 official lab infographics)
+  const productSlug = product?.slug || serverProduct?.slug || ''
+  const posters = getProductPosters(productSlug)
+  const displayImages = ensureProductImages(product || serverProduct)
+  const mainImageUrl = displayImages?.[selectedImageIndex]?.url ?? displayImages?.[0]?.url ?? product?.images?.[0]?.url
+
+  // Full-screen image lightbox modal state
+  const [lightboxImage, setLightboxImage] = useState<{
+    url: string;
+    title: string;
+    subtitle?: string;
+    tag?: string;
+  } | null>(null)
 
   return (
     <div className="pt-16 min-h-screen bg-space-950 text-white selection:bg-alien-green selection:text-space-950 overflow-x-hidden">
@@ -625,15 +638,31 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
                 />
 
                 {mainImageUrl ? (
-                  <div className="relative w-full h-full cursor-zoom-in group/zoom">
+                  <div
+                    onClick={() => {
+                      const activeItem = displayImages?.[selectedImageIndex];
+                      setLightboxImage({
+                        url: mainImageUrl,
+                        title: selectedImageIndex === 0 ? name : (activeItem?.poster_meta?.title || name),
+                        subtitle: activeItem?.poster_meta?.subtitle,
+                        tag: selectedImageIndex === 0 ? '3D CANISTER' : activeItem?.poster_meta?.tag,
+                      });
+                    }}
+                    className="relative w-full h-full cursor-zoom-in group/zoom"
+                    title="Click to view full-size high-resolution infographic"
+                  >
                     <Image
                       src={mainImageUrl}
                       alt={name}
                       fill
-                      className="object-contain p-4 drop-shadow-2xl animate-float transition-transform duration-500 ease-out hover:scale-110 group-hover/zoom:scale-110"
+                      className="object-contain p-4 drop-shadow-2xl animate-float transition-transform duration-500 ease-out hover:scale-105 group-hover/zoom:scale-105"
                       priority
                       sizes="(max-width: 1024px) 100vw, 40vw"
                     />
+                    <div className="absolute top-2 right-2 opacity-0 group-hover/zoom:opacity-100 transition-opacity bg-space-900/90 border border-white/20 rounded-xl p-2 text-alien-green shadow-xl flex items-center gap-1.5 text-xs font-mono">
+                      <Maximize2 className="w-3.5 h-3.5" />
+                      <span>Zoom</span>
+                    </div>
                   </div>
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
@@ -665,33 +694,65 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
                 )}
               </div>
 
-              {/* Thumbnails */}
-              {product.images && product.images.length > 1 && (
-                <div className="flex gap-3 mt-6 z-10">
-                  {product.images.map((img: any, idx: number) => {
-                    const isSelected = idx === selectedImageIndex;
-                    return (
-                      <button
-                        key={img.id || idx}
-                        onClick={() => setSelectedImageIndex(idx)}
-                        className={cn(
-                          "relative w-16 h-16 rounded-xl overflow-hidden border-2 bg-space-900 transition-all duration-200",
-                          isSelected ? "scale-105" : "border-white/10 hover:border-white/20 hover:scale-102"
-                        )}
-                        style={{
-                          borderColor: isSelected ? color : 'transparent',
-                          boxShadow: isSelected ? `0 0 10px ${color}40` : 'none'
-                        }}
-                      >
-                        <Image
-                          src={img.url}
-                          alt={`${name} thumbnail ${idx + 1}`}
-                          fill
-                          className="object-contain p-1"
-                        />
-                      </button>
-                    );
-                  })}
+              {/* Thumbnails (Supports 7 images: Primary Tub + 6 Official Posters) */}
+              {displayImages && displayImages.length > 1 && (
+                <div className="w-full max-w-lg mt-6 z-10 px-2">
+                  <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-white/20 justify-start sm:justify-center">
+                    {displayImages.map((img: any, idx: number) => {
+                      const isSelected = idx === selectedImageIndex;
+                      const label = idx === 0 ? '3D TUB' : (img.poster_meta?.tag || `P${idx}`);
+                      return (
+                        <button
+                          key={img.id || idx}
+                          onClick={() => setSelectedImageIndex(idx)}
+                          className={cn(
+                            "group relative flex-shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden border-2 bg-space-900 transition-all duration-200",
+                            isSelected ? "scale-105 ring-2 ring-alien-green/40" : "border-white/10 hover:border-white/30 opacity-75 hover:opacity-100"
+                          )}
+                          style={{
+                            borderColor: isSelected ? color : 'rgba(255,255,255,0.1)',
+                            boxShadow: isSelected ? `0 0 12px ${color}50` : 'none'
+                          }}
+                          title={idx === 0 ? 'Primary 3D Canister Render' : (img.poster_meta?.title || `Poster ${idx}`)}
+                        >
+                          <Image
+                            src={img.url}
+                            alt={`${name} thumbnail ${idx + 1}`}
+                            fill
+                            className="object-contain p-1"
+                            sizes="64px"
+                          />
+                          <span className="absolute bottom-0 inset-x-0 bg-space-950/85 text-[8px] font-mono font-bold text-center text-gray-300 py-0.5 truncate px-0.5">
+                            {label}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {/* Active view indicator */}
+                  <div className="flex items-center justify-between text-[11px] font-mono text-gray-400 mt-2">
+                    <span className="truncate max-w-[220px]">
+                      {selectedImageIndex === 0
+                        ? '3D Canister Render'
+                        : (displayImages[selectedImageIndex]?.poster_meta?.title || `Infographic ${selectedImageIndex}/6`)}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const activeItem = displayImages?.[selectedImageIndex];
+                        setLightboxImage({
+                          url: mainImageUrl,
+                          title: selectedImageIndex === 0 ? name : (activeItem?.poster_meta?.title || name),
+                          subtitle: activeItem?.poster_meta?.subtitle,
+                          tag: selectedImageIndex === 0 ? '3D CANISTER' : activeItem?.poster_meta?.tag,
+                        });
+                      }}
+                      className="text-alien-green hover:underline flex items-center gap-1 cursor-pointer shrink-0 ml-2"
+                    >
+                      <Sparkles className="w-3 h-3" />
+                      <span>Inspect Poster</span>
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
@@ -1043,6 +1104,95 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
         </div>
       </section>
 
+      {/* ─── 4.5 LAB INFOGRAPHICS & FORMULATION BREAKDOWN (6 POSTERS) ─── */}
+      {posters && posters.length > 0 && (
+        <section className="py-20 bg-space-950 border-t border-b border-white/5 relative overflow-hidden">
+          {/* Subtle cosmic background glow */}
+          <div className="absolute inset-0 pointer-events-none">
+            <div
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] rounded-full blur-[200px] opacity-10"
+              style={{ backgroundColor: color }}
+            />
+          </div>
+
+          <div className="max-w-7xl mx-auto container-px relative z-10">
+            {/* Section Header */}
+            <div className="text-center max-w-3xl mx-auto mb-14 space-y-3">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-alien-green/10 border border-alien-green/20 text-alien-green text-xs font-mono uppercase tracking-widest">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Swiss Lab Transparency</span>
+              </div>
+              <h2 className="font-display text-3xl md:text-5xl text-white uppercase tracking-wider">
+                FORMULATION BREAKDOWN & LAB INFOGRAPHICS
+              </h2>
+              <p className="text-gray-400 text-sm md:text-base leading-relaxed">
+                Official high-resolution documentation for {name}. Swiss-engineered mechanisms, clinical active compounds, certified nutrition panels, and usage protocols.
+              </p>
+            </div>
+
+            {/* 6 Posters Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {posters.map((poster) => (
+                <div
+                  key={poster.index}
+                  onClick={() => setLightboxImage({
+                    url: poster.localPath,
+                    title: poster.title,
+                    subtitle: poster.subtitle,
+                    tag: poster.tag,
+                  })}
+                  className="group relative bg-space-900/80 border border-white/10 hover:border-alien-green/50 rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-2xl hover:shadow-alien-green/10 hover:-translate-y-1 flex flex-col backdrop-blur-sm"
+                >
+                  {/* Badge & Index */}
+                  <div className="p-4 pb-3 flex items-center justify-between border-b border-white/5 bg-space-950/40">
+                    <span className="text-[10px] font-mono font-bold tracking-widest text-alien-green bg-alien-green/10 border border-alien-green/20 px-2.5 py-0.5 rounded-full uppercase">
+                      {poster.tag}
+                    </span>
+                    <span className="text-xs font-mono text-gray-500">
+                      0{poster.index} / 06
+                    </span>
+                  </div>
+
+                  {/* Image container */}
+                  <div className="relative aspect-square w-full bg-space-950/60 overflow-hidden flex items-center justify-center p-3">
+                    <Image
+                      src={poster.localPath}
+                      alt={poster.title}
+                      fill
+                      className="object-contain p-2 transition-transform duration-500 group-hover:scale-105"
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    />
+                    {/* Hover overlay hint */}
+                    <div className="absolute inset-0 bg-space-950/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
+                      <div className="px-4 py-2 rounded-xl bg-space-900/95 border border-alien-green/40 text-alien-green font-mono text-xs font-bold flex items-center gap-2 shadow-2xl">
+                        <Maximize2 className="w-4 h-4" />
+                        <span>Inspect Infographic</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Card footer details */}
+                  <div className="p-4 bg-space-900/90 flex-1 flex flex-col justify-between border-t border-white/5">
+                    <div>
+                      <h4 className="font-display text-base text-white uppercase tracking-wide group-hover:text-alien-green transition-colors">
+                        {poster.title}
+                      </h4>
+                      <p className="text-xs text-gray-400 mt-1 line-clamp-2 leading-relaxed">
+                        {poster.subtitle}
+                      </p>
+                    </div>
+                    <div className="mt-4 pt-3 border-t border-white/5 flex items-center justify-between text-xs font-mono text-gray-400 group-hover:text-white">
+                      <span>Click to view full size</span>
+                      <ArrowRight className="w-3.5 h-3.5 text-alien-green group-hover:translate-x-1 transition-transform" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* ─── 5. INFORMATION ACCORDIONS / TABS ─── */}
       <section className="py-16 max-w-4xl mx-auto container-px">
 
@@ -1051,7 +1201,7 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
           {[
             { id: 'benefits', label: t('products.key_benefits') },
             { id: 'ingredients', label: t('products.ingredients') },
-            { id: 'nutrition', label: t('products.ingredients') },
+            { id: 'nutrition', label: 'Nutrition Facts' },
             { id: 'usage', label: t('products.usage') },
             { id: 'faqs', label: 'FAQ' },
             { id: 'shipping', label: t('shipping_page.title') }
@@ -1075,7 +1225,7 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
 
           {/* Key Benefits */}
           {activeTab === 'benefits' && (
-            <div className="space-y-4 animate-fade-in">
+            <div className="space-y-6 animate-fade-in">
               <h3 className="text-xl font-bold mb-4 uppercase font-display tracking-wider">Engineered Advantages</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {keyBenefits.map((benefitText: string) => (
@@ -1085,6 +1235,38 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
                   </div>
                 ))}
               </div>
+
+              {/* Supporting Infographics for Benefits (Poster 1 & 4) */}
+              {posters && posters.length > 0 && (
+                <div className="pt-6 border-t border-white/5 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-mono uppercase tracking-wider text-gray-400">
+                      Scientific Action & Mechanisms
+                    </span>
+                    <span className="text-[10px] font-mono text-alien-green">Click infographic to inspect</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {[posters[0], posters[3]].filter(Boolean).map((p) => (
+                      <div
+                        key={p.index}
+                        onClick={() => setLightboxImage({ url: p.localPath, title: p.title, subtitle: p.subtitle, tag: p.tag })}
+                        className="group relative bg-space-900 border border-white/10 hover:border-alien-green/50 p-3 rounded-2xl cursor-pointer transition-all hover:shadow-lg flex items-center gap-4"
+                      >
+                        <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden bg-space-950 shrink-0">
+                          <Image src={p.localPath} alt={p.title} fill className="object-contain p-1 group-hover:scale-105 transition-transform" sizes="96px" />
+                        </div>
+                        <div className="flex-1 min-w-0 pr-1">
+                          <span className="text-[9px] font-mono font-bold text-alien-green uppercase bg-alien-green/10 px-2 py-0.5 rounded-full inline-block mb-1">
+                            {p.tag}
+                          </span>
+                          <h4 className="font-display text-sm text-white uppercase truncate">{p.title}</h4>
+                          <p className="text-[11px] text-gray-400 line-clamp-2 mt-0.5 leading-normal">{p.subtitle}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -1133,98 +1315,167 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
           {activeTab === 'nutrition' && (() => {
             const nutritionRaw = selectedVariant?.nutrition
             const nutrition = Array.isArray(nutritionRaw) ? nutritionRaw[0] : (nutritionRaw || {})
+            const factsPoster = posters.find(p => p.index === 2)
             return (
-              <div className="animate-fade-in bg-white text-space-950 p-6 rounded-2xl border-4 border-space-950 max-w-md mx-auto shadow-2xl font-mono text-xs">
-                <div className="text-center pb-2 border-b-8 border-space-950">
-                  <h3 className="font-black text-2xl font-sans tracking-tight">Nutrition Facts</h3>
-                  <div className="flex justify-between text-[10px] mt-1">
-                    <span>Serving Size: {selectedVariant?.serving_size || nutrition.serving_size || '5g'}</span>
-                    <span>Servings Per Container: {selectedVariant?.servings || nutrition.servings_per_container || '30'}</span>
-                  </div>
-                </div>
-
-                <div className="flex justify-between py-1 border-b border-space-950 font-bold">
-                  <span>Amount Per Serving</span>
-                </div>
-
-                <div className="flex justify-between py-1.5 border-b-4 border-space-950 font-bold text-sm">
-                  <span>Calories</span>
-                  <span>{nutrition.calories || '0'}</span>
-                </div>
-
-                <div className="flex justify-between py-1 border-b border-gray-300">
-                  <span>Total Fat {nutrition.total_fat ?? 0}g</span>
-                  <span className="font-bold">0%</span>
-                </div>
-
-                <div className="flex justify-between py-1 border-b border-gray-300">
-                  <span>Sodium {nutrition.sodium ?? 0}mg</span>
-                  <span className="font-bold">0%</span>
-                </div>
-
-                <div className="flex justify-between py-1 border-b border-gray-300">
-                  <span>Total Carbohydrate {nutrition.total_carbohydrate ?? 0}g</span>
-                  <span className="font-bold">0%</span>
-                </div>
-
-                <div className="flex justify-between py-1 border-b-4 border-space-950">
-                  <span>Protein {nutrition.protein || '0'}g</span>
-                  <span className="font-bold">0%</span>
-                </div>
-
-                <div className="py-2 border-b border-space-950 font-bold text-[10px]">
-                  Active Supplement Compounds
-                </div>
-
-                {product.ingredients && product.ingredients.length > 0 ? (
-                  product.ingredients.map((ing: any) => (
-                    <div key={ing.id} className="flex justify-between py-1 border-b border-gray-200">
-                      <span>{safeText(ing.ingredient?.name)}</span>
-                      <span className="font-bold">{ing.amount}</span>
+              <div className="animate-fade-in space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                  {/* Digital Nutrition Facts Card */}
+                  <div className="bg-white text-space-950 p-6 rounded-2xl border-4 border-space-950 shadow-2xl font-mono text-xs w-full">
+                    <div className="text-center pb-2 border-b-8 border-space-950">
+                      <h3 className="font-black text-2xl font-sans tracking-tight">Nutrition Facts</h3>
+                      <div className="flex justify-between text-[10px] mt-1">
+                        <span>Serving Size: {selectedVariant?.serving_size || nutrition.serving_size || '5g'}</span>
+                        <span>Servings Per Container: {selectedVariant?.servings || nutrition.servings_per_container || '30'}</span>
+                      </div>
                     </div>
-                  ))
-                ) : product.schema_markup?.ingredients ? (
-                  <div className="py-2 text-[10px] text-gray-600 leading-normal">
-                    {product.schema_markup.ingredients}
+
+                    <div className="flex justify-between py-1 border-b border-space-950 font-bold">
+                      <span>Amount Per Serving</span>
+                    </div>
+
+                    <div className="flex justify-between py-1.5 border-b-4 border-space-950 font-bold text-sm">
+                      <span>Calories</span>
+                      <span>{nutrition.calories || '0'}</span>
+                    </div>
+
+                    <div className="flex justify-between py-1 border-b border-gray-300">
+                      <span>Total Fat {nutrition.total_fat ?? 0}g</span>
+                      <span className="font-bold">0%</span>
+                    </div>
+
+                    <div className="flex justify-between py-1 border-b border-gray-300">
+                      <span>Sodium {nutrition.sodium ?? 0}mg</span>
+                      <span className="font-bold">0%</span>
+                    </div>
+
+                    <div className="flex justify-between py-1 border-b border-gray-300">
+                      <span>Total Carbohydrate {nutrition.total_carbohydrate ?? 0}g</span>
+                      <span className="font-bold">0%</span>
+                    </div>
+
+                    <div className="flex justify-between py-1 border-b-4 border-space-950">
+                      <span>Protein {nutrition.protein || '0'}g</span>
+                      <span className="font-bold">0%</span>
+                    </div>
+
+                    <div className="py-2 border-b border-space-950 font-bold text-[10px]">
+                      Active Supplement Compounds
+                    </div>
+
+                    {product.ingredients && product.ingredients.length > 0 ? (
+                      product.ingredients.map((ing: any) => (
+                        <div key={ing.id} className="flex justify-between py-1 border-b border-gray-200">
+                          <span>{safeText(ing.ingredient?.name)}</span>
+                          <span className="font-bold">{ing.amount}</span>
+                        </div>
+                      ))
+                    ) : product.schema_markup?.ingredients ? (
+                      <div className="py-2 text-[10px] text-gray-600 leading-normal">
+                        {product.schema_markup.ingredients}
+                      </div>
+                    ) : (
+                      <div className="py-2 text-center text-gray-400 italic text-[10px]">
+                        No compounds list loaded.
+                      </div>
+                    )}
                   </div>
-                ) : (
-                  <div className="py-2 text-center text-gray-400 italic text-[10px]">
-                    No compounds list loaded.
-                  </div>
-                )}
+
+                  {/* High-Resolution Official Supplement Facts Poster */}
+                  {factsPoster && (
+                    <div
+                      onClick={() => setLightboxImage({ url: factsPoster.localPath, title: factsPoster.title, subtitle: factsPoster.subtitle, tag: factsPoster.tag })}
+                      className="group bg-space-900 border border-white/10 hover:border-alien-green/50 rounded-2xl p-4 cursor-pointer transition-all hover:shadow-2xl flex flex-col justify-between"
+                    >
+                      <div className="flex items-center justify-between pb-3 border-b border-white/5">
+                        <span className="text-[10px] font-mono font-bold tracking-widest text-alien-green bg-alien-green/10 border border-alien-green/20 px-2 py-0.5 rounded-full uppercase">
+                          OFFICIAL CERTIFIED PANEL
+                        </span>
+                        <span className="text-xs font-mono text-gray-400 flex items-center gap-1 group-hover:text-alien-green">
+                          <Maximize2 className="w-3.5 h-3.5" />
+                          <span>Expand</span>
+                        </span>
+                      </div>
+                      <div className="relative aspect-square w-full my-3 rounded-xl overflow-hidden bg-space-950 flex items-center justify-center">
+                        <Image
+                          src={factsPoster.localPath}
+                          alt={factsPoster.title}
+                          fill
+                          className="object-contain p-2 group-hover:scale-105 transition-transform"
+                          sizes="(max-width: 768px) 100vw, 400px"
+                        />
+                      </div>
+                      <div className="pt-2">
+                        <div className="text-xs font-bold text-white uppercase">{factsPoster.title}</div>
+                        <div className="text-[11px] text-gray-400 mt-0.5">{factsPoster.subtitle}</div>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             )
           })()}
 
           {/* Usage & Warnings */}
-          {activeTab === 'usage' && (
-            <div className="space-y-6 animate-fade-in text-left">
-              <h3 className="text-xl font-bold mb-4 uppercase font-display tracking-wider">Usage & Safety Guidelines</h3>
+          {activeTab === 'usage' && (() => {
+            const usagePoster = posters.find(p => p.index === 3)
+            return (
+              <div className="space-y-6 animate-fade-in text-left">
+                <h3 className="text-xl font-bold mb-4 uppercase font-display tracking-wider">Usage & Safety Guidelines</h3>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-space-900 border border-white/5 p-5 rounded-2xl space-y-3">
-                  <div className="text-xs font-mono font-bold text-alien-green uppercase">Directions / How to Use</div>
-                  <p className="text-xs text-gray-300 leading-relaxed whitespace-pre-wrap">
-                    {product.schema_markup?.how_to_use || 'Mix 1 serving with cold water or beverage of choice.'}
-                  </p>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="bg-space-900 border border-white/5 p-5 rounded-2xl space-y-3">
+                    <div className="text-xs font-mono font-bold text-alien-green uppercase">Directions / How to Use</div>
+                    <p className="text-xs text-gray-300 leading-relaxed whitespace-pre-wrap">
+                      {product.schema_markup?.how_to_use || 'Mix 1 serving with cold water or beverage of choice.'}
+                    </p>
+                  </div>
+
+                  <div className="bg-space-900 border border-white/5 p-5 rounded-2xl space-y-3">
+                    <div className="text-xs font-mono font-bold text-red-400 uppercase">Warnings & Cautions</div>
+                    <p className="text-xs text-gray-300 leading-relaxed whitespace-pre-wrap text-red-200/90">
+                      {product.schema_markup?.warnings || 'Consult a healthcare professional prior to use if pregnant, nursing, or taking medications.'}
+                    </p>
+                  </div>
+
+                  <div className="bg-space-900 border border-white/5 p-5 rounded-2xl space-y-3">
+                    <div className="text-xs font-mono font-bold text-gray-400 uppercase">Storage Instructions</div>
+                    <p className="text-xs text-gray-300 leading-relaxed whitespace-pre-wrap">
+                      {product.schema_markup?.storage_instructions || 'Store in a cool, dry place. Keep out of reach of children.'}
+                    </p>
+                  </div>
                 </div>
 
-                <div className="bg-space-900 border border-white/5 p-5 rounded-2xl space-y-3">
-                  <div className="text-xs font-mono font-bold text-red-400 uppercase">Warnings & Cautions</div>
-                  <p className="text-xs text-gray-300 leading-relaxed whitespace-pre-wrap text-red-200/90">
-                    {product.schema_markup?.warnings || 'Consult a healthcare professional prior to use if pregnant, nursing, or taking medications.'}
-                  </p>
-                </div>
-
-                <div className="bg-space-900 border border-white/5 p-5 rounded-2xl space-y-3">
-                  <div className="text-xs font-mono font-bold text-gray-400 uppercase">Storage Instructions</div>
-                  <p className="text-xs text-gray-300 leading-relaxed whitespace-pre-wrap">
-                    {product.schema_markup?.storage_instructions || 'Store in a cool, dry place. Keep out of reach of children.'}
-                  </p>
-                </div>
+                {/* Official How to Use Poster */}
+                {usagePoster && (
+                  <div
+                    onClick={() => setLightboxImage({ url: usagePoster.localPath, title: usagePoster.title, subtitle: usagePoster.subtitle, tag: usagePoster.tag })}
+                    className="group bg-space-900 border border-white/10 hover:border-alien-green/50 rounded-2xl p-4 sm:p-5 cursor-pointer transition-all hover:shadow-2xl flex flex-col sm:flex-row items-center gap-6"
+                  >
+                    <div className="relative w-36 h-36 sm:w-44 sm:h-44 rounded-xl overflow-hidden bg-space-950 shrink-0">
+                      <Image
+                        src={usagePoster.localPath}
+                        alt={usagePoster.title}
+                        fill
+                        className="object-contain p-2 group-hover:scale-105 transition-transform"
+                        sizes="180px"
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0 space-y-2 text-center sm:text-left">
+                      <span className="text-[10px] font-mono font-bold text-alien-green uppercase bg-alien-green/10 border border-alien-green/20 px-2.5 py-0.5 rounded-full inline-block">
+                        OFFICIAL DOSING INFOGRAPHIC
+                      </span>
+                      <h4 className="font-display text-lg text-white uppercase">{usagePoster.title}</h4>
+                      <p className="text-xs text-gray-300 leading-relaxed">{usagePoster.subtitle}</p>
+                      <div className="pt-2 flex items-center justify-center sm:justify-start gap-2 text-xs font-mono text-alien-green">
+                        <Maximize2 className="w-3.5 h-3.5" />
+                        <span>Click to view full-resolution dosing timeline</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
-            </div>
-          )}
+            )
+          })()}
 
           {/* FAQs Accordion */}
           {activeTab === 'faqs' && (
@@ -1517,6 +1768,60 @@ export default function ProductDetail({ product: serverProduct, slug }: { produc
               <Send className="w-3.5 h-3.5" />
             </button>
           </form>
+        </div>
+      )}
+
+      {/* ─── 10. HIGH-RES INFOGRAPHIC & PRODUCT LIGHTBOX MODAL ─── */}
+      {lightboxImage && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-4 sm:p-6 animate-fade-in"
+          onClick={() => setLightboxImage(null)}
+        >
+          <div
+            className="relative max-w-4xl w-full max-h-[92vh] bg-space-950 border border-white/15 rounded-3xl overflow-hidden shadow-2xl flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Top Bar */}
+            <div className="flex items-center justify-between p-4 px-6 border-b border-white/10 bg-space-900/90">
+              <div className="flex items-center gap-3">
+                <span className="text-[10px] font-mono uppercase tracking-widest bg-alien-green/10 text-alien-green border border-alien-green/20 px-2.5 py-0.5 rounded-full font-bold">
+                  {lightboxImage.tag || 'LAB INFOGRAPHIC'}
+                </span>
+                <h3 className="font-display text-base sm:text-lg text-white uppercase tracking-wide truncate max-w-xs sm:max-w-md">
+                  {lightboxImage.title}
+                </h3>
+              </div>
+              <button
+                onClick={() => setLightboxImage(null)}
+                className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors"
+                aria-label="Close modal"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Image Viewport */}
+            <div className="relative flex-1 min-h-[360px] sm:min-h-[520px] bg-black/80 flex items-center justify-center p-4">
+              <Image
+                src={lightboxImage.url}
+                alt={lightboxImage.title}
+                fill
+                className="object-contain p-2"
+                sizes="(max-width: 1200px) 100vw, 900px"
+                priority
+              />
+            </div>
+
+            {/* Bottom Caption */}
+            {lightboxImage.subtitle && (
+              <div className="p-4 px-6 border-t border-white/10 bg-space-900/90 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs">
+                <p className="text-gray-300 leading-relaxed font-sans">{lightboxImage.subtitle}</p>
+                <span className="text-[11px] font-mono text-alien-green shrink-0">SWISS QUALITY PROTOCOL</span>
+              </div>
+            )}
+          </div>
         </div>
       )}
 

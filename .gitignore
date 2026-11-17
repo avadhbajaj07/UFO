@@ -18,6 +18,7 @@ build
 *.pem
 /scratch/
 /tmp/
+/UFO POSTERS/
 
 # debug
 npm-debug.log*
